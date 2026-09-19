@@ -1636,13 +1636,65 @@ service cloud.firestore {
       try{ firestoreDb.enablePersistence({synchronizeTabs:true}); }catch(e){ /* offline cache best-effort */ }
       farmCode = code;
       sharingEnabled = true;
+
+      // Snapshot whatever was on this device BEFORE we start listening to the
+      // shared farm, so a brand-new farm code can be seeded with it instead of
+      // silently wiping this device's map with an empty shared collection.
+      var localFieldsSnapshot = fields.slice();
+      var localRocksSnapshot = rocks.slice();
+
       subscribeToFarm();
       setShareStatusUI();
       try{ localStorage.setItem(SHARE_KEY, JSON.stringify({config:config, farmCode:code})); }catch(e){}
-      if(!isAutoReconnect){ toast("Connected — sharing enabled"); hideSheet("share-modal","share-backdrop"); }
+      if(!isAutoReconnect){
+        seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot);
+        toast("Connected — sharing enabled");
+        hideSheet("share-modal","share-backdrop");
+      }
     }catch(err){
       toast("Couldn't connect — double-check the pasted Firebase settings.");
     }
+  }
+
+  // Only runs right after a manual connect. If this farm code has no data in
+  // it yet, uploads whatever was already on this device so the shared map
+  // starts from your existing work instead of empty. If the farm code already
+  // has data (someone else set it up, or you've connected before), this does
+  // nothing and the shared data simply takes over, as usual.
+  function seedFarmIfEmpty(localFields, localRocks){
+    if(!localFields.length && !localRocks.length){ return; }
+    var fieldsRef = firestoreDb.collection("farms").doc(farmCode).collection("fields");
+    var rocksRef = firestoreDb.collection("farms").doc(farmCode).collection("rocks");
+    Promise.all([fieldsRef.limit(1).get(), rocksRef.limit(1).get()]).then(function(results){
+      var fieldsEmpty = results[0].empty;
+      var rocksEmpty = results[1].empty;
+      var uploaded = 0;
+      if(fieldsEmpty && localFields.length){
+        localFields.forEach(function(f){
+          fieldsRef.doc(f.id).set({
+            name: f.name || "Field",
+            crop: f.crop || "",
+            harvestStatus: f.harvestStatus || "Not Harvested",
+            partialAcresHarvested: (typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0),
+            color: f.color || FIELD_COLORS[0],
+            points: f.points,
+            createdAt: f.createdAt || new Date().toISOString()
+          });
+          uploaded++;
+        });
+      }
+      if(rocksEmpty && localRocks.length){
+        localRocks.forEach(function(r){
+          rocksRef.doc(r.id).set({
+            lat: r.lat, lng: r.lng, size: r.size || "medium",
+            field: r.field || "", note: r.note || "",
+            createdAt: r.createdAt || new Date().toISOString()
+          });
+          uploaded++;
+        });
+      }
+      if(uploaded > 0){ toast("Uploaded your existing map to the shared farm."); }
+    }).catch(function(){ /* best-effort; onSnapshot will still show whatever is there */ });
   }
 
   function disconnectSharing(){
