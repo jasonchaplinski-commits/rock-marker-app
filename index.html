@@ -476,7 +476,7 @@
     To share your map live with others, everyone pastes the <b>same Firebase settings</b> and types the <b>same farm code</b> into their own copy of this app. One person sets up the free Firebase project (~5 minutes, no cost, no credit card):
     <ol>
       <li>Go to <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a>, sign in, and click "Add project" (name it anything, Analytics can be off).</li>
-      <li>In the sidebar: Build → Firestore Database → Create database → pick a location → start in production mode → Enable.</li>
+      <li>In the left sidebar, look for <b>Databases &amp; Storage</b> (Firebase has moved this around — if you don't see that exact label, look for anything mentioning "Firestore") → <b>Firestore</b> → <b>Create database</b> → pick a location → start in <b>production mode</b> → Create.</li>
       <li>Open the "Rules" tab of Firestore, replace the contents with the rule below, and click Publish:
       <br><code style="display:block;background:#eee;padding:8px;border-radius:6px;margin-top:4px;white-space:pre-wrap;">rules_version = '2';
 service cloud.firestore {
@@ -486,7 +486,7 @@ service cloud.firestore {
     }
   }
 }</code></li>
-      <li>Click the gear icon → Project settings → scroll to "Your apps" → click the web icon (&lt;/&gt;) → register an app → copy the <code>firebaseConfig</code> object shown → paste it above.</li>
+      <li>Go back to your project's main Overview page. You'll see a row of small platform icons (iOS / Android / web) — click the <b>web icon (&lt;/&gt;)</b> to add a web app (if you don't see it there, look for an "Add app" button, or the gear icon → Project settings → "Your apps" further down the page). Give it any nickname → Register app → copy the <code>firebaseConfig</code> block shown → paste it above.</li>
       <li>Pick a farm code that isn't easy to guess (anyone who has both the code and these settings can see and edit this map) and tap Connect. Text or email the same settings + code to whoever else should share it.</li>
     </ol>
   </div>
@@ -633,11 +633,25 @@ service cloud.firestore {
     map.on("zoomend", function(){ renderFields(); updateRockGhosting(); });
     map.on("move", function(){ updateRockGhosting(); });
 
-    if(rocks.length > 0){
-      var bounds = L.latLngBounds(rocks.map(function(r){ return [r.lat, r.lng]; }));
-      map.fitBounds(bounds, {padding:[60,60], maxZoom:17});
+    fitToAllData();
+  }
+
+  function fitToAllData(){
+    var startupPoints = [];
+    fields.forEach(function(f){
+      if(f.points && f.points.length >= 3){
+        f.points.forEach(function(p){ startupPoints.push([p[0], p[1]]); });
+      }
+    });
+    rocks.forEach(function(r){ startupPoints.push([r.lat, r.lng]); });
+
+    if(startupPoints.length > 0){
+      var bounds = L.latLngBounds(startupPoints);
+      map.fitBounds(bounds, {padding:[20,20], maxZoom:19});
+      return true;
     } else {
       toast("Tap 📍 to find your location, or tap the map to mark a rock.", 3600);
+      return false;
     }
   }
 
@@ -1701,44 +1715,63 @@ service cloud.firestore {
     }
   }
 
+  function isIOSDevice(){
+    // iPadOS 13+ reports as "MacIntel" with touch support, so check for that too.
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  function isStandaloneDisplay(){
+    return window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+  }
+
+  function showInstallBanner(){
+    if(localStorage.getItem("rockMarkerInstallDismissed")) return;
+    document.getElementById("install-banner").classList.remove("hidden");
+  }
+  function hideInstallBanner(){
+    document.getElementById("install-banner").classList.add("hidden");
+  }
+
   function wireInstallPrompt(){
+    // Android / desktop Chrome etc: native install prompt.
     window.addEventListener("beforeinstallprompt", function(e){
       e.preventDefault();
       deferredInstallPrompt = e;
-      if(!localStorage.getItem("rockMarkerInstallDismissed")){
-        document.getElementById("install-banner").classList.remove("hidden");
-      }
+      showInstallBanner();
     });
     window.addEventListener("appinstalled", function(){
-      document.getElementById("install-banner").classList.add("hidden");
+      hideInstallBanner();
       deferredInstallPrompt = null;
     });
-    document.getElementById("btn-install").addEventListener("click", function(){
-      if(!deferredInstallPrompt) return;
-      deferredInstallPrompt.prompt();
-      deferredInstallPrompt.userChoice.then(function(){
-        deferredInstallPrompt = null;
-        document.getElementById("install-banner").classList.add("hidden");
-      });
+
+    var installBtn = document.getElementById("btn-install");
+    installBtn.addEventListener("click", function(){
+      if(deferredInstallPrompt){
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then(function(){
+          deferredInstallPrompt = null;
+          hideInstallBanner();
+        });
+      } else if(isIOSDevice()){
+        // iOS/iPadOS Safari has no programmatic install API — walk the user through it.
+        toast('Tap the Share icon 􀈂 in Safari\'s toolbar, then choose "Add to Home Screen".', 6000);
+      }
     });
+
     document.getElementById("btn-install-dismiss").addEventListener("click", function(){
-      document.getElementById("install-banner").classList.add("hidden");
+      hideInstallBanner();
       try{ localStorage.setItem("rockMarkerInstallDismissed","1"); }catch(e){}
     });
-  }
 
-  function maybeShowIOSInstallHint(){
-    try{
-      var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-      var isStandalone = window.navigator.standalone === true ||
-        (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
-      if(isIOS && !isStandalone && !localStorage.getItem("rockMarkerIOSHintShown")){
-        setTimeout(function(){
-          toast('To install: tap the Share icon, then "Add to Home Screen".', 5500);
-        }, 1200);
-        localStorage.setItem("rockMarkerIOSHintShown", "1");
-      }
-    }catch(e){ /* ignore */ }
+    // iOS/iPadOS Safari never fires beforeinstallprompt, so show the same
+    // banner ourselves with wording that matches what the button actually does.
+    if(isIOSDevice() && !isStandaloneDisplay()){
+      installBtn.textContent = "How to Install";
+      document.querySelector("#install-banner .msg").textContent = "Add Rock Marker to your Home Screen for quick access.";
+      showInstallBanner();
+    }
   }
 
   // ---------- Wire up UI ----------
@@ -1924,9 +1957,11 @@ service cloud.firestore {
     wireUI();
     wireInstallPrompt();
     registerServiceWorker();
-    maybeShowIOSInstallHint();
     setShareStatusUI();
     tryAutoReconnect();
+    setTimeout(function(){
+      try{ fitToAllData(); }catch(e){}
+    }, 500);
   }catch(err){
     document.getElementById("load-error").classList.remove("hidden");
   }
