@@ -1265,6 +1265,19 @@ service cloud.firestore {
     return firestoreDb.collection("farms").doc(farmCode).collection("fields").doc(id);
   }
 
+  // Firestore rejects an array whose entries are themselves arrays (our field
+  // boundaries are stored locally as [[lat,lng], [lat,lng], ...]), so every
+  // write wraps each point as {lat,lng} and every read unwraps it back.
+  function pointsToFirestore(points){
+    return (points || []).map(function(p){ return {lat:p[0], lng:p[1]}; });
+  }
+  function pointsFromFirestore(points){
+    return (points || []).map(function(p){
+      if(Array.isArray(p)){ return [p[0], p[1]]; }
+      return [p.lat, p.lng];
+    });
+  }
+
   function saveFieldFromForm(){
     var name = document.getElementById("input-field-name").value.trim();
     if(!name){ toast("Enter a field name."); return; }
@@ -1285,7 +1298,9 @@ service cloud.firestore {
       var updates = {name:name, crop:crop, harvestStatus:harvestStatus, partialAcresHarvested:partialAcresHarvested, color:color};
       if(pendingFieldPoints){ updates.points = pendingFieldPoints; }
       if(sharingEnabled){
-        fieldDocRef(editingFieldId).update(updates).catch(function(){
+        var fsUpdates = {name:updates.name, crop:updates.crop, harvestStatus:updates.harvestStatus, partialAcresHarvested:updates.partialAcresHarvested, color:updates.color};
+        if(updates.points){ fsUpdates.points = pointsToFirestore(updates.points); }
+        fieldDocRef(editingFieldId).update(fsUpdates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
@@ -1316,7 +1331,7 @@ service cloud.firestore {
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
-        fieldDocRef(newField.id).set({name:newField.name, crop:newField.crop, harvestStatus:newField.harvestStatus, partialAcresHarvested:newField.partialAcresHarvested, color:newField.color, points:newField.points, createdAt:newField.createdAt}).catch(function(){
+        fieldDocRef(newField.id).set({name:newField.name, crop:newField.crop, harvestStatus:newField.harvestStatus, partialAcresHarvested:newField.partialAcresHarvested, color:newField.color, points:pointsToFirestore(newField.points), createdAt:newField.createdAt}).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
@@ -1535,7 +1550,7 @@ service cloud.firestore {
         fieldsIn.forEach(function(f){
           if(f && Array.isArray(f.points) && f.points.length >= 3 && !existingFieldIds.has(f.id)){
             if(sharingEnabled){
-              fieldDocRef(f.id).set({name:f.name||"Field", crop:f.crop||"", harvestStatus:f.harvestStatus||"Not Harvested", partialAcresHarvested:(typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0), color:f.color||FIELD_COLORS[0], points:f.points, createdAt:f.createdAt||new Date().toISOString()});
+              fieldDocRef(f.id).set({name:f.name||"Field", crop:f.crop||"", harvestStatus:f.harvestStatus||"Not Harvested", partialAcresHarvested:(typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0), color:f.color||FIELD_COLORS[0], points:pointsToFirestore(f.points), createdAt:f.createdAt||new Date().toISOString()});
             } else {
               fields.push(f);
             }
@@ -1612,6 +1627,7 @@ service cloud.firestore {
         fields = snapshot.docs.map(function(d){
           var data = d.data();
           data.id = d.id;
+          data.points = pointsFromFirestore(data.points);
           return data;
         });
         cacheSharedData();
@@ -1677,7 +1693,7 @@ service cloud.firestore {
             harvestStatus: f.harvestStatus || "Not Harvested",
             partialAcresHarvested: (typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0),
             color: f.color || FIELD_COLORS[0],
-            points: f.points,
+            points: pointsToFirestore(f.points),
             createdAt: f.createdAt || new Date().toISOString()
           });
           uploaded++;
