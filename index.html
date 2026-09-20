@@ -805,6 +805,7 @@
   <div class="summary-subtitle">Deleted, edited, or cleared entries — restore any of these to count it toward the bin's totals again.</div>
   <div id="bin-log-archive-list"></div>
   <div class="btn-row" style="flex-direction:column;margin-top:14px;">
+    <button class="btn btn-danger" id="btn-bin-clear-archive">🗑️ Clear archived entries</button>
     <button class="btn btn-secondary" id="btn-bin-log-archive-close">Close</button>
   </div>
 </div>
@@ -3514,6 +3515,19 @@ service cloud.firestore {
     hideSheet("bin-log-archive-modal", "bin-log-archive-backdrop");
   }
 
+  // Permanently wipes a bin's archive — unlike clearing the live log, there's
+  // no further recycle bin behind this one, so it's for once an admin has
+  // actually reviewed what's there and is sure none of it needs restoring.
+  // The live log and totals are untouched.
+  function clearBinArchive(binId){
+    var b = bins.find(function(x){ return x.id === binId; });
+    if(!b) return;
+    applyBinLogUpdate(binId, b.log || [], []);
+    hideSheet("bin-actions-modal", "bin-actions-backdrop");
+    openBinLogArchive(binId);
+    toast("Archive cleared");
+  }
+
   function renderBinList(){
     var listEl = document.getElementById("bin-list");
     if(bins.length === 0){
@@ -5571,6 +5585,16 @@ service cloud.firestore {
       var restoreBtn = e.target.closest(".log-entry-restore");
       if(!restoreBtn) return;
       restoreBinLogEntry(binActionsBinId, restoreBtn.getAttribute("data-archive-id"));
+    });
+    document.getElementById("btn-bin-clear-archive").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
+      var binId = binActionsBinId;
+      var b = bins.find(function(x){ return x.id === binId; });
+      if(!b || !b.archivedLog || b.archivedLog.length === 0){ toast("No archived entries to clear."); return; }
+      var count = b.archivedLog.length;
+      if(!confirm("Permanently delete all " + count + " archived " + (count === 1 ? "entry" : "entries") + " for " + (b.name || "this bin") +
+        "? Unlike the log itself, there's no further recycle bin behind this one — once cleared, these are gone for good.")) return;
+      clearBinArchive(binId);
     });
 
     document.querySelectorAll("#log-action-options .log-opt").forEach(function(btn){
