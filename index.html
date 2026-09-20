@@ -1286,16 +1286,30 @@ service cloud.firestore {
     return cropBit + "≈" + bu.toLocaleString() + " bu" + (pct !== null ? " (" + pct + "%)" : "");
   }
 
-  // Below this label scale, name+crop chips are too small to read anyway
-  // (farm-wide zoom levels), so bins show as plain pins with no text —
-  // decluttering only has to deal with chips once you've zoomed in enough
-  // for them to matter.
-  var BIN_CHIP_MIN_SCALE = 0.5;
+  // The zoom level the BIN button (zoomToAllBins) would land you on, given
+  // the bins' actual footprint and the current screen size — mirrors
+  // fitBounds' own math (same padding) without moving the map. Bin chips
+  // only show once you're zoomed in at least this far, so labels stay
+  // hidden at any wider view and appear right as the BIN button's zoom
+  // brings all of them into frame.
+  var BIN_FIT_PADDING = 60;
+  function binFitZoom(){
+    var allPoints = [];
+    bins.forEach(function(b){
+      if(b.points && b.points.length >= 3){
+        allPoints = allPoints.concat(b.points.map(function(p){ return [p[0], p[1]]; }));
+      }
+    });
+    if(!allPoints.length) return null;
+    var pad = L.point(BIN_FIT_PADDING, BIN_FIT_PADDING);
+    return map.getBoundsZoom(L.latLngBounds(allPoints), false, pad.add(pad));
+  }
 
   function renderBins(){
     binLayerGroup.clearLayers();
     var labelScale = fieldLabelScale();
-    var showChips = labelScale >= BIN_CHIP_MIN_SCALE;
+    var targetZoom = binFitZoom();
+    var showChips = targetZoom === null ? true : map.getZoom() >= targetZoom;
     var labelMarkers = [];
     bins.forEach(function(b){
       if(!b.points || b.points.length < 3) return;
@@ -1903,7 +1917,7 @@ service cloud.firestore {
       }
     });
     if(allPoints.length){
-      map.fitBounds(L.latLngBounds(allPoints), {padding:[60,60]});
+      map.fitBounds(L.latLngBounds(allPoints), {padding:[BIN_FIT_PADDING, BIN_FIT_PADDING]});
     }
   }
 
