@@ -6,9 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Rock Marker">
+<meta name="apple-mobile-web-app-title" content="Chaplinski Farms">
 <meta name="theme-color" content="#2f4f2f">
-<title>Rock Marker</title>
+<meta name="application-name" content="Chaplinski Farms">
+<title>Chaplinski Farms</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -78,6 +79,12 @@
   #drop-pin-banner{position:absolute;left:10px;right:10px;top:10px;z-index:600;background:#1f2d17;color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 3px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:space-between;gap:10px;}
   #drop-pin-banner button{background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;}
   #drop-pin-banner.hidden{display:none;}
+
+  #app-credit{
+    position:absolute;left:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);z-index:495;
+    background:rgba(255,255,255,.78);color:#333;font-size:10.5px;font-weight:600;
+    padding:3px 8px;border-radius:8px;pointer-events:none;white-space:nowrap;
+  }
 
   #count-badge{
     position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 335px);z-index:500;max-width:66vw;
@@ -301,6 +308,7 @@
 
 <div id="count-badge">0 rocks</div>
 <div id="farm-badge" class="hidden"></div>
+<div id="app-credit">Created by Jason Chaplinski</div>
 
 <div id="drop-pin-banner" class="hidden">
   <span>📍 Tap anywhere on the map to drop a pin</span>
@@ -674,7 +682,12 @@ service cloud.firestore {
     });
 
     map.on("zoomend", function(){ renderFields(); updateRockGhosting(); });
-    map.on("move", function(){ updateRockGhosting(); });
+    // Recompute rock/label overlap only once a pan settles, not on every
+    // intermediate "move" tick. Doing this continuously during a drag forces
+    // a layout reflow (getBoundingClientRect over every rock + label) many
+    // times a second, which is what was making the map feel sluggish/janky
+    // to slide around.
+    map.on("moveend", function(){ updateRockGhosting(); });
 
     fitToAllData();
   }
