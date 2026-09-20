@@ -1595,17 +1595,31 @@ service cloud.firestore {
     return parts.join(" · ");
   }
 
-  // Plain "how many of each truck" count for a single bin's log — the
-  // simple total shown on that bin's own action sheet, as opposed to
-  // binTruckSummary()'s fuller how-full-was-each-load breakdown.
-  function binTruckCounts(log){
+  // Plain "how many of each truck" count for a single bin's log, for
+  // whichever action matches — the simple totals shown on that bin's own
+  // action sheet ("Trucks dumped" for loads added, "Loads removed" for
+  // loads hauled back out), as opposed to binTruckSummary()'s fuller
+  // how-full-was-each-load breakdown.
+  function binTruckCountsForActions(log, actions){
     var counts = {Tandem: 0, Semi: 0};
     (log || []).forEach(function(e){
-      if((e.action === "Filled" || e.action === "Added") && e.truckType && counts.hasOwnProperty(e.truckType)){
+      if(actions.indexOf(e.action) !== -1 && e.truckType && counts.hasOwnProperty(e.truckType)){
         counts[e.truckType] += 1;
       }
     });
     return counts;
+  }
+  function binTruckCounts(log){
+    return binTruckCountsForActions(log, ["Filled", "Added"]);
+  }
+  function binTruckCountsRemoved(log){
+    return binTruckCountsForActions(log, ["Removed"]);
+  }
+  function truckCountsLine(counts){
+    var bits = [];
+    if(counts.Tandem) bits.push(counts.Tandem + (counts.Tandem === 1 ? " tandem" : " tandems"));
+    if(counts.Semi) bits.push(counts.Semi + (counts.Semi === 1 ? " semi" : " semis"));
+    return bits.length ? bits.join(" · ") : null;
   }
 
   // Bins are shown in a fixed, farm-meaningful order rather than
@@ -2458,17 +2472,15 @@ service cloud.firestore {
     var holdingHtml = binHoldingHtml(b);
     var loadsLine = (typeof b.currentLoads === "number" && b.currentLoads > 0)
       ? (b.currentLoads + (b.currentLoads === 1 ? " load in" : " loads in")) : null;
-    var truckCounts = binTruckCounts(b.log);
-    var truckBits = [];
-    if(truckCounts.Tandem) truckBits.push(truckCounts.Tandem + (truckCounts.Tandem === 1 ? " tandem" : " tandems"));
-    if(truckCounts.Semi) truckBits.push(truckCounts.Semi + (truckCounts.Semi === 1 ? " semi" : " semis"));
-    var truckLine = truckBits.length ? truckBits.join(" · ") : null;
+    var truckLine = truckCountsLine(binTruckCounts(b.log));
+    var removedLine = truckCountsLine(binTruckCountsRemoved(b.log));
     var equivLine = loadsEquivLine(b.currentBu);
 
     document.getElementById("bin-actions-stats").innerHTML =
       '<div class="summary-row summary-total"><span>Currently holding</span><span>'+holdingHtml+'</span></div>'+
       (loadsLine ? '<div class="summary-row"><span>'+escapeHtml(loadsLine)+'</span></div>' : '')+
       (truckLine ? '<div class="summary-row"><span>Trucks dumped</span><span>'+escapeHtml(truckLine)+'</span></div>' : '')+
+      (removedLine ? '<div class="summary-row"><span>Loads removed</span><span>'+escapeHtml(removedLine)+'</span></div>' : '')+
       (equivLine ? '<div class="summary-row"><span>Loads to empty (est.)</span><span>'+escapeHtml(equivLine)+'</span></div>' : '')+
       '<div class="summary-row"><span>'+escapeHtml(capLine)+'</span></div>';
 
