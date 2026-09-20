@@ -962,6 +962,10 @@ service cloud.firestore {
     <input type="text" id="input-equip-model" placeholder="e.g. John Deere 8320">
   </div>
   <div class="field-row">
+    <label>Serial # (if you have it)</label>
+    <input type="text" id="input-equip-serial" placeholder="e.g. 1RW8320RJEL123456">
+  </div>
+  <div class="field-row">
     <label>Oil filter</label>
     <input type="text" id="input-equip-oil-filter" placeholder="e.g. RE504836">
   </div>
@@ -3320,7 +3324,7 @@ service cloud.firestore {
     }
     var sorted = equipment.slice().sort(function(a,z){ return (a.name||"").localeCompare(z.name||""); });
     listEl.innerHTML = sorted.map(function(e){
-      var ymBits = [e.year, e.model].filter(Boolean).join(" · ");
+      var ymBits = [e.year, e.model, (e.serial ? "SN " + e.serial : "")].filter(Boolean).join(" · ");
       var filterBits = [];
       if(e.oilFilter) filterBits.push("Oil filter: " + e.oilFilter);
       if(e.fuelFilter) filterBits.push("Fuel filter: " + e.fuelFilter);
@@ -3629,6 +3633,7 @@ service cloud.firestore {
       document.getElementById("input-equip-name").value = e.name || "";
       document.getElementById("input-equip-year").value = e.year || "";
       document.getElementById("input-equip-model").value = e.model || "";
+      document.getElementById("input-equip-serial").value = e.serial || "";
       document.getElementById("input-equip-oil-filter").value = e.oilFilter || "";
       document.getElementById("input-equip-fuel-filter").value = e.fuelFilter || "";
       document.getElementById("input-equip-air-filter").value = e.airFilter || "";
@@ -3643,6 +3648,7 @@ service cloud.firestore {
       document.getElementById("input-equip-name").value = "";
       document.getElementById("input-equip-year").value = "";
       document.getElementById("input-equip-model").value = "";
+      document.getElementById("input-equip-serial").value = "";
       document.getElementById("input-equip-oil-filter").value = "";
       document.getElementById("input-equip-fuel-filter").value = "";
       document.getElementById("input-equip-air-filter").value = "";
@@ -3667,6 +3673,7 @@ service cloud.firestore {
     if(!name){ toast("Enter an equipment name."); return; }
     var year = document.getElementById("input-equip-year").value.trim();
     var model = document.getElementById("input-equip-model").value.trim();
+    var serial = document.getElementById("input-equip-serial").value.trim();
     var oilFilter = document.getElementById("input-equip-oil-filter").value.trim();
     var fuelFilter = document.getElementById("input-equip-fuel-filter").value.trim();
     var airFilter = document.getElementById("input-equip-air-filter").value.trim();
@@ -3676,14 +3683,14 @@ service cloud.firestore {
     var files = pendingEquipFiles;
 
     if(editingEquipmentId){
-      var updates = {name:name, year:year, model:model, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, files:files, photo:""};
+      var updates = {name:name, year:year, model:model, serial:serial, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, files:files, photo:""};
       if(sharingEnabled){
         equipmentDocRef(editingEquipmentId).update(updates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
         var ex = equipment.find(function(x){ return x.id === editingEquipmentId; });
-        if(ex){ ex.name=name; ex.year=year; ex.model=model; ex.oilFilter=oilFilter; ex.fuelFilter=fuelFilter; ex.airFilter=airFilter; ex.cabinFilter=cabinFilter; ex.hydraulicFilter=hydraulicFilter; ex.wiperBlade=wiperBlade; ex.files=files; ex.photo=""; }
+        if(ex){ ex.name=name; ex.year=year; ex.model=model; ex.serial=serial; ex.oilFilter=oilFilter; ex.fuelFilter=fuelFilter; ex.airFilter=airFilter; ex.cabinFilter=cabinFilter; ex.hydraulicFilter=hydraulicFilter; ex.wiperBlade=wiperBlade; ex.files=files; ex.photo=""; }
         saveData();
         renderEquipmentList();
       }
@@ -3691,7 +3698,7 @@ service cloud.firestore {
     } else {
       var newEquip = {
         id: "eq"+Date.now()+"_"+Math.floor(Math.random()*10000),
-        name:name, year:year, model:model, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, files:files, photo:"",
+        name:name, year:year, model:model, serial:serial, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, files:files, photo:"",
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
@@ -4799,6 +4806,7 @@ service cloud.firestore {
             name: e.name || "Equipment",
             year: e.year || "",
             model: e.model || "",
+            serial: e.serial || "",
             oilFilter: e.oilFilter || "",
             fuelFilter: e.fuelFilter || "",
             airFilter: e.airFilter || "",
