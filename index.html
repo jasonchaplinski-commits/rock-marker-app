@@ -372,17 +372,24 @@
   #app-splash{
     position:fixed;inset:0;z-index:3000;background:var(--cream);
     display:flex;align-items:center;justify-content:center;
-    transition:opacity .5s ease;
+    overflow:hidden;perspective:600px;
+    transition:opacity .45s ease;
   }
   #app-splash.hide{opacity:0;pointer-events:none;}
   #app-splash-logo{
     width:44vw;max-width:220px;
-    animation:appSplashZoom 1.3s cubic-bezier(.2,.8,.2,1) forwards;
+    animation:appSplashZoom 1.7s forwards;
   }
+  /* Logo starts tiny/distant and rushes straight at the viewer: a quick
+     decelerating rise up to full size (like it's closing the distance),
+     then an accelerating overshoot past 100% so it feels like it flies
+     through the screen right as the splash fades into the map. Per-keyframe
+     animation-timing-function gives each half its own easing curve. */
   @keyframes appSplashZoom{
-    0%{transform:scale(0.72);opacity:0;}
-    40%{opacity:1;}
-    100%{transform:scale(1);opacity:1;}
+    0%{transform:scale(0.04);opacity:0;animation-timing-function:cubic-bezier(.16,1,.3,1);}
+    10%{opacity:1;}
+    50%{transform:scale(1);opacity:1;animation-timing-function:cubic-bezier(.55,0,1,.45);}
+    100%{transform:scale(2.6);opacity:1;}
   }
 
   /* Full-screen equipment photo viewer — custom pinch/pan/double-tap zoom,
@@ -397,6 +404,7 @@
   #photo-viewer-title{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
   #photo-viewer-stage{flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;touch-action:none;}
   #photo-viewer-img{max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;transform-origin:center center;will-change:transform;}
+  #photo-viewer-zoom-controls{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:10px;z-index:2;}
   #photo-viewer-nav{display:flex;align-items:center;justify-content:center;gap:16px;padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 10px) 14px;}
   #photo-viewer-hint{color:rgba(255,255,255,.6);font-size:12px;text-align:center;}
   #photo-viewer-nav .icon-btn:disabled{opacity:.35;cursor:default;}
@@ -969,10 +977,14 @@ service cloud.firestore {
   </div>
   <div id="photo-viewer-stage">
     <img id="photo-viewer-img" draggable="false" alt="">
+    <div id="photo-viewer-zoom-controls">
+      <button class="icon-btn" id="btn-photo-zoom-in" title="Zoom in">+</button>
+      <button class="icon-btn" id="btn-photo-zoom-out" title="Zoom out">−</button>
+    </div>
   </div>
   <div id="photo-viewer-nav">
     <button class="icon-btn hidden" id="btn-photo-prev">‹</button>
-    <span id="photo-viewer-hint">Pinch or double-tap to zoom · drag to pan</span>
+    <span id="photo-viewer-hint">Scroll wheel, pinch, or +/− to zoom · drag to pan</span>
     <button class="icon-btn hidden" id="btn-photo-next">›</button>
   </div>
 </div>
@@ -3476,9 +3488,30 @@ service cloud.firestore {
   }
 
   // ---------- Full-screen photo/PDF-page viewer ----------
+  var PHOTO_ZOOM_MIN = 1, PHOTO_ZOOM_MAX = 5;
+
   function applyPhotoTransform(){
     var img = document.getElementById("photo-viewer-img");
     if(img) img.style.transform = "translate("+photoViewerState.x+"px,"+photoViewerState.y+"px) scale("+photoViewerState.scale+")";
+  }
+
+  // Shared by pinch/drag gestures, the scroll-wheel zoom, and the +/- zoom
+  // buttons so a pan offset never drags the image further than makes sense
+  // for its current zoom level, regardless of which input caused it.
+  function clampPhotoViewerPan(){
+    var maxOffset = 400 * photoViewerState.scale;
+    photoViewerState.x = Math.max(-maxOffset, Math.min(maxOffset, photoViewerState.x));
+    photoViewerState.y = Math.max(-maxOffset, Math.min(maxOffset, photoViewerState.y));
+  }
+
+  // Center-anchored zoom step used by the scroll wheel and the +/- buttons
+  // (the image's transform-origin is already centered, so just changing
+  // scale zooms around the middle of the view without needing to also
+  // adjust the pan offset).
+  function zoomPhotoViewerBy(factor){
+    photoViewerState.scale = Math.max(PHOTO_ZOOM_MIN, Math.min(PHOTO_ZOOM_MAX, photoViewerState.scale * factor));
+    clampPhotoViewerPan();
+    applyPhotoTransform();
   }
 
   function renderPhotoViewerCurrentPage(){
@@ -3547,6 +3580,7 @@ service cloud.firestore {
   // true midpoint-anchored zoom.
   function initPhotoViewerGestures(){
     var img = document.getElementById("photo-viewer-img");
+    var stage = document.getElementById("photo-viewer-stage");
     var pointers = {};
     var pinchStartDist = 0, pinchStartScale = 1;
     var panStart = null;
@@ -3555,11 +3589,15 @@ service cloud.firestore {
       var dx = p1.x - p2.x, dy = p1.y - p2.y;
       return Math.sqrt(dx*dx + dy*dy);
     }
-    function clampPan(){
-      var maxOffset = 400 * photoViewerState.scale;
-      photoViewerState.x = Math.max(-maxOffset, Math.min(maxOffset, photoViewerState.x));
-      photoViewerState.y = Math.max(-maxOffset, Math.min(maxOffset, photoViewerState.y));
-    }
+
+    // Mouse-wheel / trackpad zoom for desktops (no pinch gesture available).
+    // exp() gives a smooth, continuous zoom step regardless of whether the
+    // input device reports big notchy deltas (a mouse wheel) or small
+    // continuous ones (a trackpad).
+    stage.addEventListener("wheel", function(e){
+      e.preventDefault();
+      zoomPhotoViewerBy(Math.exp(-e.deltaY * 0.0015));
+    }, {passive:false});
 
     img.addEventListener("pointerdown", function(e){
       img.setPointerCapture(e.pointerId);
@@ -3583,14 +3621,14 @@ service cloud.firestore {
         var d = dist(pts[0], pts[1]);
         if(pinchStartDist > 0){
           var newScale = pinchStartScale * (d / pinchStartDist);
-          photoViewerState.scale = Math.max(1, Math.min(5, newScale));
-          clampPan();
+          photoViewerState.scale = Math.max(PHOTO_ZOOM_MIN, Math.min(PHOTO_ZOOM_MAX, newScale));
+          clampPhotoViewerPan();
           applyPhotoTransform();
         }
       } else if(ids.length === 1 && panStart){
         photoViewerState.x = panStart.tx + (e.clientX - panStart.x);
         photoViewerState.y = panStart.ty + (e.clientY - panStart.y);
-        clampPan();
+        clampPhotoViewerPan();
         applyPhotoTransform();
       }
     });
@@ -4688,6 +4726,8 @@ service cloud.firestore {
     document.getElementById("btn-close-photo-viewer").addEventListener("click", closePhotoViewer);
     document.getElementById("btn-photo-prev").addEventListener("click", photoViewerPrevPage);
     document.getElementById("btn-photo-next").addEventListener("click", photoViewerNextPage);
+    document.getElementById("btn-photo-zoom-in").addEventListener("click", function(){ zoomPhotoViewerBy(1.4); });
+    document.getElementById("btn-photo-zoom-out").addEventListener("click", function(){ zoomPhotoViewerBy(1/1.4); });
     initPhotoViewerGestures();
 
     document.getElementById("btn-close-equipment-files").addEventListener("click", function(){
@@ -5101,10 +5141,10 @@ service cloud.firestore {
     setTimeout(function(){
       try{ fitToAllData(); }catch(e){}
     }, 500);
-    // Hold the splash for a beat after everything's ready, so it reads as a
-    // deliberate brief splash screen rather than flickering away instantly
-    // on a fast load.
-    setTimeout(hideSplash, 1400);
+    // Let the fly-at-you zoom animation (1.7s) play all the way through
+    // before fading the splash away, so it reads as a deliberate intro
+    // rather than flickering away instantly on a fast load.
+    setTimeout(hideSplash, 1700);
   }catch(err){
     document.getElementById("load-error").classList.remove("hidden");
     hideSplash();
