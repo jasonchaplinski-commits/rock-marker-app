@@ -137,6 +137,8 @@
   #bin-badge.collapsed .fb-total{margin-bottom:0;}
   #bin-badge .fb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;font-weight:600;padding:2px 0;}
   #bin-badge .fb-row .fb-muted{color:var(--ink);font-weight:500;font-size:11px;}
+  #bin-badge .fb-row-link{cursor:pointer;border-radius:6px;margin:0 -4px;padding:2px 4px;}
+  #bin-badge .fb-row-link:active{background:rgba(0,0,0,.06);}
   #bin-badge .fb-sub{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:7px 0 2px;}
 
   /* #bin-tab is now just another .fab-small button living in #fabs, right
@@ -1660,6 +1662,7 @@ service cloud.firestore {
         }
       });
       byBin.push({
+        id: b.id,
         name: b.name || "Bin",
         bu: bu,
         capacityBu: (typeof b.capacityBu === "number" && b.capacityBu > 0) ? b.capacityBu : null,
@@ -1713,7 +1716,7 @@ service cloud.firestore {
       el.classList.remove("collapsed");
       var binRows = totals.byBin.map(function(bb){
         var pctBit = bb.capacityBu ? (Math.round((bb.bu / bb.capacityBu) * 100) + "% full") : "no cap set";
-        return '<div class="fb-row">'+
+        return '<div class="fb-row fb-row-link" data-bin-id="'+escapeHtml(bb.id || "")+'">'+
           '<span>'+escapeHtml(bb.name)+' <span class="fb-muted">('+escapeHtml(pctBit)+')</span></span>'+
           '<span>≈'+bb.bu.toLocaleString()+' bu</span>'+
         '</div>';
@@ -1731,6 +1734,12 @@ service cloud.firestore {
         updateBinBadge();
       };
     }
+    el.querySelectorAll(".fb-row-link").forEach(function(row){
+      row.onclick = function(){
+        var binId = row.getAttribute("data-bin-id");
+        if(binId) openBinActions(binId);
+      };
+    });
     positionBinBadge();
   }
 
