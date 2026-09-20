@@ -1286,30 +1286,15 @@ service cloud.firestore {
     return cropBit + "≈" + bu.toLocaleString() + " bu" + (pct !== null ? " (" + pct + "%)" : "");
   }
 
-  // The zoom level the BIN button (zoomToAllBins) would land you on, given
-  // the bins' actual footprint and the current screen size — mirrors
-  // fitBounds' own math (same padding) without moving the map. Bin chips
-  // only show once you're zoomed in at least this far, so labels stay
-  // hidden at any wider view and appear right as the BIN button's zoom
-  // brings all of them into frame.
-  var BIN_FIT_PADDING = 60;
-  function binFitZoom(){
-    var allPoints = [];
-    bins.forEach(function(b){
-      if(b.points && b.points.length >= 3){
-        allPoints = allPoints.concat(b.points.map(function(p){ return [p[0], p[1]]; }));
-      }
-    });
-    if(!allPoints.length) return null;
-    var pad = L.point(BIN_FIT_PADDING, BIN_FIT_PADDING);
-    return map.getBoundsZoom(L.latLngBounds(allPoints), false, pad.add(pad));
-  }
+  var BIN_FIT_PADDING = 60; // used by zoomToAllBins (the BIN button)
 
   function renderBins(){
     binLayerGroup.clearLayers();
     var labelScale = fieldLabelScale();
-    var targetZoom = binFitZoom();
-    var showChips = targetZoom === null ? true : map.getZoom() >= targetZoom;
+    // Bin chips only show once you're zoomed all the way in (max zoom) —
+    // any wider view shows just the pins, no text, no matter how the bins
+    // are spread out.
+    var showChips = map.getZoom() >= map.getMaxZoom();
     var labelMarkers = [];
     bins.forEach(function(b){
       if(!b.points || b.points.length < 3) return;
