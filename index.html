@@ -1158,6 +1158,28 @@ service cloud.firestore {
   // who goes looking at the page source.
   var ACCESS_CODE = "3308";
   var ACCESS_CODE_KEY = "rockMarkerAccessCode_v1";
+
+  // Separate, stricter "admin" code required every single time someone
+  // tries to do something structural/destructive — delete a field, redraw
+  // a field's boundary, add a new field, add new equipment, or delete
+  // equipment. Unlike ACCESS_CODE above, this one is never
+  // remembered/saved, so it's asked for fresh every time, for every one of
+  // those actions. To change it, edit this line and re-upload index.html.
+  var ADMIN_CODE = "218";
+
+  // Prompts for ADMIN_CODE and returns true only if it was entered
+  // correctly. Cancelling or getting it wrong both quietly stop whatever
+  // was about to happen — no need to double up with a toast on cancel,
+  // since backing out is exactly what "Cancel" means here.
+  function checkAdminCode(){
+    var entered = prompt("Enter the admin code to continue:");
+    if(entered === null) return false;
+    if(entered.trim() !== ADMIN_CODE){
+      toast("Incorrect code.");
+      return false;
+    }
+    return true;
+  }
   var FIELD_COLORS = ["#2e7d32","#1565c0","#ef6c00","#6a1b9a","#ad1457","#00838f","#9e9d24","#5d4037"];
   var CROP_COLORS = {
     "Corn": "#f6c90e",
@@ -2760,6 +2782,7 @@ service cloud.firestore {
 
   function deleteCurrentField(){
     if(!editingFieldId) return;
+    if(!checkAdminCode()) return;
     var delF = fields.find(function(x){ return x.id === editingFieldId; });
     if(!confirm('Delete "' + (delF && delF.name ? delF.name : "this field") + '"? This can\'t be undone.')) return;
     if(sharingEnabled){
@@ -3990,6 +4013,7 @@ service cloud.firestore {
 
   function deleteCurrentEquipment(){
     if(!editingEquipmentId) return;
+    if(!checkAdminCode()) return;
     var delEq = equipment.find(function(x){ return x.id === editingEquipmentId; });
     if(!confirm('Delete "' + (delEq && delEq.name ? delEq.name : "this equipment") + '"? This can\'t be undone.')) return;
     if(sharingEnabled){
@@ -5061,7 +5085,10 @@ service cloud.firestore {
     document.getElementById("equipment-list-backdrop").addEventListener("click", function(){
       hideSheet("equipment-list-modal", "equipment-list-backdrop");
     });
-    document.getElementById("btn-add-equipment").addEventListener("click", function(){ openEquipmentModal(null); });
+    document.getElementById("btn-add-equipment").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
+      openEquipmentModal(null);
+    });
     document.getElementById("equipment-list").addEventListener("click", function(e){
       var row = e.target.closest(".rock-row");
       if(!row) return;
@@ -5439,6 +5466,7 @@ service cloud.firestore {
     }
 
     document.getElementById("btn-draw-field").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
       editingFieldId = null;
       startDrawingField();
     });
@@ -5472,6 +5500,7 @@ service cloud.firestore {
     document.getElementById("btn-save-field").addEventListener("click", saveFieldFromForm);
     document.getElementById("btn-delete-field").addEventListener("click", deleteCurrentField);
     document.getElementById("btn-redraw-field").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
       hideSheet("field-modal", "field-backdrop");
       startDrawingField();
     });
