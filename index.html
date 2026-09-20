@@ -173,6 +173,40 @@
   /* Bin Totals is a "view everything" page rather than a quick-glance sheet,
      so it gets noticeably more vertical room than the standard bottom sheets. */
   #bin-totals-modal{max-height:94vh;}
+  #reports-modal{max-height:94vh;}
+  .report-print-header{display:none;}
+  .report-section{margin-bottom:26px;}
+  .report-section h3{margin:0 0 8px 0;font-size:15px;border-bottom:2px solid var(--ink);padding-bottom:5px;}
+  .report-meta{font-size:12px;color:var(--muted);margin:-4px 0 10px 0;}
+  .report-table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:13px;}
+  .report-table th,.report-table td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);}
+  .report-table th{background:#f0ede6;font-weight:700;}
+  .report-table tfoot td{font-weight:700;border-top:2px solid var(--ink);border-bottom:none;}
+  .report-empty{color:var(--muted);font-style:italic;padding:6px 0 14px 0;}
+  /* Printing a report: hide the entire app except #reports-body. The sheet
+     it lives in is normally position:fixed with a translateY transform and
+     a capped/scrolling height (so it fits on a phone screen) — none of
+     which makes sense on a printed page, and left alone would clip a
+     report longer than one screen down to a single blank page. Stripping
+     all of that on #reports-modal lets #reports-body flow as a plain
+     block and paginate normally across as many printed pages as it needs. */
+  @media print{
+    body *{visibility:hidden;}
+    #reports-modal, #reports-body, #reports-body *{visibility:visible;}
+    #reports-modal{
+      position:static !important;transform:none !important;max-height:none !important;
+      overflow:visible !important;box-shadow:none !important;border-radius:0 !important;
+      background:#fff !important;padding:0 !important;margin:0 !important;
+    }
+    #reports-backdrop, .sheet-handle, #reports-modal > h2, #reports-modal > .field-row, #reports-modal > .btn-row{
+      display:none !important;
+    }
+    #reports-body{margin:0;padding:0;}
+    .report-print-header{display:block;margin-bottom:18px;}
+    .report-print-header h1{margin:0 0 2px 0;font-size:20px;}
+    .report-section{page-break-inside:avoid;}
+    .report-section h3{page-break-after:avoid;}
+  }
   .sheet-handle{width:40px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 12px auto;}
   .sheet h2{margin:0 0 14px 0;font-size:18px;}
   .field-row{margin-bottom:14px;}
@@ -447,15 +481,27 @@
     display:flex;align-items:center;justify-content:center;padding:24px;
   }
   #access-gate.hidden{display:none;}
-  #access-gate-card{width:100%;max-width:320px;text-align:center;}
-  #access-gate-logo{width:88px;height:88px;border-radius:20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
-  #access-gate-card h2{margin:0 0 6px 0;color:var(--ink);}
-  #access-gate-card p{margin:0 0 18px 0;color:var(--ink);font-size:14px;}
+  #access-gate-card, #name-gate-card{width:100%;max-width:320px;text-align:center;}
+  #access-gate-logo, #name-gate-logo{width:88px;height:88px;border-radius:20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+  #access-gate-card h2, #name-gate-card h2{margin:0 0 6px 0;color:var(--ink);}
+  #access-gate-card p, #name-gate-card p{margin:0 0 18px 0;color:var(--ink);font-size:14px;}
   #input-access-code{
     width:100%;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:22px;font-family:inherit;
     text-align:center;letter-spacing:.08em;background:#fff;color:var(--ink);margin-bottom:10px;box-sizing:border-box;
   }
   #access-gate-error{color:#b3261e;font-size:13px;font-weight:700;margin-bottom:10px;}
+  /* Name gate — same look as the access gate, shown right after it (or on
+     its own, for a device that already unlocked the code before this was
+     added) until this device has a name saved. */
+  #name-gate{
+    position:fixed;inset:0;z-index:3500;background:var(--cream);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  #name-gate.hidden{display:none;}
+  #input-device-name{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:18px;font-family:inherit;
+    text-align:center;background:#fff;color:var(--ink);margin-bottom:10px;box-sizing:border-box;
+  }
 
   /* Full-screen equipment photo viewer — custom pinch/pan/double-tap zoom,
      since the app's own viewport meta disables native pinch-to-zoom
@@ -529,6 +575,16 @@
   </div>
 </div>
 
+<div id="name-gate" class="hidden">
+  <div id="name-gate-card">
+    <img src="icon-512.png" alt="Chaplinski Farms" id="name-gate-logo">
+    <h2>What's your name?</h2>
+    <p>Asked once on this device — it'll be attached to bin loads and rocks you add, edit, or remove.</p>
+    <input type="text" id="input-device-name" autocomplete="off" placeholder="Your name">
+    <button class="btn btn-primary" id="btn-name-gate-submit" style="width:100%;">Continue</button>
+  </div>
+</div>
+
 <div id="map"></div>
 <div id="load-error" class="hidden">
   <div style="font-size:44px;margin-bottom:10px;">🪨📡</div>
@@ -554,6 +610,7 @@
   <div class="side-menu-sep"></div>
   <div class="side-menu-item" id="menu-item-equipment"><span class="smi-icon">🚜</span> Equipment</div>
   <div class="side-menu-item" id="menu-item-belts"><span class="smi-icon">⚙️</span> Belts</div>
+  <div class="side-menu-item" id="menu-item-reports"><span class="smi-icon">📊</span> Reports</div>
 </div>
 
 <div id="install-banner" class="hidden">
@@ -919,6 +976,31 @@
   </div>
 </div>
 
+<!-- Reports -->
+<div class="sheet-backdrop" id="reports-backdrop"></div>
+<div class="sheet" id="reports-modal">
+  <div class="sheet-handle"></div>
+  <h2>📊 Reports</h2>
+  <div class="field-row">
+    <label>Report</label>
+    <select id="input-report-type">
+      <option value="all">All reports</option>
+      <option value="crop-summary">Crop totals</option>
+      <option value="crop-detail">Crop report (by field)</option>
+      <option value="bins">Bin report</option>
+      <option value="bin-loads">Bin load report (who/when)</option>
+      <option value="rocks">Rock report</option>
+    </select>
+  </div>
+  <div class="btn-row" style="margin-top:0;">
+    <button class="btn btn-primary" id="btn-print-report">🖨️ Print this report</button>
+  </div>
+  <div id="reports-body" style="margin-top:16px;"></div>
+  <div class="btn-row" style="flex-direction:column;margin-top:14px;">
+    <button class="btn btn-secondary" id="btn-close-reports">Close</button>
+  </div>
+</div>
+
 <!-- Truck sizes settings sheet -->
 <div class="sheet-backdrop" id="truck-sizes-backdrop"></div>
 <div class="sheet" id="truck-sizes-modal">
@@ -1217,6 +1299,19 @@ service cloud.firestore {
     }
     return true;
   }
+
+  // Asked once per device, right after the access code, and remembered from
+  // then on (like the access code itself) — this is what gets stamped onto
+  // every bin log entry and rock someone adds, edits, or removes from this
+  // device, so activity can be traced back to a person rather than just a
+  // timestamp.
+  var DEVICE_NAME_KEY = "rockMarkerDeviceName_v1";
+  function getDeviceName(){
+    try{ return (localStorage.getItem(DEVICE_NAME_KEY) || "").trim(); }catch(e){ return ""; }
+  }
+  function hasDeviceName(){
+    return !!getDeviceName();
+  }
   var FIELD_COLORS = ["#2e7d32","#1565c0","#ef6c00","#6a1b9a","#ad1457","#00838f","#9e9d24","#5d4037"];
   var CROP_COLORS = {
     "Corn": "#f6c90e",
@@ -1267,6 +1362,11 @@ service cloud.firestore {
   var bins = [];
   var equipment = [];
   var belts = [];
+  // Rocks are hard-deleted from the map, but a record of who removed one and
+  // when is kept here (in one small config doc, like truckSizes — not its
+  // own collection, since these are only ever read, never edited) so the
+  // Rock Report can still show it after the pin itself is gone.
+  var removedRocks = [];
   var editingEquipmentId = null;
   var editingBeltId = null;
   var pendingBeltItems = [];
@@ -1340,13 +1440,14 @@ service cloud.firestore {
         bins = Array.isArray(parsed.bins) ? parsed.bins : [];
         equipment = Array.isArray(parsed.equipment) ? parsed.equipment : [];
         belts = Array.isArray(parsed.belts) ? parsed.belts : [];
+        removedRocks = Array.isArray(parsed.removedRocks) ? parsed.removedRocks : [];
         if(parsed.truckSizes && typeof parsed.truckSizes === "object"){ truckSizes = parsed.truckSizes; }
       }
-    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; equipment = []; belts = []; }
+    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; equipment = []; belts = []; removedRocks = []; }
   }
   function saveData(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, equipment: equipment, belts: belts, truckSizes: truckSizes}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, equipment: equipment, belts: belts, truckSizes: truckSizes, removedRocks: removedRocks}));
     }catch(e){
       toast("Couldn't save — your browser storage may be full or blocked.");
     }
@@ -2913,6 +3014,208 @@ service cloud.firestore {
     return remaining > 0 ? remaining : 0;
   }
 
+  // ---------- Reports ----------
+  function rockSizeLabel(s){
+    var v = (s || "medium").toLowerCase();
+    return v.charAt(0).toUpperCase() + v.slice(1);
+  }
+
+  // Printed only at the top of a printed page (see the print stylesheet) —
+  // invisible on screen, since the report picker/print button already tell
+  // you what you're looking at there.
+  function reportPrintHeaderHtml(subtitle){
+    return '<div class="report-print-header">'+
+      '<h1>🌾 Chaplinski Farms</h1>'+
+      '<div class="report-meta">'+escapeHtml(subtitle)+' · Generated '+escapeHtml(new Date().toLocaleString())+'</div>'+
+    '</div>';
+  }
+
+  function buildCropSummaryReportHtml(){
+    var totals = computeFarmTotals();
+    if(fields.length === 0){
+      return '<div class="report-section"><h3>🌾 Crop Totals</h3><div class="report-empty">No fields have been mapped yet.</div></div>';
+    }
+    var cropRows = totals.cropOrder.map(function(crop){
+      var info = totals.byCrop[crop];
+      var icon = CROP_ICONS[crop] ? CROP_ICONS[crop]+' ' : '';
+      var pct = totals.totalAcres > 0 ? Math.round((info.acres / totals.totalAcres) * 100) : 0;
+      return '<tr><td>'+icon+escapeHtml(crop)+'</td><td>'+info.count+'</td><td>'+info.acres.toFixed(1)+'</td><td>'+pct+'%</td></tr>';
+    }).join("");
+    return '<div class="report-section">'+
+      '<h3>🌾 Crop Totals</h3>'+
+      '<div class="report-meta">'+totals.totalAcres.toFixed(1)+' acres total across '+fields.length+' '+(fields.length === 1 ? "field" : "fields")+'</div>'+
+      '<table class="report-table"><thead><tr><th>Crop</th><th>Fields</th><th>Acres</th><th>% of farm</th></tr></thead><tbody>'+
+      cropRows+
+      '</tbody></table>'+
+      '<table class="report-table" style="margin-top:10px;"><thead><tr><th>Harvest status</th><th>Acres</th></tr></thead><tbody>'+
+        '<tr><td>✅ Harvested</td><td>'+totals.harvestedAcres.toFixed(1)+'</td></tr>'+
+        '<tr><td>🌗 Partial (so far)</td><td>'+totals.partialAcres.toFixed(1)+'</td></tr>'+
+        '<tr><td>⬜ Not harvested</td><td>'+totals.notHarvestedAcres.toFixed(1)+'</td></tr>'+
+      '</tbody></table>'+
+    '</div>';
+  }
+
+  function buildCropDetailReportHtml(){
+    if(fields.length === 0){
+      return '<div class="report-section"><h3>🗺️ Crop Report (by field)</h3><div class="report-empty">No fields have been mapped yet.</div></div>';
+    }
+    var sorted = fields.slice().sort(function(a,z){ return (a.name||"").localeCompare(z.name||""); });
+    var rows = sorted.map(function(f){
+      if(!f.points || f.points.length < 3) return "";
+      var acres = polygonAreaAcres(f.points);
+      var cropKey = f.crop && CROP_COLORS[f.crop] ? f.crop : "No Crop";
+      var icon = CROP_ICONS[cropKey] ? CROP_ICONS[cropKey]+' ' : '';
+      var hStatus = harvestStatusOf(f);
+      var hIcon = HARVEST_ICONS[hStatus] || "";
+      var hLabel = hStatus;
+      if(hStatus === "Partial Harvested"){
+        hLabel = "Partial (" + partialAcresOf(f).toFixed(1) + " of " + acres.toFixed(1) + " ac)";
+      }
+      return '<tr><td>'+escapeHtml(f.name||"Field")+'</td><td>'+acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+hIcon+' '+escapeHtml(hLabel)+'</td></tr>';
+    }).join("");
+    return '<div class="report-section">'+
+      '<h3>🗺️ Crop Report (by field)</h3>'+
+      '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th><th>Harvest status</th></tr></thead><tbody>'+
+      rows+
+      '</tbody></table>'+
+    '</div>';
+  }
+
+  function buildBinReportHtml(){
+    if(bins.length === 0){
+      return '<div class="report-section"><h3>🛢 Bin Report</h3><div class="report-empty">No bins have been mapped yet.</div></div>';
+    }
+    var sorted = bins.slice().sort(function(a,z){ return binSortRank(a.name) - binSortRank(z.name); });
+    var totalBu = 0, totalCap = 0;
+    var rows = sorted.map(function(b){
+      var bu = (typeof b.currentBu === "number" && b.currentBu > 0) ? b.currentBu : 0;
+      var cap = (typeof b.capacityBu === "number" && b.capacityBu > 0) ? b.capacityBu : null;
+      totalBu += bu;
+      if(cap) totalCap += cap;
+      var pct = cap ? Math.round((bu / cap) * 100) + "%" : "—";
+      var remaining = binRemainingBu(b);
+      var remainingBit = remaining === null ? "—" : (remaining > 0 ? remaining.toLocaleString() : "Full");
+      var fillEquiv = (remaining !== null && remaining > 0) ? (loadsEquivLine(remaining) || "—") : "—";
+      var cropBit = b.currentCrop ? ((CROP_ICONS[b.currentCrop] ? CROP_ICONS[b.currentCrop]+' ' : '') + escapeHtml(b.currentCrop)) : "Empty";
+      var dumpedBit = truckCountsLine(binTruckCounts(b.log)) || "—";
+      return '<tr><td>'+escapeHtml(b.name||"Bin")+'</td><td>'+cropBit+'</td><td>'+bu.toLocaleString()+'</td><td>'+(cap ? cap.toLocaleString() : "—")+'</td><td>'+pct+'</td><td>'+remainingBit+'</td><td>'+escapeHtml(fillEquiv)+'</td><td>'+escapeHtml(dumpedBit)+'</td></tr>';
+    }).join("");
+    return '<div class="report-section">'+
+      '<h3>🛢 Bin Report</h3>'+
+      '<div class="report-meta">≈'+totalBu.toLocaleString()+' bu currently in bins'+(totalCap ? (' of ≈'+totalCap.toLocaleString()+' bu total capacity') : '')+'</div>'+
+      '<table class="report-table"><thead><tr><th>Bin</th><th>Crop</th><th>Current (bu)</th><th>Capacity (bu)</th><th>% full</th><th>Space left (bu)</th><th>Loads to fill</th><th>Trucks dumped</th></tr></thead><tbody>'+
+      rows+
+      '</tbody></table>'+
+    '</div>';
+  }
+
+  // Every individual truck-load entry across every bin, newest first, with
+  // who logged (and, if it's been touched since, who last edited) it — the
+  // detail behind the Bin Report's totals, for tracing a specific load back
+  // to a person and a time.
+  function buildBinLoadReportHtml(){
+    var allEntries = [];
+    bins.forEach(function(b){
+      (b.log || []).forEach(function(e){
+        allEntries.push({bin: b.name || "Bin", entry: e});
+      });
+    });
+    if(allEntries.length === 0){
+      return '<div class="report-section"><h3>🚛 Bin Load Report</h3><div class="report-empty">No bin activity logged yet.</div></div>';
+    }
+    allEntries.sort(function(a,z){ return (z.entry.date||"").localeCompare(a.entry.date||""); });
+    var rows = allEntries.map(function(x){
+      var e = x.entry;
+      var dateStr = formatLogTimestamp(e.date);
+      var byBit = e.editedBy ? ("Edited by "+escapeHtml(e.editedBy)) : (e.enteredBy ? ("Entered by "+escapeHtml(e.enteredBy)) : "—");
+      return '<tr><td>'+escapeHtml(x.bin)+'</td><td>'+escapeHtml(dateStr)+'</td><td>'+logEntrySummaryLine(e)+'</td><td>'+escapeHtml(e.note||"")+'</td><td>'+byBit+'</td></tr>';
+    }).join("");
+    return '<div class="report-section">'+
+      '<h3>🚛 Bin Load Report</h3>'+
+      '<div class="report-meta">'+allEntries.length+' logged '+(allEntries.length === 1 ? "entry" : "entries")+' across all bins</div>'+
+      '<table class="report-table"><thead><tr><th>Bin</th><th>Date/time</th><th>Entry</th><th>Note</th><th>Entered/edited by</th></tr></thead><tbody>'+
+      rows+
+      '</tbody></table>'+
+    '</div>';
+  }
+
+  function buildRockReportHtml(){
+    var html = '<div class="report-section"><h3>🪨 Rock Report</h3>';
+    if(rocks.length === 0){
+      html += '<div class="report-empty">No rocks have been marked yet.</div>';
+    } else {
+      var sorted = rocks.slice().sort(function(a,z){
+        var fa = (a.field||"").localeCompare(z.field||"");
+        if(fa !== 0) return fa;
+        return (a.createdAt||"").localeCompare(z.createdAt||"");
+      });
+      var bySize = {};
+      var rows = sorted.map(function(r){
+        bySize[r.size||"medium"] = (bySize[r.size||"medium"] || 0) + 1;
+        var dateStr = r.createdAt ? formatLogTimestamp(r.createdAt) : "—";
+        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(dateStr)+'</td></tr>';
+      }).join("");
+      var sizeOrder = ["boulder","large","medium","small"];
+      var sizeSummary = sizeOrder.filter(function(s){ return bySize[s]; }).map(function(s){
+        return rockSizeLabel(s) + ": " + bySize[s];
+      }).join(" · ");
+      html += '<div class="report-meta">'+rocks.length+' '+(rocks.length === 1 ? "rock" : "rocks")+' currently marked'+(sizeSummary ? (' · '+escapeHtml(sizeSummary)) : '')+'</div>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Date marked</th></tr></thead><tbody>'+
+        rows+
+        '</tbody></table>';
+    }
+    if(removedRocks.length > 0){
+      var sortedRemoved = removedRocks.slice().sort(function(a,z){ return (z.removedAt||"").localeCompare(a.removedAt||""); });
+      var removedRows = sortedRemoved.map(function(r){
+        var removedWhen = r.removedAt ? formatLogTimestamp(r.removedAt) : "—";
+        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(r.removedBy || "—")+'</td><td>'+escapeHtml(removedWhen)+'</td></tr>';
+      }).join("");
+      html += '<div class="summary-subtitle" style="margin-top:14px;">Removed rocks</div>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Removed by</th><th>Date removed</th></tr></thead><tbody>'+
+        removedRows+
+        '</tbody></table>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderReportsBody(){
+    var type = document.getElementById("input-report-type").value;
+    var bodyEl = document.getElementById("reports-body");
+    var subtitleByType = {
+      "all": "All reports",
+      "crop-summary": "Crop totals",
+      "crop-detail": "Crop report (by field)",
+      "bins": "Bin report",
+      "bin-loads": "Bin load report (who/when)",
+      "rocks": "Rock report"
+    };
+    var html = reportPrintHeaderHtml(subtitleByType[type] || "Report");
+    if(type === "all"){
+      html += buildCropSummaryReportHtml() + buildCropDetailReportHtml() + buildBinReportHtml() + buildBinLoadReportHtml() + buildRockReportHtml();
+    } else if(type === "crop-summary"){
+      html += buildCropSummaryReportHtml();
+    } else if(type === "crop-detail"){
+      html += buildCropDetailReportHtml();
+    } else if(type === "bins"){
+      html += buildBinReportHtml();
+    } else if(type === "bin-loads"){
+      html += buildBinLoadReportHtml();
+    } else if(type === "rocks"){
+      html += buildRockReportHtml();
+    }
+    bodyEl.innerHTML = html;
+  }
+
+  function openReportsSheet(){
+    renderReportsBody();
+    showSheet("reports-modal", "reports-backdrop");
+  }
+
+  function closeReportsSheet(){
+    hideSheet("reports-modal", "reports-backdrop");
+  }
+
   function openBinModal(bin){
     if(bin){
       editingBinId = bin.id;
@@ -3058,10 +3361,12 @@ service cloud.firestore {
         var cropBit = e.crop ? ((cropIcon(e.crop) ? cropIcon(e.crop) + " " : "") + escapeHtml(e.crop)) : "";
         var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(cropBit?" "+cropBit:"")) : "";
         var detail = [truckBit, levelBit, amt].filter(Boolean).join(" · ");
+        var byBit = e.editedBy ? ("Edited by "+escapeHtml(e.editedBy)) : (e.enteredBy ? ("Entered by "+escapeHtml(e.enteredBy)) : "");
         return '<div class="log-entry">'+
           '<div class="log-entry-main">'+
             '<div class="le1">'+escapeHtml(e.action||"")+(detail ? " — "+detail : "")+'</div>'+
             '<div class="le2">'+escapeHtml(dateStr)+(e.note ? " · "+escapeHtml(e.note) : "")+'</div>'+
+            (byBit ? ('<div class="le3">'+byBit+'</div>') : '')+
           '</div>'+
           '<div class="log-entry-actions">'+
             '<button class="log-entry-edit" data-log-id="'+escapeHtml(e.id)+'" title="Edit this entry">✏️</button>'+
@@ -3347,7 +3652,8 @@ service cloud.firestore {
     } else {
       var entry = {
         id:"le"+Date.now()+"_"+Math.floor(Math.random()*10000), date:date, action:action,
-        crop:crop, bu:bu, truckType:truckType, fraction:fraction, note:note
+        crop:crop, bu:bu, truckType:truckType, fraction:fraction, note:note,
+        enteredBy: getDeviceName()
       };
       var newLog = (b.log || []).concat([entry]);
       applyBinLogUpdate(binId, newLog);
@@ -3362,15 +3668,19 @@ service cloud.firestore {
   function performBinLogEdit(payload, reasonText){
     var b = bins.find(function(x){ return x.id === payload.binId; });
     if(!b) return;
+    var actorName = getDeviceName();
     var oldEntry = (b.log || []).find(function(x){ return x.id === payload.editedId; });
     var updatedLog = (b.log || []).map(function(x){
       if(x.id !== payload.editedId) return x;
-      return {id:x.id, date:payload.date, action:payload.action, crop:payload.crop, bu:payload.bu, truckType:payload.truckType, fraction:payload.fraction, note:payload.note};
+      // enteredBy stays whoever originally logged it — editedBy/editedAt
+      // record who most recently changed it, without losing that history.
+      return {id:x.id, date:payload.date, action:payload.action, crop:payload.crop, bu:payload.bu, truckType:payload.truckType, fraction:payload.fraction, note:payload.note,
+        enteredBy: x.enteredBy || "", editedBy: actorName, editedAt: new Date().toISOString()};
     });
     var updatedArchive = (b.archivedLog || []).slice();
     if(oldEntry){
       var changedTo = {action:payload.action, crop:payload.crop, bu:payload.bu, truckType:payload.truckType, fraction:payload.fraction, note:payload.note};
-      updatedArchive.push(archiveLogEntry(oldEntry, "edited", changedTo, reasonText));
+      updatedArchive.push(archiveLogEntry(oldEntry, "edited", changedTo, reasonText, actorName));
     }
     applyBinLogUpdate(payload.binId, updatedLog, updatedArchive);
     closeBinLogModal();
@@ -3463,7 +3773,7 @@ service cloud.firestore {
   // and gives it its own archiveId separate from the entry's original id
   // (so the same entry can be archived more than once — edited twice, say —
   // without the archive list getting confused about which copy is which).
-  function archiveLogEntry(entry, reason, changedTo, reasonNote){
+  function archiveLogEntry(entry, reason, changedTo, reasonNote, actorName){
     var copy = {};
     for(var k in entry){ if(Object.prototype.hasOwnProperty.call(entry, k)){ copy[k] = entry[k]; } }
     copy.archiveId = "ar"+Date.now()+"_"+Math.floor(Math.random()*10000);
@@ -3476,6 +3786,10 @@ service cloud.firestore {
     // The reason picked (or typed, for "Other") from the reason dropdown
     // shown before the delete/edit was committed.
     if(reasonNote){ copy.reasonNote = reasonNote; }
+    // Who actually performed THIS delete/edit/clear — separate from
+    // enteredBy/editedBy on the entry itself, which describe who touched it
+    // before it ever reached the archive.
+    if(actorName){ copy.archivedBy = actorName; }
     return copy;
   }
 
@@ -3490,7 +3804,7 @@ service cloud.firestore {
     var entry = (b.log || []).find(function(e){ return e.id === entryId; });
     var newLog = (b.log || []).filter(function(e){ return e.id !== entryId; });
     var newArchive = (b.archivedLog || []).slice();
-    if(entry){ newArchive.push(archiveLogEntry(entry, "deleted", null, reasonNote)); }
+    if(entry){ newArchive.push(archiveLogEntry(entry, "deleted", null, reasonNote, getDeviceName())); }
     applyBinLogUpdate(binId, newLog, newArchive);
     toast("Log entry moved to the archive");
   }
@@ -3498,7 +3812,8 @@ service cloud.firestore {
   function clearBinLog(binId){
     var b = bins.find(function(x){ return x.id === binId; });
     if(!b) return;
-    var newArchive = (b.archivedLog || []).concat((b.log || []).map(function(e){ return archiveLogEntry(e, "cleared"); }));
+    var actorName = getDeviceName();
+    var newArchive = (b.archivedLog || []).concat((b.log || []).map(function(e){ return archiveLogEntry(e, "cleared", null, null, actorName); }));
     applyBinLogUpdate(binId, [], newArchive);
     toast("Entries moved to the archive");
   }
@@ -3559,12 +3874,13 @@ service cloud.firestore {
         var reasonLabel = e.archiveReason === "edited" ? "Edited" : (e.archiveReason === "cleared" ? "Cleared" : "Deleted");
         var reasonBit = e.reasonNote ? (" · " + escapeHtml(e.reasonNote)) : "";
         var archivedWhen = formatLogTimestamp(e.archivedAt);
+        var byBit = e.archivedBy ? (" · by " + escapeHtml(e.archivedBy)) : "";
         var restoreTitle = isEdit ? "Undo this edit — put the original values back" : "Restore this entry";
         return '<div class="log-entry">'+
           '<div class="log-entry-main">'+
             mainLines+
             '<div class="le2">'+escapeHtml(dateStr)+(e.note ? " · "+escapeHtml(e.note) : "")+'</div>'+
-            '<div class="le3">'+escapeHtml(reasonLabel)+reasonBit+(archivedWhen ? " · "+escapeHtml(archivedWhen) : "")+'</div>'+
+            '<div class="le3">'+escapeHtml(reasonLabel)+reasonBit+(archivedWhen ? " · "+escapeHtml(archivedWhen) : "")+byBit+'</div>'+
           '</div>'+
           '<div class="log-entry-actions">'+
             '<button class="log-entry-restore" data-archive-id="'+escapeHtml(e.archiveId)+'" title="'+escapeHtml(restoreTitle)+'">↩️</button>'+
@@ -4498,10 +4814,11 @@ service cloud.firestore {
         size: selectedSize,
         field: field,
         note: note,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        enteredBy: getDeviceName()
       };
       if(sharingEnabled){
-        var data = {lat:newRock.lat, lng:newRock.lng, size:newRock.size, field:newRock.field, note:newRock.note, createdAt:newRock.createdAt};
+        var data = {lat:newRock.lat, lng:newRock.lng, size:newRock.size, field:newRock.field, note:newRock.note, createdAt:newRock.createdAt, enteredBy:newRock.enteredBy};
         rockDocRef(newRock.id).set(data).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
@@ -4519,6 +4836,8 @@ service cloud.firestore {
   function deleteCurrentRock(){
     if(!editingId) return;
     if(!confirm("Delete this rock? This can't be undone.")) return;
+    var removedRock = rocks.find(function(x){ return x.id === editingId; });
+    if(removedRock){ recordRemovedRock(removedRock, getDeviceName()); }
     if(sharingEnabled){
       rockDocRef(editingId).delete().catch(function(){
         toast("Couldn't delete from the shared map — check your connection.");
@@ -4909,7 +5228,32 @@ service cloud.firestore {
   }
 
   function cacheSharedData(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins, equipment:equipment, belts:belts, truckSizes:truckSizes})); }catch(e){}
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins, equipment:equipment, belts:belts, truckSizes:truckSizes, removedRocks:removedRocks})); }catch(e){}
+  }
+
+  // Rocks are hard-deleted (no per-rock archive), so this is the only place
+  // that remembers a removed rock — one shared config doc holding the whole
+  // list, same idea as truckSizes, rather than a full synced collection.
+  function removedRocksDocRef(){
+    return firestoreDb.collection("farms").doc(farmCode).collection("config").doc("removedRocks");
+  }
+  function recordRemovedRock(rock, removedBy){
+    var record = {
+      id: rock.id, lat: rock.lat, lng: rock.lng, size: rock.size || "medium",
+      field: rock.field || "", note: rock.note || "",
+      enteredBy: rock.enteredBy || "", createdAt: rock.createdAt || "",
+      removedBy: removedBy, removedAt: new Date().toISOString()
+    };
+    if(sharingEnabled){
+      removedRocksDocRef().set({
+        items: firebase.firestore.FieldValue.arrayUnion(record)
+      }, {merge:true}).catch(function(){
+        toast("Couldn't save to the shared map — check your connection.");
+      });
+    } else {
+      removedRocks.push(record);
+      saveData();
+    }
   }
 
   function subscribeToFarm(){
@@ -5018,6 +5362,16 @@ service cloud.firestore {
         }
       }, function(err){ /* best-effort */ })
     );
+
+    unsubscribeFns.push(
+      removedRocksDocRef().onSnapshot(function(doc){
+        if(doc.exists){
+          var data = doc.data();
+          removedRocks = Array.isArray(data.items) ? data.items : [];
+          cacheSharedData();
+        }
+      }, function(err){ /* best-effort */ })
+    );
   }
 
   function connectSharing(config, code, isAutoReconnect){
@@ -5044,19 +5398,27 @@ service cloud.firestore {
       var localEquipmentSnapshot = equipment.slice();
       var localBeltsSnapshot = belts.slice();
       var localTruckSizesSnapshot = {tandem: truckSizes.tandem, semi: truckSizes.semi};
+      var localRemovedRocksSnapshot = removedRocks.slice();
 
       subscribeToFarm();
       setShareStatusUI();
       try{ localStorage.setItem(SHARE_KEY, JSON.stringify({config:config, farmCode:code})); }catch(e){}
       if(!isAutoReconnect){
         seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot, localWaypointsSnapshot, localBinsSnapshot, localEquipmentSnapshot, localBeltsSnapshot);
-        // Truck sizes live in a single config doc, not a collection, so seed
-        // them separately: only push this device's numbers up if the shared
-        // farm doesn't have that doc yet (someone else may have set it).
+        // Truck sizes and the removed-rocks history each live in a single
+        // config doc, not a collection, so seed them separately: only push
+        // this device's copy up if the shared farm doesn't have that doc
+        // yet (someone else may have set it).
         if(localTruckSizesSnapshot.tandem || localTruckSizesSnapshot.semi){
           var truckDocRef = firestoreDb.collection("farms").doc(farmCode).collection("config").doc("truckSizes");
           truckDocRef.get().then(function(doc){
             if(!doc.exists){ truckDocRef.set(localTruckSizesSnapshot); }
+          }).catch(function(){});
+        }
+        if(localRemovedRocksSnapshot.length){
+          var removedRocksDoc = removedRocksDocRef();
+          removedRocksDoc.get().then(function(doc){
+            if(!doc.exists){ removedRocksDoc.set({items: localRemovedRocksSnapshot}); }
           }).catch(function(){});
         }
         toast("Connected — sharing enabled");
@@ -5111,7 +5473,8 @@ service cloud.firestore {
           rocksRef.doc(r.id).set({
             lat: r.lat, lng: r.lng, size: r.size || "medium",
             field: r.field || "", note: r.note || "",
-            createdAt: r.createdAt || new Date().toISOString()
+            createdAt: r.createdAt || new Date().toISOString(),
+            enteredBy: r.enteredBy || ""
           });
           uploaded++;
         });
@@ -5327,6 +5690,14 @@ service cloud.firestore {
       closeSideMenu();
       openBeltsListSheet();
     });
+    document.getElementById("menu-item-reports").addEventListener("click", function(){
+      closeSideMenu();
+      openReportsSheet();
+    });
+    document.getElementById("input-report-type").addEventListener("change", renderReportsBody);
+    document.getElementById("btn-print-report").addEventListener("click", function(){ window.print(); });
+    document.getElementById("btn-close-reports").addEventListener("click", closeReportsSheet);
+    document.getElementById("reports-backdrop").addEventListener("click", closeReportsSheet);
 
     // ---------- Equipment ----------
     document.getElementById("btn-close-equipment-list").addEventListener("click", function(){
@@ -5929,7 +6300,11 @@ service cloud.firestore {
       try{ localStorage.setItem(ACCESS_CODE_KEY, entered); }catch(e){}
       errEl.classList.add("hidden");
       document.getElementById("access-gate").classList.add("hidden");
-      if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
+      if(hasDeviceName()){
+        if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
+      } else {
+        showNameGate();
+      }
     } else {
       errEl.classList.remove("hidden");
       input.value = "";
@@ -5944,6 +6319,36 @@ service cloud.firestore {
     });
   }
 
+  // ---------- Device name ----------
+  function showNameGate(){
+    var gate = document.getElementById("name-gate");
+    if(!gate) return;
+    gate.classList.remove("hidden");
+    setTimeout(function(){
+      var input = document.getElementById("input-device-name");
+      if(input) input.focus();
+    }, 60);
+  }
+
+  function submitDeviceName(){
+    var input = document.getElementById("input-device-name");
+    var name = (input.value || "").trim();
+    if(!name){
+      toast("Enter your name to continue.");
+      return;
+    }
+    try{ localStorage.setItem(DEVICE_NAME_KEY, name); }catch(e){}
+    document.getElementById("name-gate").classList.add("hidden");
+    if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
+  }
+
+  function wireNameGate(){
+    document.getElementById("btn-name-gate-submit").addEventListener("click", submitDeviceName);
+    document.getElementById("input-device-name").addEventListener("keydown", function(e){
+      if(e.key === "Enter"){ submitDeviceName(); }
+    });
+  }
+
   // ---------- Init ----------
   try{
     if(typeof L === "undefined"){
@@ -5951,6 +6356,7 @@ service cloud.firestore {
     }
     var accessAlreadyGranted = hasValidAccessCode();
     wireAccessGate();
+    wireNameGate();
     loadData();
     initMap();
     updateFieldOptions();
@@ -5977,7 +6383,13 @@ service cloud.firestore {
     // right as the splash fades, instead of covering up the intro.
     setTimeout(function(){
       hideSplash();
-      if(!accessAlreadyGranted){ showAccessGate(); }
+      if(!accessAlreadyGranted){
+        showAccessGate();
+      } else if(!hasDeviceName()){
+        // This device unlocked the access code before names were tracked —
+        // ask for one now, on its own, without re-asking for the code.
+        showNameGate();
+      }
       map.invalidateSize();
     }, 1700);
   }catch(err){
