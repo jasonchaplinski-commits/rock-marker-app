@@ -898,6 +898,27 @@
   </div>
 </div>
 
+<!-- Reason picker — shown before a delete or an edit to an existing log
+     entry is actually applied. Confirming here is what commits the change;
+     everything still lands in the archive either way. -->
+<div class="sheet-backdrop" id="log-reason-backdrop"></div>
+<div class="sheet" id="log-reason-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="log-reason-title">Reason</h2>
+  <div class="field-row">
+    <label>Why?</label>
+    <select id="input-log-reason"></select>
+  </div>
+  <div class="field-row hidden" id="log-reason-other-row">
+    <label>Details</label>
+    <input type="text" id="input-log-reason-other" placeholder="Type the reason">
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-log-reason-cancel">Cancel</button>
+    <button class="btn btn-primary" id="btn-log-reason-confirm">Confirm</button>
+  </div>
+</div>
+
 <!-- Truck sizes settings sheet -->
 <div class="sheet-backdrop" id="truck-sizes-backdrop"></div>
 <div class="sheet" id="truck-sizes-modal">
@@ -3311,24 +3332,18 @@ service cloud.firestore {
     }
 
     if(editingLogEntryId){
-      var editedId = editingLogEntryId;
-      var oldEntry = (b.log || []).find(function(x){ return x.id === editedId; });
-      var updatedLog = (b.log || []).map(function(x){
-        if(x.id !== editedId) return x;
-        return {id:x.id, date:date, action:action, crop:crop, bu:bu, truckType:truckType, fraction:fraction, note:note};
+      // Editing an existing entry needs a reason first (shown in the
+      // archive alongside the before/after values) — hold onto the new
+      // values, hide this sheet, and only actually save once a reason is
+      // picked and confirmed. Canceling just reopens this sheet as-is.
+      var payload = {binId:binId, editedId:editingLogEntryId, date:date, action:action, crop:crop, bu:bu, truckType:truckType, fraction:fraction, note:note};
+      hideSheet("bin-log-modal", "bin-log-backdrop");
+      openLogReasonModal("edit", function(reasonText){
+        editingLogEntryId = null;
+        performBinLogEdit(payload, reasonText);
+      }, function(){
+        showSheet("bin-log-modal", "bin-log-backdrop");
       });
-      // Keep the pre-edit version in the archive rather than just losing it,
-      // same as a delete — so a mistaken or malicious edit can be undone by
-      // restoring what it looked like before.
-      var updatedArchive = (b.archivedLog || []).slice();
-      if(oldEntry){
-        var changedTo = {action:action, crop:crop, bu:bu, truckType:truckType, fraction:fraction, note:note};
-        updatedArchive.push(archiveLogEntry(oldEntry, "edited", changedTo));
-      }
-      editingLogEntryId = null;
-      applyBinLogUpdate(binId, updatedLog, updatedArchive);
-      closeBinLogModal();
-      toast("Log entry updated");
     } else {
       var entry = {
         id:"le"+Date.now()+"_"+Math.floor(Math.random()*10000), date:date, action:action,
@@ -3339,6 +3354,27 @@ service cloud.firestore {
       closeBinLogModal();
       toast("Log entry saved");
     }
+  }
+
+  // Actually applies an edit to an existing log entry, once a reason has
+  // been picked in the reason sheet — archives the pre-edit version
+  // (with what it was changed to, and why) and writes the new values in.
+  function performBinLogEdit(payload, reasonText){
+    var b = bins.find(function(x){ return x.id === payload.binId; });
+    if(!b) return;
+    var oldEntry = (b.log || []).find(function(x){ return x.id === payload.editedId; });
+    var updatedLog = (b.log || []).map(function(x){
+      if(x.id !== payload.editedId) return x;
+      return {id:x.id, date:payload.date, action:payload.action, crop:payload.crop, bu:payload.bu, truckType:payload.truckType, fraction:payload.fraction, note:payload.note};
+    });
+    var updatedArchive = (b.archivedLog || []).slice();
+    if(oldEntry){
+      var changedTo = {action:payload.action, crop:payload.crop, bu:payload.bu, truckType:payload.truckType, fraction:payload.fraction, note:payload.note};
+      updatedArchive.push(archiveLogEntry(oldEntry, "edited", changedTo, reasonText));
+    }
+    applyBinLogUpdate(payload.binId, updatedLog, updatedArchive);
+    closeBinLogModal();
+    toast("Log entry updated");
   }
 
   // Recomputes a bin's running totals (crop / bushels / load count) from its
@@ -3398,11 +3434,36 @@ service cloud.firestore {
     openBinActions(binId);
   }
 
+  // Options offered in the reason dropdown shown before a truck-load entry
+  // is actually deleted or edited. "Other" reveals a free-text box.
+  var LOG_DELETE_REASONS = ["Duplicate entry", "Entered by mistake", "Wrong bin selected", "Test entry", "Other"];
+  var LOG_EDIT_REASONS = ["Wrong truck size (tandem/semi)", "Wrong load amount (fraction)", "Wrong crop", "Wrong date/time", "Correcting a typo or note", "Other"];
+
+  var logReasonOnConfirm = null;
+  var logReasonOnCancel = null;
+
+  // Opens the "why?" sheet used before committing a delete or an edit to an
+  // existing log entry. onConfirm(reasonText) runs if they pick a reason and
+  // confirm; onCancel() runs if they back out — callers use it to reopen
+  // whatever sheet they hid to show this one.
+  function openLogReasonModal(kind, onConfirm, onCancel){
+    var reasons = kind === "delete" ? LOG_DELETE_REASONS : LOG_EDIT_REASONS;
+    document.getElementById("log-reason-title").textContent = kind === "delete" ? "Reason for deleting" : "Reason for editing";
+    document.getElementById("input-log-reason").innerHTML = reasons.map(function(r){
+      return '<option value="'+escapeHtml(r)+'">'+escapeHtml(r)+'</option>';
+    }).join("");
+    document.getElementById("log-reason-other-row").classList.add("hidden");
+    document.getElementById("input-log-reason-other").value = "";
+    logReasonOnConfirm = onConfirm;
+    logReasonOnCancel = onCancel;
+    showSheet("log-reason-modal", "log-reason-backdrop");
+  }
+
   // Stamps a copy of a log entry with why/when it left the active log,
   // and gives it its own archiveId separate from the entry's original id
   // (so the same entry can be archived more than once — edited twice, say —
   // without the archive list getting confused about which copy is which).
-  function archiveLogEntry(entry, reason, changedTo){
+  function archiveLogEntry(entry, reason, changedTo, reasonNote){
     var copy = {};
     for(var k in entry){ if(Object.prototype.hasOwnProperty.call(entry, k)){ copy[k] = entry[k]; } }
     copy.archiveId = "ar"+Date.now()+"_"+Math.floor(Math.random()*10000);
@@ -3412,6 +3473,9 @@ service cloud.firestore {
     // so the archive can show both sides of the edit (was / changed to)
     // instead of just the old value on its own.
     if(changedTo){ copy.changedTo = changedTo; }
+    // The reason picked (or typed, for "Other") from the reason dropdown
+    // shown before the delete/edit was committed.
+    if(reasonNote){ copy.reasonNote = reasonNote; }
     return copy;
   }
 
@@ -3420,13 +3484,13 @@ service cloud.firestore {
   // (see openBinLogArchive), and an admin can restore any of them back into
   // the live log. This is what protects the bin totals from someone
   // deleting or "correcting" entries they shouldn't have.
-  function deleteBinLogEntry(binId, entryId){
+  function deleteBinLogEntry(binId, entryId, reasonNote){
     var b = bins.find(function(x){ return x.id === binId; });
     if(!b) return;
     var entry = (b.log || []).find(function(e){ return e.id === entryId; });
     var newLog = (b.log || []).filter(function(e){ return e.id !== entryId; });
     var newArchive = (b.archivedLog || []).slice();
-    if(entry){ newArchive.push(archiveLogEntry(entry, "deleted")); }
+    if(entry){ newArchive.push(archiveLogEntry(entry, "deleted", null, reasonNote)); }
     applyBinLogUpdate(binId, newLog, newArchive);
     toast("Log entry moved to the archive");
   }
@@ -3493,13 +3557,14 @@ service cloud.firestore {
              '<div class="le1" style="margin-top:2px;">Changed to: '+logEntrySummaryLine(e.changedTo)+'</div>')
           : ('<div class="le1">'+wasLine+'</div>');
         var reasonLabel = e.archiveReason === "edited" ? "Edited" : (e.archiveReason === "cleared" ? "Cleared" : "Deleted");
+        var reasonBit = e.reasonNote ? (" · " + escapeHtml(e.reasonNote)) : "";
         var archivedWhen = formatLogTimestamp(e.archivedAt);
         var restoreTitle = isEdit ? "Undo this edit — put the original values back" : "Restore this entry";
         return '<div class="log-entry">'+
           '<div class="log-entry-main">'+
             mainLines+
             '<div class="le2">'+escapeHtml(dateStr)+(e.note ? " · "+escapeHtml(e.note) : "")+'</div>'+
-            '<div class="le3">'+escapeHtml(reasonLabel)+(archivedWhen ? " · "+escapeHtml(archivedWhen) : "")+'</div>'+
+            '<div class="le3">'+escapeHtml(reasonLabel)+reasonBit+(archivedWhen ? " · "+escapeHtml(archivedWhen) : "")+'</div>'+
           '</div>'+
           '<div class="log-entry-actions">'+
             '<button class="log-entry-restore" data-archive-id="'+escapeHtml(e.archiveId)+'" title="'+escapeHtml(restoreTitle)+'">↩️</button>'+
@@ -5554,8 +5619,13 @@ service cloud.firestore {
       var delBtn = e.target.closest(".log-entry-del");
       if(!delBtn) return;
       var entryId = delBtn.getAttribute("data-log-id");
-      if(!confirm("Delete this log entry? It'll move to the archive, where an admin can restore it later.")) return;
-      deleteBinLogEntry(binActionsBinId, entryId);
+      var binId = binActionsBinId;
+      hideSheet("bin-actions-modal", "bin-actions-backdrop");
+      openLogReasonModal("delete", function(reasonText){
+        deleteBinLogEntry(binId, entryId, reasonText);
+      }, function(){
+        openBinActions(binId);
+      });
     });
     document.getElementById("btn-bin-clear-log").addEventListener("click", function(){
       if(!checkAdminCode()) return;
@@ -5624,14 +5694,42 @@ service cloud.firestore {
     document.getElementById("btn-delete-log-from-edit").addEventListener("click", function(){
       var entryId = editingLogEntryId;
       if(!entryId) return;
-      if(!confirm("Delete this log entry? It'll move to the archive, where an admin can restore it later.")) return;
-      editingLogEntryId = null;
-      closeBinLogModal();
-      deleteBinLogEntry(binActionsBinId, entryId);
+      var binId = binActionsBinId;
+      hideSheet("bin-log-modal", "bin-log-backdrop");
+      openLogReasonModal("delete", function(reasonText){
+        editingLogEntryId = null;
+        closeBinLogModal();
+        deleteBinLogEntry(binId, entryId, reasonText);
+      }, function(){
+        showSheet("bin-log-modal", "bin-log-backdrop");
+      });
     });
     document.getElementById("bin-log-backdrop").addEventListener("click", function(){
       closeBinLogModal();
       if(binActionsBinId){ openBinActions(binActionsBinId); }
+    });
+
+    document.getElementById("input-log-reason").addEventListener("change", function(){
+      document.getElementById("log-reason-other-row").classList.toggle("hidden", this.value !== "Other");
+    });
+    document.getElementById("btn-log-reason-confirm").addEventListener("click", function(){
+      var sel = document.getElementById("input-log-reason").value;
+      var other = document.getElementById("input-log-reason-other").value.trim();
+      if(sel === "Other" && !other){ toast("Type a reason."); return; }
+      var reasonText = (sel === "Other") ? other : sel;
+      var cb = logReasonOnConfirm;
+      logReasonOnConfirm = null; logReasonOnCancel = null;
+      hideSheet("log-reason-modal", "log-reason-backdrop");
+      if(cb) cb(reasonText);
+    });
+    document.getElementById("btn-log-reason-cancel").addEventListener("click", function(){
+      var cb = logReasonOnCancel;
+      logReasonOnConfirm = null; logReasonOnCancel = null;
+      hideSheet("log-reason-modal", "log-reason-backdrop");
+      if(cb) cb();
+    });
+    document.getElementById("log-reason-backdrop").addEventListener("click", function(){
+      document.getElementById("btn-log-reason-cancel").click();
     });
 
     document.getElementById("bin-tab").addEventListener("click", function(){
