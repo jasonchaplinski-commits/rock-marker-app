@@ -1662,7 +1662,8 @@ service cloud.firestore {
         capacityBu: (typeof b.capacityBu === "number" && b.capacityBu > 0) ? b.capacityBu : null,
         loads: loads,
         crop: b.currentCrop || "",
-        truckSummary: binTruckSummary(b.log)
+        truckSummary: binTruckSummary(b.log),
+        equivLine: loadsEquivLine(bu)
       });
     });
     byBin.sort(function(a,z){ return binSortRank(a.name) - binSortRank(z.name); });
@@ -1708,10 +1709,18 @@ service cloud.firestore {
     } else {
       el.classList.remove("collapsed");
       var binRows = totals.byBin.map(function(bb){
-        var loadsBit = bb.loads > 0 ? (bb.loads + (bb.loads===1?" load":" loads")) : "empty";
+        // "empty" describes the BIN (no bushels in it), not the load
+        // counter — a bin can hold plenty of bushels with 0 tracked loads
+        // (e.g. set with 🎯 Set Level instead of logging a truckload), and
+        // that's not the same thing as actually being empty.
+        var loadsBit = bb.bu > 0
+          ? (bb.loads > 0 ? (bb.loads + (bb.loads===1?" load":" loads")) : "no loads logged")
+          : "empty";
         return '<div class="fb-row">'+
           '<span>'+escapeHtml(bb.name)+' <span class="fb-muted">('+escapeHtml(loadsBit)+')</span></span>'+
-          '<span>≈'+bb.bu.toLocaleString()+' bu</span>'+
+          '<span style="text-align:right;">≈'+bb.bu.toLocaleString()+' bu'+
+            (bb.equivLine ? '<span class="fb-muted" style="display:block;font-size:10.5px;font-weight:500;">'+escapeHtml(bb.equivLine)+'</span>' : '')+
+          '</span>'+
         '</div>';
       }).join("");
       var truckBits = [];
@@ -1825,6 +1834,7 @@ service cloud.firestore {
           '<div style="text-align:right;">'+
             '<div class="le2">'+cropBit+'≈'+bb.bu.toLocaleString()+' bu'+capBit+' · '+escapeHtml(loadsBit)+'</div>'+
             (bb.truckSummary ? '<div class="le3">'+escapeHtml(bb.truckSummary)+'</div>' : '')+
+            (bb.equivLine ? '<div class="le3">Est. to empty: '+escapeHtml(bb.equivLine)+'</div>' : '')+
           '</div>'+
         '</div>';
       }).join("");
