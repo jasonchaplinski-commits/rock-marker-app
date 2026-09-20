@@ -3066,6 +3066,20 @@ service cloud.firestore {
     return n.toString();
   }
 
+  // Builds the human-readable "Action — detail" line shared by the live log
+  // and the archive view, e.g. "Added — Tandem full · ≈683 bu". Also used
+  // to describe an edited entry's "changed to" snapshot, which isn't a
+  // full log entry object but has the same shape (action/truckType/
+  // fraction/crop/bu).
+  function logEntrySummaryLine(e){
+    var truckBit = e.truckType ? escapeHtml(e.truckType + (e.fraction ? " " + fractionLabel(e.fraction) : "")) : "";
+    var levelBit = (!e.truckType && e.action === "Set Level" && e.fraction) ? (fractionLabel(e.fraction) === "full" ? "Full" : (fractionLabel(e.fraction) + " full")) : "";
+    var cropBit = e.crop ? ((cropIcon(e.crop) ? cropIcon(e.crop) + " " : "") + escapeHtml(e.crop)) : "";
+    var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(cropBit?" "+cropBit:"")) : "";
+    var detail = [truckBit, levelBit, amt].filter(Boolean).join(" · ");
+    return escapeHtml(e.action||"") + (detail ? " — "+detail : "");
+  }
+
   // Log entries used to store just a date ("2026-09-20"); they now store a
   // full local date+time ("2026-09-20T14:35") from the datetime-local input.
   // This formats either shape for display, and skips printing a time for
@@ -3306,7 +3320,10 @@ service cloud.firestore {
       // same as a delete — so a mistaken or malicious edit can be undone by
       // restoring what it looked like before.
       var updatedArchive = (b.archivedLog || []).slice();
-      if(oldEntry){ updatedArchive.push(archiveLogEntry(oldEntry, "edited")); }
+      if(oldEntry){
+        var changedTo = {action:action, crop:crop, bu:bu, truckType:truckType, fraction:fraction, note:note};
+        updatedArchive.push(archiveLogEntry(oldEntry, "edited", changedTo));
+      }
       editingLogEntryId = null;
       applyBinLogUpdate(binId, updatedLog, updatedArchive);
       closeBinLogModal();
@@ -3384,12 +3401,16 @@ service cloud.firestore {
   // and gives it its own archiveId separate from the entry's original id
   // (so the same entry can be archived more than once — edited twice, say —
   // without the archive list getting confused about which copy is which).
-  function archiveLogEntry(entry, reason){
+  function archiveLogEntry(entry, reason, changedTo){
     var copy = {};
     for(var k in entry){ if(Object.prototype.hasOwnProperty.call(entry, k)){ copy[k] = entry[k]; } }
     copy.archiveId = "ar"+Date.now()+"_"+Math.floor(Math.random()*10000);
     copy.archiveReason = reason; // "deleted" | "edited" | "cleared"
     copy.archivedAt = new Date().toISOString();
+    // For an "edited" entry, this is a snapshot of what it was changed TO,
+    // so the archive can show both sides of the edit (was / changed to)
+    // instead of just the old value on its own.
+    if(changedTo){ copy.changedTo = changedTo; }
     return copy;
   }
 
@@ -3417,24 +3438,34 @@ service cloud.firestore {
     toast("Entries moved to the archive");
   }
 
-  // Puts an archived entry back into the live log (dropping the
-  // archive-only bookkeeping fields) and out of the archive, then recomputes
-  // the bin's totals as if it had never left.
+  // Brings an archived entry back so it counts toward the bin's totals
+  // again, then recomputes those totals as if it had never left. For an
+  // "edited" entry this is a true undo: the archived copy holds the
+  // pre-edit values under the SAME id the live entry still has, so this
+  // puts those old values back in place of the current ones, rather than
+  // adding a second line. A deleted or cleared entry has no live
+  // counterpart left, so it's added back as its own line instead.
   function restoreBinLogEntry(binId, archiveId){
     var b = bins.find(function(x){ return x.id === binId; });
     if(!b) return;
     var archived = (b.archivedLog || []).find(function(x){ return x.archiveId === archiveId; });
     if(!archived) return;
     var restored = {id:archived.id, date:archived.date, action:archived.action, crop:archived.crop, bu:archived.bu, truckType:archived.truckType, fraction:archived.fraction, note:archived.note};
-    var newLog = (b.log || []).concat([restored]);
     var newArchive = (b.archivedLog || []).filter(function(x){ return x.archiveId !== archiveId; });
+    var stillLiveUnderSameId = (b.log || []).some(function(x){ return x.id === archived.id; });
+    var newLog;
+    if(archived.archiveReason === "edited" && stillLiveUnderSameId){
+      newLog = (b.log || []).map(function(x){ return x.id === archived.id ? restored : x; });
+    } else {
+      newLog = (b.log || []).concat([restored]);
+    }
     applyBinLogUpdate(binId, newLog, newArchive);
     // applyBinLogUpdate always reopens the bin actions sheet as part of
     // refreshing it — hide that again so the archive sheet (not the bin
     // actions sheet underneath it) is what the admin actually sees.
     hideSheet("bin-actions-modal", "bin-actions-backdrop");
     openBinLogArchive(binId);
-    toast("Entry restored");
+    toast(archived.archiveReason === "edited" ? "Edit undone" : "Entry restored");
   }
 
   // Shows everything that's been deleted, edited away from, or cleared for
@@ -3454,21 +3485,23 @@ service cloud.firestore {
     } else {
       listEl.innerHTML = archivedLog.map(function(e){
         var dateStr = formatLogTimestamp(e.date);
-        var truckBit = e.truckType ? escapeHtml(e.truckType + (e.fraction ? " " + fractionLabel(e.fraction) : "")) : "";
-        var levelBit = (!e.truckType && e.action === "Set Level" && e.fraction) ? (fractionLabel(e.fraction) === "full" ? "Full" : (fractionLabel(e.fraction) + " full")) : "";
-        var cropBit = e.crop ? ((cropIcon(e.crop) ? cropIcon(e.crop) + " " : "") + escapeHtml(e.crop)) : "";
-        var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(cropBit?" "+cropBit:"")) : "";
-        var detail = [truckBit, levelBit, amt].filter(Boolean).join(" · ");
-        var reasonLabel = e.archiveReason === "edited" ? "Replaced by an edit" : (e.archiveReason === "cleared" ? "Cleared" : "Deleted");
+        var isEdit = e.archiveReason === "edited" && e.changedTo;
+        var wasLine = logEntrySummaryLine(e);
+        var mainLines = isEdit
+          ? ('<div class="le1">Was: '+wasLine+'</div>'+
+             '<div class="le1" style="margin-top:2px;">Changed to: '+logEntrySummaryLine(e.changedTo)+'</div>')
+          : ('<div class="le1">'+wasLine+'</div>');
+        var reasonLabel = e.archiveReason === "edited" ? "Edited" : (e.archiveReason === "cleared" ? "Cleared" : "Deleted");
         var archivedWhen = formatLogTimestamp(e.archivedAt);
+        var restoreTitle = isEdit ? "Undo this edit — put the original values back" : "Restore this entry";
         return '<div class="log-entry">'+
           '<div class="log-entry-main">'+
-            '<div class="le1">'+escapeHtml(e.action||"")+(detail ? " — "+detail : "")+'</div>'+
+            mainLines+
             '<div class="le2">'+escapeHtml(dateStr)+(e.note ? " · "+escapeHtml(e.note) : "")+'</div>'+
             '<div class="le3">'+escapeHtml(reasonLabel)+(archivedWhen ? " · "+escapeHtml(archivedWhen) : "")+'</div>'+
           '</div>'+
           '<div class="log-entry-actions">'+
-            '<button class="log-entry-restore" data-archive-id="'+escapeHtml(e.archiveId)+'" title="Restore this entry">↩️</button>'+
+            '<button class="log-entry-restore" data-archive-id="'+escapeHtml(e.archiveId)+'" title="'+escapeHtml(restoreTitle)+'">↩️</button>'+
           '</div>'+
         '</div>';
       }).join("");
