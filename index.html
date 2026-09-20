@@ -3295,6 +3295,108 @@ service cloud.firestore {
   // Loads pdf.js from a CDN on first use only (not every page load) — most
   // farms will never attach a PDF, so there's no reason to pay for the
   // library's download until someone actually picks one.
+  // ---------- Auto-fill filter numbers by scanning PDF text ----------
+  // Runs only on PDFs, not photos — pdf.js can pull the real, embedded
+  // text out of a manufacturer spec-sheet PDF, so this reads actual text
+  // rather than trying to OCR pixels (which would need a much heavier,
+  // slower library and would be far less reliable on a phone photo).
+  // Looks for filter-type keywords line by line and grabs the
+  // part-number-looking token nearest each one, then pre-fills the
+  // matching equipment field — but only a field that's still empty, and
+  // it always leaves the result editable, since a spec sheet's layout
+  // varies enough that a guess can occasionally grab the wrong number.
+  var FILTER_SCAN_FIELDS = [
+    {field:"hydraulicFilter", keywords:["hydraulic oil filter","hydraulic filter","hyd. filter","hyd filter"]},
+    {field:"cabinFilter", keywords:["cab air filter","cabin air filter","cab filter","cabin filter","fresh air filter","recirculation filter","recirculating filter","hvac filter"]},
+    {field:"airFilter", keywords:["engine air filter","air cleaner element","air filter element","primary air filter","secondary air filter","outer air filter","inner air filter","air filter"]},
+    {field:"fuelFilter", keywords:["primary fuel filter","final fuel filter","fuel filter element","fuel water separator","fuel filter"]},
+    {field:"oilFilter", keywords:["engine oil filter","lube oil filter","oil filter"]},
+    {field:"wiperBlade", keywords:["wiper blade","windshield wiper blade","wiper element","wiper arm"]}
+  ];
+  var FILTER_FIELD_LABELS = {
+    hydraulicFilter:"Hydraulic filter", cabinFilter:"Cabin filter", airFilter:"Air filter",
+    fuelFilter:"Fuel filter", oilFilter:"Oil filter", wiperBlade:"Wiper blade"
+  };
+  var FILTER_FIELD_INPUT_IDS = {
+    hydraulicFilter:"input-equip-hydraulic-filter", cabinFilter:"input-equip-cabin-filter",
+    airFilter:"input-equip-air-filter", fuelFilter:"input-equip-fuel-filter",
+    oilFilter:"input-equip-oil-filter", wiperBlade:"input-equip-wiper-blade"
+  };
+  // Matches typical filter part-number shapes (e.g. RE504836, BF7633,
+  // AT171853) or a plain 4-7 digit code (e.g. Baldwin-style 51782).
+  var PART_NUMBER_RE = /\b[A-Za-z]{1,4}-?\d{3,7}[A-Za-z]{0,3}\b|\b\d{4,7}\b/;
+  var WIPER_SIZE_RE = /\b(\d{2})\s?(?:in\.?|inch(?:es)?|["'])/i;
+
+  function scanPdfTextForFilters(fullText){
+    var lines = fullText.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+    var lowerLines = lines.map(function(l){ return l.toLowerCase(); });
+    var usedLine = {};
+    var results = {};
+    // Field order matters: more specific keywords (e.g. "hydraulic oil
+    // filter") are checked before the generic ones ("oil filter") they'd
+    // otherwise also match, and a line consumed by one field is skipped
+    // for the rest so the same number isn't reused across fields.
+    FILTER_SCAN_FIELDS.forEach(function(spec){
+      for(var i=0; i<lines.length; i++){
+        if(usedLine[i]) continue;
+        var lower = lowerLines[i];
+        var hasKeyword = spec.keywords.some(function(kw){ return lower.indexOf(kw) !== -1; });
+        if(!hasKeyword) continue;
+        var re = spec.field === "wiperBlade" ? WIPER_SIZE_RE : PART_NUMBER_RE;
+        var m = lines[i].match(re);
+        var offset = 0;
+        if(!m && lines[i+1] && !usedLine[i+1]){
+          m = lines[i+1].match(re);
+          offset = 1;
+        }
+        if(m){
+          results[spec.field] = spec.field === "wiperBlade" ? (m[1] + " in") : m[0].toUpperCase();
+          usedLine[i] = true;
+          if(offset === 1) usedLine[i+1] = true;
+          break;
+        }
+      }
+    });
+    return results;
+  }
+
+  function applyFilterScanResults(results){
+    var filled = [];
+    Object.keys(results).forEach(function(field){
+      var inputId = FILTER_FIELD_INPUT_IDS[field];
+      var input = inputId && document.getElementById(inputId);
+      if(!input || input.value.trim()) return;
+      input.value = results[field];
+      filled.push(FILTER_FIELD_LABELS[field]);
+    });
+    if(filled.length){
+      toast("Filled in from the PDF: " + filled.join(", ") + ". Please double-check before saving.", 4500);
+    }
+  }
+
+  // Pulls a PDF page's real embedded text (not OCR) out via pdf.js, joining
+  // items on roughly the same line (similar y-position) with a space and
+  // starting a new line when the y-position jumps, so multi-column spec
+  // tables read back out close to their original row layout.
+  function extractPdfPageText(page){
+    return page.getTextContent().then(function(textContent){
+      var lines = [];
+      var currentLine = [];
+      var lastY = null;
+      textContent.items.forEach(function(item){
+        var y = item.transform ? item.transform[5] : null;
+        if(lastY !== null && y !== null && Math.abs(y - lastY) > 2){
+          lines.push(currentLine.join(" "));
+          currentLine = [];
+        }
+        if(item.str) currentLine.push(item.str);
+        lastY = y;
+      });
+      if(currentLine.length) lines.push(currentLine.join(" "));
+      return lines.join("\n");
+    }).catch(function(){ return ""; });
+  }
+
   function loadPdfJs(callback){
     if(pdfJsLoadState === "ready"){ callback(true); return; }
     if(pdfJsLoadState === "failed"){ callback(false); return; }
@@ -3332,12 +3434,13 @@ service cloud.firestore {
         pdfjsLib.getDocument({data: typedArray}).promise.then(function(pdf){
           var pageCount = Math.min(pdf.numPages, MAX_PDF_PAGES);
           var pages = [];
+          var textParts = [];
           function renderPage(n){
             if(n > pageCount){
               if(pdf.numPages > MAX_PDF_PAGES){
                 toast("Only the first " + MAX_PDF_PAGES + " pages were attached (this PDF has " + pdf.numPages + ").");
               }
-              callback(pages, null);
+              callback(pages, null, textParts.join("\n"));
               return;
             }
             pdf.getPage(n).then(function(page){
@@ -3349,7 +3452,10 @@ service cloud.firestore {
               canvas.height = Math.max(1, Math.round(scaledViewport.height));
               page.render({canvasContext: canvas.getContext("2d"), viewport: scaledViewport}).promise.then(function(){
                 pages.push(canvas.toDataURL("image/jpeg", 0.68));
-                renderPage(n + 1);
+                extractPdfPageText(page).then(function(pageText){
+                  textParts.push(pageText);
+                  renderPage(n + 1);
+                });
               }).catch(function(){ callback(null, "Couldn't render page " + n + " of that PDF."); });
             }).catch(function(){ callback(null, "Couldn't read page " + n + " of that PDF."); });
           }
@@ -4703,9 +4809,12 @@ service cloud.firestore {
       var fileId = "f"+Date.now()+"_"+Math.floor(Math.random()*10000);
       if(isPdf){
         toast("Processing PDF…", 2500);
-        renderPdfFileToPages(file, function(pages, err){
+        renderPdfFileToPages(file, function(pages, err, fullText){
           if(err){ toast(err); return; }
           addPendingEquipFile({id:fileId, kind:"pdf", name:file.name || "PDF", pages:pages});
+          if(fullText){
+            applyFilterScanResults(scanPdfTextForFilters(fullText));
+          }
         });
       } else if(file.type.indexOf("image/") === 0){
         toast("Processing photo…", 1500);
