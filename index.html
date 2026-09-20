@@ -20,7 +20,7 @@
     --green-dark:#274a24;
     --cream:#faf7ef;
     --ink:#20261f;
-    --muted:#6b7266;
+    --muted:#000000; /* was a muted gray-green; now solid black per site-wide no-gray-text request */
     --line:#e2ddd0;
     --danger:#b3382c;
     --small:#8a8f86;
@@ -97,7 +97,7 @@
 
   #app-credit{
     position:absolute;left:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);z-index:495;
-    background:rgba(255,255,255,.78);color:#333;font-size:10.5px;font-weight:600;
+    background:rgba(255,255,255,.78);color:#000;font-size:10.5px;font-weight:600;
     padding:3px 8px;border-radius:8px;pointer-events:none;white-space:nowrap;
   }
 
@@ -298,7 +298,7 @@
   #bin-zoom-cta span{font-size:13px;font-weight:700;white-space:nowrap;}
   #bin-zoom-cta button{border:none;border-radius:20px;cursor:pointer;font-weight:800;font-family:inherit;}
   #bin-zoom-cta #btn-bin-zoom-cta-go{background:var(--green);color:#fff;padding:8px 14px;font-size:13px;white-space:nowrap;}
-  #bin-zoom-cta #btn-bin-zoom-cta-dismiss{background:transparent;color:rgba(255,255,255,.7);padding:6px 8px;font-size:15px;line-height:1;}
+  #bin-zoom-cta #btn-bin-zoom-cta-dismiss{background:transparent;color:#fff;padding:6px 8px;font-size:15px;line-height:1;}
 
   .hidden{display:none !important;}
   a.file-input-label{display:block;}
@@ -406,7 +406,7 @@
   #photo-viewer-img{max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;transform-origin:center center;will-change:transform;}
   #photo-viewer-zoom-controls{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:10px;z-index:2;}
   #photo-viewer-nav{display:flex;align-items:center;justify-content:center;gap:16px;padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 10px) 14px;}
-  #photo-viewer-hint{color:rgba(255,255,255,.6);font-size:12px;text-align:center;}
+  #photo-viewer-hint{color:#fff;font-size:12px;text-align:center;}
   #photo-viewer-nav .icon-btn:disabled{opacity:.35;cursor:default;}
 
   /* Equipment file attachments — form preview list and the multi-file
@@ -418,10 +418,14 @@
   .equip-file-info .efi-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .equip-file-info .efi-sub{font-size:11px;color:var(--muted);font-weight:600;}
 
-  /* One row per belt within a system, in the Add/Edit belt sheet. */
-  .belt-item-row{display:flex;align-items:center;gap:8px;padding:6px 0;}
+  /* One card per belt within a system, in the Add/Edit belt sheet —
+     size/number on one row, that belt's own note (e.g. "top of system")
+     below it. */
+  .belt-item-card{border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;}
+  .belt-item-row{display:flex;align-items:center;gap:8px;}
   .belt-item-row input{flex:1;min-width:0;}
   .belt-item-row .row-btn{flex-shrink:0;padding:8px 10px;}
+  .belt-item-notes{width:100%;margin-top:6px;box-sizing:border-box;}
 
   #load-error{
     position:fixed;inset:0;z-index:2000;background:var(--cream);display:flex;flex-direction:column;
@@ -1019,14 +1023,26 @@ service cloud.firestore {
     </datalist>
   </div>
   <div class="field-row">
-    <label>Belts</label>
-    <div id="belt-items-list"></div>
-    <button type="button" class="btn btn-secondary" id="btn-add-belt-item" style="margin-top:2px;">+ Add belt</button>
-    <div class="coord-readout" style="margin-top:6px;margin-bottom:0;">Add one entry per belt this system uses — many systems run more than one size.</div>
+    <label>Number of belts</label>
+    <select id="input-belt-count">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+    </select>
   </div>
   <div class="field-row">
-    <label>Notes</label>
-    <textarea id="input-belt-notes" placeholder="e.g. location of the belt"></textarea>
+    <label>Belts</label>
+    <div id="belt-items-list"></div>
+    <div class="coord-readout" style="margin-top:6px;margin-bottom:0;">Give each belt a size/number or ID, and a quick note for which one it is — e.g. "top of system" or "bottom of system".</div>
   </div>
 
   <div class="btn-row">
@@ -2638,6 +2654,8 @@ service cloud.firestore {
 
   function deleteCurrentField(){
     if(!editingFieldId) return;
+    var delF = fields.find(function(x){ return x.id === editingFieldId; });
+    if(!confirm('Delete "' + (delF && delF.name ? delF.name : "this field") + '"? This can\'t be undone.')) return;
     if(sharingEnabled){
       fieldDocRef(editingFieldId).delete().catch(function(){
         toast("Couldn't delete from the shared map — check your connection.");
@@ -2800,6 +2818,8 @@ service cloud.firestore {
 
   function deleteCurrentBin(){
     if(!editingBinId) return;
+    var delB = bins.find(function(x){ return x.id === editingBinId; });
+    if(!confirm('Delete "' + (delB && delB.name ? delB.name : "this bin") + '"? This can\'t be undone.')) return;
     if(sharingEnabled){
       binDocRef(editingBinId).delete().catch(function(){
         toast("Couldn't delete from the shared map — check your connection.");
@@ -3763,6 +3783,8 @@ service cloud.firestore {
 
   function deleteCurrentEquipment(){
     if(!editingEquipmentId) return;
+    var delEq = equipment.find(function(x){ return x.id === editingEquipmentId; });
+    if(!confirm('Delete "' + (delEq && delEq.name ? delEq.name : "this equipment") + '"? This can\'t be undone.')) return;
     if(sharingEnabled){
       equipmentDocRef(editingEquipmentId).delete().catch(function(){
         toast("Couldn't delete from the shared map — check your connection.");
@@ -3792,7 +3814,7 @@ service cloud.firestore {
   // so the list/editor never need to special-case it.
   function beltItemsOf(b){
     if(b && Array.isArray(b.beltItems) && b.beltItems.length){ return b.beltItems; }
-    if(b && (b.beltSize || b.beltNumber)){ return [{size:b.beltSize||"", number:b.beltNumber||""}]; }
+    if(b && (b.beltSize || b.beltNumber)){ return [{size:b.beltSize||"", number:b.beltNumber||"", notes:b.notes||""}]; }
     return [];
   }
 
@@ -3805,18 +3827,24 @@ service cloud.firestore {
     }
     var sorted = belts.slice().sort(function(a,z){ return (a.system||"").localeCompare(z.system||""); });
     listEl.innerHTML = sorted.map(function(b){
-      var items = beltItemsOf(b).filter(function(it){ return it.size || it.number; });
-      var beltLine = items.map(function(it){
+      var items = beltItemsOf(b).filter(function(it){ return it.size || it.number || it.notes; });
+      var beltLines = items.map(function(it){
         var bits = [];
         if(it.size) bits.push(it.size);
         if(it.number) bits.push("#" + it.number);
-        return bits.join(" ");
-      }).join(" · ");
+        var line = bits.join(" ");
+        if(it.notes) line += (line ? " — " : "") + it.notes;
+        return line;
+      }).filter(Boolean);
+      // A record saved before belts had their own notes only has the old
+      // system-wide b.notes — show that as a fallback until it's opened
+      // for edit again (which folds it onto the first belt automatically).
+      var itemsHaveNotes = items.some(function(it){ return it.notes; });
       return '<div class="rock-row" data-id="'+b.id+'">'+
         '<div class="rock-info">'+
           '<div class="r1">⚙️ '+escapeHtml(b.system || "System")+'</div>'+
-          (beltLine ? '<div class="r2">'+escapeHtml(beltLine)+'</div>' : '')+
-          (b.notes ? '<div class="r2">📝 '+escapeHtml(b.notes)+'</div>' : '')+
+          beltLines.map(function(l){ return '<div class="r2">'+escapeHtml(l)+'</div>'; }).join("")+
+          (!itemsHaveNotes && b.notes ? '<div class="r2">📝 '+escapeHtml(b.notes)+'</div>' : '')+
         '</div>'+
         '<div class="rock-actions">'+
           '<button class="row-btn" data-action="edit">✏️</button>'+
@@ -3825,26 +3853,42 @@ service cloud.firestore {
     }).join("");
   }
 
+  var BELT_ITEM_COUNT_MAX = 12;
+
   function renderBeltItemsEditor(){
     var wrap = document.getElementById("belt-items-list");
     if(!wrap) return;
     wrap.innerHTML = pendingBeltItems.map(function(item, idx){
-      return '<div class="belt-item-row" data-idx="'+idx+'">'+
-        '<input type="text" class="belt-item-size" data-idx="'+idx+'" placeholder="Size, e.g. A64" value="'+escapeHtml(item.size || "")+'">'+
-        '<input type="text" class="belt-item-number" data-idx="'+idx+'" placeholder="Part #, e.g. B-2050" value="'+escapeHtml(item.number || "")+'">'+
-        '<button type="button" class="row-btn" data-remove-belt-item="'+idx+'">✕</button>'+
+      return '<div class="belt-item-card" data-idx="'+idx+'">'+
+        '<div class="belt-item-row">'+
+          '<input type="text" class="belt-item-size" data-idx="'+idx+'" placeholder="Size, e.g. A64" value="'+escapeHtml(item.size || "")+'">'+
+          '<input type="text" class="belt-item-number" data-idx="'+idx+'" placeholder="Belt #/ID, e.g. B-2050" value="'+escapeHtml(item.number || "")+'">'+
+          '<button type="button" class="row-btn" data-remove-belt-item="'+idx+'">✕</button>'+
+        '</div>'+
+        '<input type="text" class="belt-item-notes" data-idx="'+idx+'" placeholder="e.g. top of system, bottom of system" value="'+escapeHtml(item.notes || "")+'">'+
       '</div>';
     }).join("");
+    var countSelect = document.getElementById("input-belt-count");
+    if(countSelect){ countSelect.value = String(Math.min(pendingBeltItems.length, BELT_ITEM_COUNT_MAX) || 1); }
   }
 
-  function addBeltItemRow(){
-    pendingBeltItems.push({size:"", number:""});
+  // Driven by the "Number of belts" dropdown — grows/shrinks the belt list
+  // to match, keeping whatever's already been typed into the entries that
+  // stay.
+  function setBeltItemCount(n){
+    n = Math.max(1, Math.min(BELT_ITEM_COUNT_MAX, n || 1));
+    var cur = pendingBeltItems.length;
+    if(n > cur){
+      for(var i = cur; i < n; i++){ pendingBeltItems.push({size:"", number:"", notes:""}); }
+    } else if(n < cur){
+      pendingBeltItems = pendingBeltItems.slice(0, n);
+    }
     renderBeltItemsEditor();
   }
 
   function removeBeltItemRow(idx){
     pendingBeltItems.splice(idx, 1);
-    if(pendingBeltItems.length === 0){ pendingBeltItems.push({size:"", number:""}); }
+    if(pendingBeltItems.length === 0){ pendingBeltItems.push({size:"", number:"", notes:""}); }
     renderBeltItemsEditor();
   }
 
@@ -3853,16 +3897,19 @@ service cloud.firestore {
       editingBeltId = b.id;
       document.getElementById("belt-modal-title").textContent = "Edit system";
       document.getElementById("input-belt-system").value = b.system || "";
-      document.getElementById("input-belt-notes").value = b.notes || "";
-      pendingBeltItems = beltItemsOf(b).map(function(it){ return {size:it.size||"", number:it.number||""}; });
-      if(pendingBeltItems.length === 0){ pendingBeltItems = [{size:"", number:""}]; }
+      pendingBeltItems = beltItemsOf(b).map(function(it){ return {size:it.size||"", number:it.number||"", notes:it.notes||""}; });
+      if(pendingBeltItems.length === 0){ pendingBeltItems = [{size:"", number:"", notes:""}]; }
+      // Fold an older system-wide note (saved before belts had their own
+      // notes) onto the first belt so it isn't silently lost.
+      if(b.notes && !pendingBeltItems.some(function(it){ return it.notes; })){
+        pendingBeltItems[0].notes = b.notes;
+      }
       document.getElementById("belt-edit-only-row").classList.remove("hidden");
     } else {
       editingBeltId = null;
       document.getElementById("belt-modal-title").textContent = "Add system";
       document.getElementById("input-belt-system").value = "";
-      document.getElementById("input-belt-notes").value = "";
-      pendingBeltItems = [{size:"", number:""}];
+      pendingBeltItems = [{size:"", number:"", notes:""}];
       document.getElementById("belt-edit-only-row").classList.add("hidden");
     }
     renderBeltItemsEditor();
@@ -3878,20 +3925,19 @@ service cloud.firestore {
   function saveBeltFromForm(){
     var system = document.getElementById("input-belt-system").value.trim();
     if(!system){ toast("Enter a system name."); return; }
-    var notes = document.getElementById("input-belt-notes").value.trim();
     var beltItems = pendingBeltItems
-      .map(function(it){ return {size:(it.size||"").trim(), number:(it.number||"").trim()}; })
-      .filter(function(it){ return it.size || it.number; });
+      .map(function(it){ return {size:(it.size||"").trim(), number:(it.number||"").trim(), notes:(it.notes||"").trim()}; })
+      .filter(function(it){ return it.size || it.number || it.notes; });
 
     if(editingBeltId){
-      var updates = {system:system, beltItems:beltItems, beltSize:"", beltNumber:"", notes:notes};
+      var updates = {system:system, beltItems:beltItems, beltSize:"", beltNumber:"", notes:""};
       if(sharingEnabled){
         beltDocRef(editingBeltId).update(updates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
         var exb = belts.find(function(x){ return x.id === editingBeltId; });
-        if(exb){ exb.system=system; exb.beltItems=beltItems; exb.beltSize=""; exb.beltNumber=""; exb.notes=notes; }
+        if(exb){ exb.system=system; exb.beltItems=beltItems; exb.beltSize=""; exb.beltNumber=""; exb.notes=""; }
         saveData();
         renderBeltsList();
       }
@@ -3899,7 +3945,7 @@ service cloud.firestore {
     } else {
       var newBelt = {
         id: "bl"+Date.now()+"_"+Math.floor(Math.random()*10000),
-        system:system, beltItems:beltItems, beltSize:"", beltNumber:"", notes:notes,
+        system:system, beltItems:beltItems, beltSize:"", beltNumber:"", notes:"",
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
@@ -3918,6 +3964,8 @@ service cloud.firestore {
 
   function deleteCurrentBelt(){
     if(!editingBeltId) return;
+    var delBl = belts.find(function(x){ return x.id === editingBeltId; });
+    if(!confirm('Delete "' + (delBl && delBl.system ? delBl.system : "this system") + '"? This can\'t be undone.')) return;
     if(sharingEnabled){
       beltDocRef(editingBeltId).delete().catch(function(){
         toast("Couldn't delete from the shared map — check your connection.");
@@ -3976,6 +4024,7 @@ service cloud.firestore {
 
   function deleteCurrentRock(){
     if(!editingId) return;
+    if(!confirm("Delete this rock? This can't be undone.")) return;
     if(sharingEnabled){
       rockDocRef(editingId).delete().catch(function(){
         toast("Couldn't delete from the shared map — check your connection.");
@@ -4876,7 +4925,9 @@ service cloud.firestore {
     document.getElementById("btn-save-belt").addEventListener("click", saveBeltFromForm);
     document.getElementById("btn-delete-belt").addEventListener("click", deleteCurrentBelt);
     document.getElementById("belt-backdrop").addEventListener("click", closeBeltModal);
-    document.getElementById("btn-add-belt-item").addEventListener("click", addBeltItemRow);
+    document.getElementById("input-belt-count").addEventListener("change", function(e){
+      setBeltItemCount(parseInt(e.target.value, 10));
+    });
     document.getElementById("belt-items-list").addEventListener("input", function(e){
       var idx = e.target.getAttribute("data-idx");
       if(idx === null) return;
@@ -4884,6 +4935,7 @@ service cloud.firestore {
       if(!pendingBeltItems[idx]) return;
       if(e.target.classList.contains("belt-item-size")){ pendingBeltItems[idx].size = e.target.value; }
       else if(e.target.classList.contains("belt-item-number")){ pendingBeltItems[idx].number = e.target.value; }
+      else if(e.target.classList.contains("belt-item-notes")){ pendingBeltItems[idx].notes = e.target.value; }
     });
     document.getElementById("belt-items-list").addEventListener("click", function(e){
       var idx = e.target.getAttribute("data-remove-belt-item");
