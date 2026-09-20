@@ -1,6 +1,6 @@
 {
-  "name": "Rock Marker",
-  "short_name": "Rock Marker",
+  "name": "Chaplinski Farms",
+  "short_name": "Chaplinski Farms",
   "description": "Mark rock locations across your fields with GPS and satellite maps, and share the map live with others.",
   "start_url": "./index.html",
   "scope": "./",

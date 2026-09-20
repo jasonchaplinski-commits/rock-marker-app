@@ -751,7 +751,38 @@ service cloud.firestore {
   }
 
   // ---------- Rendering ----------
+  // A rock's field name is stored as plain text at the moment it's marked.
+  // If a field gets renamed, saveFieldFromForm() cascades that rename onto
+  // every rock going forward — but rocks that already had a stale name
+  // *before* that fix existed (or from any other edge case) never get
+  // touched. Catch those here: any rock whose stored field name doesn't
+  // match a real field, but whose coordinates fall inside exactly one
+  // field's boundary, gets silently corrected to that field's current name.
+  function reconcileRockFieldNames(){
+    if(!rocks.length || !fields.length) return;
+    var currentNames = fields.map(function(f){ return (f.name||"").trim().toLowerCase(); });
+    var changedLocally = false;
+    rocks.forEach(function(r){
+      var rf = (r.field||"").trim();
+      if(!rf || currentNames.indexOf(rf.toLowerCase()) !== -1) return;
+      var inside = fields.filter(function(f){
+        return f.points && f.points.length>=3 && pointInPolygon(r.lat, r.lng, f.points);
+      });
+      if(inside.length === 1 && inside[0].name && inside[0].name.trim() !== rf){
+        var newName = inside[0].name.trim();
+        r.field = newName;
+        if(sharingEnabled){
+          rockDocRef(r.id).update({field:newName}).catch(function(){});
+        } else {
+          changedLocally = true;
+        }
+      }
+    });
+    if(changedLocally){ saveData(); }
+  }
+
   function renderAll(){
+    reconcileRockFieldNames();
     rockLayerGroup.clearLayers();
     var filtered = rocks.filter(function(r){
       return currentFieldFilter === "all" || (r.field || "(no field)") === currentFieldFilter;
