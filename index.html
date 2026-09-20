@@ -447,8 +447,10 @@
   .belt-item-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:6px;}
   .belt-item-row{display:flex;align-items:center;gap:8px;}
   .belt-item-row input{flex:1;min-width:0;}
+  .belt-item-qty{flex:0 0 68px;min-width:0;}
   .belt-item-row .row-btn{flex-shrink:0;padding:8px 10px;}
   .belt-item-notes{width:100%;margin-top:6px;box-sizing:border-box;}
+  .belt-item-qty-label{font-size:10px;color:var(--muted);text-align:center;margin-top:2px;}
 
   #load-error{
     position:fixed;inset:0;z-index:2000;background:var(--cream);display:flex;flex-direction:column;
@@ -1008,6 +1010,7 @@ service cloud.firestore {
 <div id="photo-viewer" class="hidden">
   <div id="photo-viewer-header">
     <span id="photo-viewer-title"></span>
+    <button class="icon-btn hidden" id="btn-photo-jump-files" title="Jump to file">📑</button>
     <button class="icon-btn" id="btn-close-photo-viewer">✕</button>
   </div>
   <div id="photo-viewer-stage">
@@ -1054,26 +1057,10 @@ service cloud.firestore {
     </datalist>
   </div>
   <div class="field-row">
-    <label>Number of belts</label>
-    <select id="input-belt-count">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-      <option value="10">10</option>
-      <option value="11">11</option>
-      <option value="12">12</option>
-    </select>
-  </div>
-  <div class="field-row">
     <label>Belts</label>
     <div id="belt-items-list"></div>
-    <div class="coord-readout" style="margin-top:6px;margin-bottom:0;">Give each belt a size/number or ID, and a quick note for which one it is — e.g. "top of system" or "bottom of system".</div>
+    <button type="button" class="btn btn-secondary" id="btn-add-belt-item" style="width:100%;">+ Add another belt</button>
+    <div class="coord-readout" style="margin-top:6px;margin-bottom:0;">For each part number: pick how many use that part number, enter the part number, then note where they are — e.g. "top of leg" or "bottom of leg". Add another entry for a different part number on the same system.</div>
   </div>
 
   <div class="btn-row">
@@ -1163,10 +1150,18 @@ service cloud.firestore {
   var EQUIP_FILES_BUDGET = 900000; // chars, shared across all of one equipment's attached pages
   var MAX_PDF_PAGES = 10;
   var photoViewerState = {scale:1, x:0, y:0};
-  var photoViewerPages = [];
+  // The viewer flattens every attached file's pages into one continuous
+  // sequence (photoViewerEntries), so prev/next scrolls straight across
+  // file boundaries instead of stopping at the end of whichever PDF/photo
+  // you opened first. photoViewerFiles + photoViewerFileStarts (the
+  // flattened index each file's first page lands on) back the optional
+  // "jump to file" shortcut.
+  var photoViewerFiles = [];
+  var photoViewerFileStarts = [];
+  var photoViewerEntries = [];
   var photoViewerPageIndex = 0;
   var photoViewerBaseLabel = "";
-  var equipmentFilesChooserContext = null; // {eqName, files} while the chooser sheet is open
+  var equipmentFilesChooserContext = null; // {eqName, files} while the jump-to-file sheet is open
   var pdfJsLoadState = "idle"; // idle | loading | ready | failed
   var pdfJsLoadCallbacks = [];
   var map, satelliteLayer, streetLayer, usingSatellite = true;
@@ -2766,6 +2761,16 @@ service cloud.firestore {
     return bits.length ? bits.join(" · ") : null;
   }
 
+  // The flip side of "Loads to empty": how much room is left in the bin
+  // before it hits capacity, in bushels. null when no capacity has been
+  // set, 0 (shown as "Full") when it's at or over capacity.
+  function binRemainingBu(b){
+    if(typeof b.capacityBu !== "number" || b.capacityBu <= 0) return null;
+    var bu = (typeof b.currentBu === "number" && b.currentBu > 0) ? b.currentBu : 0;
+    var remaining = b.capacityBu - bu;
+    return remaining > 0 ? remaining : 0;
+  }
+
   function openBinModal(bin){
     if(bin){
       editingBinId = bin.id;
@@ -2878,6 +2883,9 @@ service cloud.firestore {
     var truckLine = truckCountsLine(binTruckCounts(b.log));
     var removedLine = truckCountsLine(binTruckCountsRemoved(b.log));
     var equivLine = loadsEquivLine(b.currentBu);
+    var remainingBu = binRemainingBu(b);
+    var remainingLine = (remainingBu !== null) ? (remainingBu > 0 ? ("≈" + remainingBu.toLocaleString() + " bu") : "Full") : null;
+    var fillEquivLine = (remainingBu !== null && remainingBu > 0) ? loadsEquivLine(remainingBu) : null;
 
     document.getElementById("bin-actions-stats").innerHTML =
       '<div class="summary-row summary-total"><span>Currently holding</span><span>'+holdingHtml+'</span></div>'+
@@ -2885,6 +2893,8 @@ service cloud.firestore {
       (truckLine ? '<div class="summary-row"><span>Trucks dumped</span><span>'+escapeHtml(truckLine)+'</span></div>' : '')+
       (removedLine ? '<div class="summary-row"><span>Loads removed</span><span>'+escapeHtml(removedLine)+'</span></div>' : '')+
       (equivLine ? '<div class="summary-row"><span>Loads to empty (est.)</span><span>'+escapeHtml(equivLine)+'</span></div>' : '')+
+      (remainingLine ? '<div class="summary-row"><span>Space left before full</span><span>'+escapeHtml(remainingLine)+'</span></div>' : '')+
+      (fillEquivLine ? '<div class="summary-row"><span>Loads to fill (est.)</span><span>'+escapeHtml(fillEquivLine)+'</span></div>' : '')+
       '<div class="summary-row"><span>'+escapeHtml(capLine)+'</span></div>';
 
     var logEl = document.getElementById("bin-actions-log");
@@ -3693,10 +3703,16 @@ service cloud.firestore {
   }
 
   function renderPhotoViewerCurrentPage(){
-    var total = photoViewerPages.length;
-    document.getElementById("photo-viewer-img").src = photoViewerPages[photoViewerPageIndex] || "";
-    var pageBit = total > 1 ? (" (" + (photoViewerPageIndex + 1) + "/" + total + ")") : "";
-    document.getElementById("photo-viewer-title").textContent = photoViewerBaseLabel + pageBit;
+    var total = photoViewerEntries.length;
+    var entry = photoViewerEntries[photoViewerPageIndex];
+    document.getElementById("photo-viewer-img").src = entry ? entry.src : "";
+    var titleEl = document.getElementById("photo-viewer-title");
+    if(entry){
+      var inFileBit = entry.pageCount > 1 ? (" (p" + (entry.pageIndex + 1) + "/" + entry.pageCount + ")") : "";
+      titleEl.textContent = entry.fileName + inFileBit;
+    } else {
+      titleEl.textContent = photoViewerBaseLabel;
+    }
     photoViewerState.scale = 1; photoViewerState.x = 0; photoViewerState.y = 0;
     applyPhotoTransform();
     var prevBtn = document.getElementById("btn-photo-prev");
@@ -3708,30 +3724,62 @@ service cloud.firestore {
     } else {
       prevBtn.classList.add("hidden"); nextBtn.classList.add("hidden");
     }
+    document.getElementById("btn-photo-jump-files").classList.toggle("hidden", photoViewerFiles.length < 2);
   }
 
   function photoViewerPrevPage(){
     if(photoViewerPageIndex > 0){ photoViewerPageIndex--; renderPhotoViewerCurrentPage(); }
   }
   function photoViewerNextPage(){
-    if(photoViewerPageIndex < photoViewerPages.length - 1){ photoViewerPageIndex++; renderPhotoViewerCurrentPage(); }
+    if(photoViewerPageIndex < photoViewerEntries.length - 1){ photoViewerPageIndex++; renderPhotoViewerCurrentPage(); }
   }
 
-  function openPhotoViewerForFile(file, baseLabel){
-    photoViewerPages = (file && file.pages) ? file.pages : [];
-    photoViewerPageIndex = 0;
-    photoViewerBaseLabel = baseLabel || (file && file.name) || "";
+  // Flattens every file's pages into one back-to-back sequence — e.g. a
+  // filters PDF, a parts PDF, and a belts PDF attached to the same piece of
+  // equipment all scroll as if they were one document, rather than making
+  // you close out and reopen a different file for each one.
+  function buildPhotoViewerEntries(files){
+    var entries = [];
+    var starts = [];
+    files.forEach(function(f, fileIdx){
+      starts.push(entries.length);
+      var pages = (f && f.pages) ? f.pages : [];
+      pages.forEach(function(src, pageIndex){
+        entries.push({src:src, fileName:(f && f.name) || "File", pageIndex:pageIndex, pageCount:pages.length, fileIdx:fileIdx});
+      });
+    });
+    return {entries:entries, starts:starts};
+  }
+
+  function openPhotoViewerForFiles(files, baseLabel, startIndex){
+    var built = buildPhotoViewerEntries(files);
+    photoViewerFiles = files;
+    photoViewerFileStarts = built.starts;
+    photoViewerEntries = built.entries;
+    photoViewerPageIndex = Math.max(0, Math.min(photoViewerEntries.length - 1, startIndex || 0));
+    photoViewerBaseLabel = baseLabel || "";
     renderPhotoViewerCurrentPage();
     document.getElementById("photo-viewer").classList.remove("hidden");
+  }
+
+  function jumpPhotoViewerToFile(fileIdx){
+    var start = photoViewerFileStarts[fileIdx];
+    if(start === undefined) return;
+    photoViewerPageIndex = start;
+    renderPhotoViewerCurrentPage();
   }
 
   function closePhotoViewer(){
     document.getElementById("photo-viewer").classList.add("hidden");
     document.getElementById("photo-viewer-img").src = "";
-    photoViewerPages = [];
+    photoViewerFiles = [];
+    photoViewerFileStarts = [];
+    photoViewerEntries = [];
   }
 
-  // ---------- Files chooser (equipment with more than one attachment) ----------
+  // ---------- Jump-to-file sheet (shortcut when an equipment has more than
+  // one attachment — jumps the single continuous viewer to that file's
+  // first page rather than opening a separate narrower view) ----------
   function openEquipmentFilesChooser(eq, files){
     equipmentFilesChooserContext = {eqName: eq.name || "Equipment", files: files};
     document.getElementById("equipment-files-title-text").textContent = eq.name || "Equipment";
@@ -3866,7 +3914,7 @@ service cloud.firestore {
   // so the list/editor never need to special-case it.
   function beltItemsOf(b){
     if(b && Array.isArray(b.beltItems) && b.beltItems.length){ return b.beltItems; }
-    if(b && (b.beltSize || b.beltNumber)){ return [{size:b.beltSize||"", number:b.beltNumber||"", notes:b.notes||""}]; }
+    if(b && (b.beltSize || b.beltNumber)){ return [{qty:"1", number:b.beltNumber||b.beltSize||"", notes:b.notes||""}]; }
     return [];
   }
 
@@ -3879,18 +3927,24 @@ service cloud.firestore {
     }
     var sorted = belts.slice().sort(function(a,z){ return (a.system||"").localeCompare(z.system||""); });
     listEl.innerHTML = sorted.map(function(b){
-      var items = beltItemsOf(b).filter(function(it){ return it.size || it.number || it.notes; });
+      var items = beltItemsOf(b).filter(function(it){ return it.number || it.size || it.notes; });
       var beltLines = items.map(function(it){
+        var qtyNum = parseInt(it.qty, 10) || 1;
+        var partNum = it.number || it.size || "";
         var bits = [];
-        if(it.size) bits.push(it.size);
-        if(it.number) bits.push("#" + it.number);
+        if(qtyNum > 1) bits.push(qtyNum + "×");
+        if(partNum) bits.push("#" + partNum);
         var line = bits.join(" ");
         if(it.notes) line += (line ? " — " : "") + it.notes;
         return line;
       }).filter(Boolean);
       // A quick "how many belts / what part numbers" preview right in the
       // list, so you don't have to open a system just to see what's on it.
-      var countLabel = items.length ? (items.length + (items.length === 1 ? " belt" : " belts")) : "";
+      // Sums quantities across every part-number entry, since one system
+      // often needs several of one part number plus a different quantity
+      // of another.
+      var beltCountTotal = items.reduce(function(sum, it){ return sum + (parseInt(it.qty, 10) || 1); }, 0);
+      var countLabel = beltCountTotal ? (beltCountTotal + (beltCountTotal === 1 ? " belt" : " belts")) : "";
       // A record saved before belts had their own notes only has the old
       // system-wide b.notes — show that as a fallback until it's opened
       // for edit again (which folds it onto the first belt automatically).
@@ -3911,41 +3965,40 @@ service cloud.firestore {
 
   var BELT_ITEM_COUNT_MAX = 12;
 
+  // Each entry here is one part number: how many belts use that part
+  // number, the part number itself, and a note for where those belts are.
+  // A system with mixed belts just gets more than one entry — e.g. "3x
+  // 1530, top of leg" plus a second entry "2x 4L360, bottom of leg".
   function renderBeltItemsEditor(){
     var wrap = document.getElementById("belt-items-list");
     if(!wrap) return;
     wrap.innerHTML = pendingBeltItems.map(function(item, idx){
+      var qty = item.qty || "1";
+      var qtyOptions = "";
+      for(var q = 1; q <= BELT_ITEM_COUNT_MAX; q++){
+        qtyOptions += '<option value="'+q+'"'+(String(q) === String(qty) ? ' selected' : '')+'>'+q+'</option>';
+      }
       return '<div class="belt-item-card" data-idx="'+idx+'">'+
-        '<div class="belt-item-label">Belt '+(idx+1)+' of '+pendingBeltItems.length+'</div>'+
+        '<div class="belt-item-label">Belt '+(idx+1)+'</div>'+
         '<div class="belt-item-row">'+
-          '<input type="text" class="belt-item-size" data-idx="'+idx+'" placeholder="Size, e.g. A64" value="'+escapeHtml(item.size || "")+'">'+
-          '<input type="text" class="belt-item-number" data-idx="'+idx+'" placeholder="Belt #/ID, e.g. B-2050" value="'+escapeHtml(item.number || "")+'">'+
+          '<select class="belt-item-qty" data-idx="'+idx+'" title="How many">'+qtyOptions+'</select>'+
+          '<input type="text" class="belt-item-number" data-idx="'+idx+'" placeholder="Part number, e.g. A64 or B-2050" value="'+escapeHtml(item.number || "")+'">'+
           '<button type="button" class="row-btn" data-remove-belt-item="'+idx+'">✕</button>'+
         '</div>'+
-        '<input type="text" class="belt-item-notes" data-idx="'+idx+'" placeholder="e.g. top of system, bottom of system" value="'+escapeHtml(item.notes || "")+'">'+
+        '<input type="text" class="belt-item-notes" data-idx="'+idx+'" placeholder="e.g. top of leg, bottom of leg" value="'+escapeHtml(item.notes || "")+'">'+
       '</div>';
     }).join("");
-    var countSelect = document.getElementById("input-belt-count");
-    if(countSelect){ countSelect.value = String(Math.min(pendingBeltItems.length, BELT_ITEM_COUNT_MAX) || 1); }
   }
 
-  // Driven by the "Number of belts" dropdown — grows/shrinks the belt list
-  // to match, keeping whatever's already been typed into the entries that
-  // stay.
-  function setBeltItemCount(n){
-    n = Math.max(1, Math.min(BELT_ITEM_COUNT_MAX, n || 1));
-    var cur = pendingBeltItems.length;
-    if(n > cur){
-      for(var i = cur; i < n; i++){ pendingBeltItems.push({size:"", number:"", notes:""}); }
-    } else if(n < cur){
-      pendingBeltItems = pendingBeltItems.slice(0, n);
-    }
+  function addBeltItemRow(){
+    if(pendingBeltItems.length >= BELT_ITEM_COUNT_MAX){ toast("Max " + BELT_ITEM_COUNT_MAX + " belt entries per system."); return; }
+    pendingBeltItems.push({qty:"1", number:"", notes:""});
     renderBeltItemsEditor();
   }
 
   function removeBeltItemRow(idx){
     pendingBeltItems.splice(idx, 1);
-    if(pendingBeltItems.length === 0){ pendingBeltItems.push({size:"", number:"", notes:""}); }
+    if(pendingBeltItems.length === 0){ pendingBeltItems.push({qty:"1", number:"", notes:""}); }
     renderBeltItemsEditor();
   }
 
@@ -3954,8 +4007,11 @@ service cloud.firestore {
       editingBeltId = b.id;
       document.getElementById("belt-modal-title").textContent = "Edit system";
       document.getElementById("input-belt-system").value = b.system || "";
-      pendingBeltItems = beltItemsOf(b).map(function(it){ return {size:it.size||"", number:it.number||"", notes:it.notes||""}; });
-      if(pendingBeltItems.length === 0){ pendingBeltItems = [{size:"", number:"", notes:""}]; }
+      // Older records may only have a "size" (e.g. "A64") from before this
+      // became a single part-number field — fold that in as the part
+      // number rather than losing it.
+      pendingBeltItems = beltItemsOf(b).map(function(it){ return {qty: it.qty || "1", number: it.number || it.size || "", notes: it.notes || ""}; });
+      if(pendingBeltItems.length === 0){ pendingBeltItems = [{qty:"1", number:"", notes:""}]; }
       // Fold an older system-wide note (saved before belts had their own
       // notes) onto the first belt so it isn't silently lost.
       if(b.notes && !pendingBeltItems.some(function(it){ return it.notes; })){
@@ -3966,7 +4022,7 @@ service cloud.firestore {
       editingBeltId = null;
       document.getElementById("belt-modal-title").textContent = "Add system";
       document.getElementById("input-belt-system").value = "";
-      pendingBeltItems = [{size:"", number:"", notes:""}];
+      pendingBeltItems = [{qty:"1", number:"", notes:""}];
       document.getElementById("belt-edit-only-row").classList.add("hidden");
     }
     renderBeltItemsEditor();
@@ -3982,14 +4038,11 @@ service cloud.firestore {
   function saveBeltFromForm(){
     var system = document.getElementById("input-belt-system").value.trim();
     if(!system){ toast("Enter a system name."); return; }
-    // Keep exactly the slots the "Number of belts" dropdown was set to —
-    // not filtered down to only the ones filled in so far. Otherwise
-    // picking "3" and only filling in the first one would quietly save as
-    // just 1 belt, and the dropdown would show "1" again next time this
-    // system is opened, losing the two empty slots you meant to come back
-    // to. Blank entries just don't show a line in the belts list.
+    // Keep exactly the entries as edited, even ones still blank — an empty
+    // slot just doesn't show a line in the belts list, and stays there to
+    // come back to instead of quietly disappearing.
     var beltItems = pendingBeltItems
-      .map(function(it){ return {size:(it.size||"").trim(), number:(it.number||"").trim(), notes:(it.notes||"").trim()}; });
+      .map(function(it){ return {qty:(it.qty||"1"), number:(it.number||"").trim(), notes:(it.notes||"").trim()}; });
 
     if(editingBeltId){
       var updates = {system:system, beltItems:beltItems, beltSize:"", beltNumber:"", notes:""};
@@ -4906,8 +4959,7 @@ service cloud.firestore {
       if(action === "edit"){ openEquipmentModal(eq); return; }
       var files = equipFilesOf(eq);
       if(files.length === 0){ openEquipmentModal(eq); }
-      else if(files.length === 1){ openPhotoViewerForFile(files[0], eq.name || "Equipment"); }
-      else { openEquipmentFilesChooser(eq, files); }
+      else { openPhotoViewerForFiles(files, eq.name || "Equipment", 0); }
     });
     document.getElementById("btn-cancel-equipment").addEventListener("click", closeEquipmentModal);
     document.getElementById("btn-save-equipment").addEventListener("click", saveEquipmentFromForm);
@@ -4962,6 +5014,9 @@ service cloud.firestore {
     document.getElementById("btn-photo-next").addEventListener("click", photoViewerNextPage);
     document.getElementById("btn-photo-zoom-in").addEventListener("click", function(){ zoomPhotoViewerBy(1.4); });
     document.getElementById("btn-photo-zoom-out").addEventListener("click", function(){ zoomPhotoViewerBy(1/1.4); });
+    document.getElementById("btn-photo-jump-files").addEventListener("click", function(){
+      openEquipmentFilesChooser({name: photoViewerBaseLabel}, photoViewerFiles);
+    });
     initPhotoViewerGestures();
 
     document.getElementById("btn-close-equipment-files").addEventListener("click", function(){
@@ -4974,10 +5029,11 @@ service cloud.firestore {
       var row = e.target.closest(".equip-file-row");
       if(!row || !equipmentFilesChooserContext) return;
       var idx = parseInt(row.getAttribute("data-index"), 10);
-      var file = equipmentFilesChooserContext.files[idx];
-      if(!file) return;
+      if(!equipmentFilesChooserContext.files[idx]) return;
       hideSheet("equipment-files-modal", "equipment-files-backdrop");
-      openPhotoViewerForFile(file, equipmentFilesChooserContext.eqName);
+      // Jumps the single continuous viewer to that file's first page,
+      // rather than opening a separate narrower view for just that file.
+      jumpPhotoViewerToFile(idx);
     });
 
     // ---------- Belts ----------
@@ -5002,17 +5058,21 @@ service cloud.firestore {
     document.getElementById("btn-save-belt").addEventListener("click", saveBeltFromForm);
     document.getElementById("btn-delete-belt").addEventListener("click", deleteCurrentBelt);
     document.getElementById("belt-backdrop").addEventListener("click", closeBeltModal);
-    document.getElementById("input-belt-count").addEventListener("change", function(e){
-      setBeltItemCount(parseInt(e.target.value, 10));
-    });
+    document.getElementById("btn-add-belt-item").addEventListener("click", addBeltItemRow);
     document.getElementById("belt-items-list").addEventListener("input", function(e){
       var idx = e.target.getAttribute("data-idx");
       if(idx === null) return;
       idx = parseInt(idx, 10);
       if(!pendingBeltItems[idx]) return;
-      if(e.target.classList.contains("belt-item-size")){ pendingBeltItems[idx].size = e.target.value; }
-      else if(e.target.classList.contains("belt-item-number")){ pendingBeltItems[idx].number = e.target.value; }
+      if(e.target.classList.contains("belt-item-number")){ pendingBeltItems[idx].number = e.target.value; }
       else if(e.target.classList.contains("belt-item-notes")){ pendingBeltItems[idx].notes = e.target.value; }
+    });
+    document.getElementById("belt-items-list").addEventListener("change", function(e){
+      var idx = e.target.getAttribute("data-idx");
+      if(idx === null) return;
+      idx = parseInt(idx, 10);
+      if(!pendingBeltItems[idx]) return;
+      if(e.target.classList.contains("belt-item-qty")){ pendingBeltItems[idx].qty = e.target.value; }
     });
     document.getElementById("belt-items-list").addEventListener("click", function(e){
       var idx = e.target.getAttribute("data-remove-belt-item");
