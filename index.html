@@ -1608,6 +1608,21 @@ service cloud.firestore {
     return counts;
   }
 
+  // Bins are shown in a fixed, farm-meaningful order rather than
+  // alphabetically or by how full they are: Holding Bin, then Largest Bin,
+  // then 2ndLarge Bin, then Bin1 through Bin7 in numeric order, with
+  // everything else (the Quonsets, or any other bin) last, in whatever
+  // order they already were.
+  function binSortRank(name){
+    var n = (name || "").trim().toLowerCase();
+    if(n === "holding bin") return 0;
+    if(n === "largest bin") return 1;
+    if(n === "2ndlarge bin") return 2;
+    var m = /^bin(\d+)$/i.exec((name || "").trim());
+    if(m) return 10 + parseInt(m[1], 10);
+    return 1000;
+  }
+
   function computeBinTotals(){
     var totalBu = 0, totalCapacity = 0, totalLoads = 0;
     var truckCounts = {Tandem:0, Semi:0};
@@ -1636,7 +1651,7 @@ service cloud.firestore {
         truckSummary: binTruckSummary(b.log)
       });
     });
-    byBin.sort(function(a,z){ return z.bu - a.bu; });
+    byBin.sort(function(a,z){ return binSortRank(a.name) - binSortRank(z.name); });
     var cropTotals = Object.keys(cropTotalsMap).map(function(crop){
       return {crop: crop, bu: cropTotalsMap[crop]};
     }).sort(function(a,z){ return z.bu - a.bu; });
@@ -2316,6 +2331,26 @@ service cloud.firestore {
     return Math.round(full * fraction);
   }
 
+  // How many tandem loads and how many semi loads a given bushel amount
+  // WOULD take, based purely on math against the truck sizes in settings —
+  // e.g. "3.3 tandem loads · 1.7 semi loads" for 5,000 bu. This is a
+  // planning estimate (how many trucks to send to move what's in the bin
+  // right now), separate from "Trucks dumped", which is the actual count of
+  // loads logged so far.
+  function loadsEquivLine(bu){
+    if(typeof bu !== "number" || bu <= 0) return null;
+    var bits = [];
+    if(typeof truckSizes.tandem === "number" && truckSizes.tandem > 0){
+      var t = Math.round((bu / truckSizes.tandem) * 10) / 10;
+      bits.push(t + (t === 1 ? " tandem load" : " tandem loads"));
+    }
+    if(typeof truckSizes.semi === "number" && truckSizes.semi > 0){
+      var s = Math.round((bu / truckSizes.semi) * 10) / 10;
+      bits.push(s + (s === 1 ? " semi load" : " semi loads"));
+    }
+    return bits.length ? bits.join(" · ") : null;
+  }
+
   function openBinModal(bin){
     if(bin){
       editingBinId = bin.id;
@@ -2428,11 +2463,13 @@ service cloud.firestore {
     if(truckCounts.Tandem) truckBits.push(truckCounts.Tandem + (truckCounts.Tandem === 1 ? " tandem" : " tandems"));
     if(truckCounts.Semi) truckBits.push(truckCounts.Semi + (truckCounts.Semi === 1 ? " semi" : " semis"));
     var truckLine = truckBits.length ? truckBits.join(" · ") : null;
+    var equivLine = loadsEquivLine(b.currentBu);
 
     document.getElementById("bin-actions-stats").innerHTML =
       '<div class="summary-row summary-total"><span>Currently holding</span><span>'+holdingHtml+'</span></div>'+
       (loadsLine ? '<div class="summary-row"><span>'+escapeHtml(loadsLine)+'</span></div>' : '')+
       (truckLine ? '<div class="summary-row"><span>Trucks dumped</span><span>'+escapeHtml(truckLine)+'</span></div>' : '')+
+      (equivLine ? '<div class="summary-row"><span>Loads to empty (est.)</span><span>'+escapeHtml(equivLine)+'</span></div>' : '')+
       '<div class="summary-row"><span>'+escapeHtml(capLine)+'</span></div>';
 
     var logEl = document.getElementById("bin-actions-log");
@@ -2780,7 +2817,7 @@ service cloud.firestore {
       listEl.innerHTML = '<div id="empty-list">No bins outlined yet. Tap "Outline a new bin" above to trace one.</div>';
       return;
     }
-    var sorted = bins.slice().sort(function(a,z){ return (a.name||"").localeCompare(z.name||"", undefined, {numeric:true}); });
+    var sorted = bins.slice().sort(function(a,z){ return binSortRank(a.name) - binSortRank(z.name); });
     listEl.innerHTML = sorted.map(function(b){
       var holdingHtml = binHoldingHtml(b);
       var capLine = (typeof b.capacityBu === "number" && b.capacityBu > 0) ? (b.capacityBu.toLocaleString()+" bu cap") : "no cap set";
