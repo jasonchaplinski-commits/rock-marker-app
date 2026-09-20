@@ -986,6 +986,7 @@ service cloud.firestore {
       <input type="file" accept="image/*,application/pdf" id="input-equip-file" multiple>
     </label>
     <div class="coord-readout" style="margin-top:6px;margin-bottom:0;">Pick several at once (e.g. a filters PDF, a parts PDF, and a belts PDF), or tap again to add more later. Each PDF is converted to zoomable page images (up to 10 pages). Keep files small — everything attached to one piece of equipment needs to fit in a shared size budget.</div>
+    <div class="hidden" id="equip-files-budget-status" style="margin-top:6px;font-size:12px;font-weight:700;"></div>
     <div class="hidden" id="equip-files-preview-wrap" style="margin-top:10px;"></div>
   </div>
 
@@ -1147,7 +1148,10 @@ service cloud.firestore {
   // the equipment's existing files (so cancel leaves the real record
   // untouched) and is mutated directly as the user adds/removes files.
   var pendingEquipFiles = [];
-  var EQUIP_FILES_BUDGET = 900000; // chars, shared across all of one equipment's attached pages
+  // Chars, shared across all of one equipment's attached pages. Kept under
+  // Firestore's ~1MB-per-document limit (1,048,576 bytes) with headroom for
+  // the equipment's other fields.
+  var EQUIP_FILES_BUDGET = 950000;
   var MAX_PDF_PAGES = 10;
   var photoViewerState = {scale:1, x:0, y:0};
   // The viewer flattens every attached file's pages into one continuous
@@ -3527,13 +3531,21 @@ service cloud.firestore {
             }
             pdf.getPage(n).then(function(page){
               var viewport = page.getViewport({scale:1});
-              var scale = 1300 / viewport.width;
+              // Sized to fit a real multi-PDF equipment record (a filters
+              // sheet + a parts guide + a belts sheet) inside the shared
+              // attachment budget below — a two-page belts PDF and a
+              // three-page parts PDF at the old 1300px/0.68 quality already
+              // ran past the whole budget by themselves. Tested against
+              // real John Deere filter/parts PDFs at this size: part
+              // numbers and diagram labels stay sharp, and the viewer's
+              // pinch/scroll zoom covers the rest.
+              var scale = 950 / viewport.width;
               var scaledViewport = page.getViewport({scale: scale});
               var canvas = document.createElement("canvas");
               canvas.width = Math.max(1, Math.round(scaledViewport.width));
               canvas.height = Math.max(1, Math.round(scaledViewport.height));
               page.render({canvasContext: canvas.getContext("2d"), viewport: scaledViewport}).promise.then(function(){
-                pages.push(canvas.toDataURL("image/jpeg", 0.68));
+                pages.push(canvas.toDataURL("image/jpeg", 0.5));
                 extractPdfPageText(page).then(function(pageText){
                   textParts.push(pageText);
                   renderPage(n + 1);
@@ -3558,7 +3570,8 @@ service cloud.firestore {
   function addPendingEquipFile(fileObj){
     var projected = pendingEquipFiles.concat([fileObj]);
     if(pendingEquipFilesTotalChars(projected) > EQUIP_FILES_BUDGET){
-      toast("That would make this equipment's attachments too large to sync — remove a file first or use a smaller/shorter one.");
+      var usedPct = Math.round((pendingEquipFilesTotalChars(pendingEquipFiles) / EQUIP_FILES_BUDGET) * 100);
+      toast('"' + (fileObj.name || "That file") + '" didn\'t fit — attachments for this equipment are already at ' + usedPct + '% of the size budget. Remove a file first, or attach this one on its own.', 4500);
       return;
     }
     pendingEquipFiles = projected;
@@ -3570,8 +3583,23 @@ service cloud.firestore {
     renderEquipFilesPreview();
   }
 
+  // A plain-language reading of how much of the shared attachment budget is
+  // used up, so hitting the "too large to sync" wall isn't a surprise —
+  // shown right under the file picker as files are added.
+  function updateEquipFilesBudgetStatus(){
+    var statusEl = document.getElementById("equip-files-budget-status");
+    if(!statusEl) return;
+    if(pendingEquipFiles.length === 0){ statusEl.classList.add("hidden"); statusEl.textContent = ""; return; }
+    var used = pendingEquipFilesTotalChars(pendingEquipFiles);
+    var pct = Math.min(100, Math.round((used / EQUIP_FILES_BUDGET) * 100));
+    statusEl.classList.remove("hidden");
+    statusEl.style.color = pct >= 90 ? "#b3261e" : (pct >= 70 ? "#8a5a00" : "var(--muted)");
+    statusEl.textContent = "Attachments: " + pct + "% of the size budget used" + (pct >= 90 ? " — almost full, a bigger PDF may not fit." : ".");
+  }
+
   function renderEquipFilesPreview(){
     var wrap = document.getElementById("equip-files-preview-wrap");
+    updateEquipFilesBudgetStatus();
     if(pendingEquipFiles.length === 0){ wrap.classList.add("hidden"); wrap.innerHTML = ""; return; }
     wrap.classList.remove("hidden");
     wrap.innerHTML = pendingEquipFiles.map(function(f){
