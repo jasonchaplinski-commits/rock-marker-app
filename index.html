@@ -222,6 +222,7 @@
   input[type=file]{display:none;}
 
   .you-are-here{width:16px;height:16px;border-radius:50%;background:#2b7bff;border:3px solid #fff;box-shadow:0 0 0 4px rgba(43,123,255,.35);}
+  .waypoint-pin{font-size:34px;line-height:1;transform:translate(-50%,-92%);filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));cursor:pointer;}
   .rock-pin{display:flex;align-items:center;justify-content:center;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5);border:3px solid var(--medium);transition:opacity .15s ease,background .15s ease,box-shadow .15s ease;}
   .rock-pin.size-small{width:26px;height:26px;font-size:13px;border-color:var(--small);}
   .rock-pin.size-medium{width:32px;height:32px;font-size:16px;border-color:var(--medium);}
@@ -293,6 +294,7 @@
 <div id="farm-badge" class="hidden"></div>
 
 <div id="fabs">
+  <button class="fab fab-small" id="btn-drop-pin" title="Drop a pin to navigate">🚩</button>
   <button class="fab fab-small" id="btn-draw-field" title="Outline a field">📐</button>
   <button class="fab fab-small" id="btn-list" title="Rock &amp; field list">📋</button>
   <button class="fab fab-small" id="btn-locate" title="Find my location">📍</button>
@@ -329,6 +331,7 @@
     <label>Field</label>
     <input type="text" id="input-field" list="field-suggestions" placeholder="e.g. North 40">
     <datalist id="field-suggestions"></datalist>
+    <div class="coord-readout" id="field-info-hint" style="margin-top:6px;margin-bottom:0;font-size:14px;font-weight:600;"></div>
   </div>
 
   <div class="field-row">
@@ -451,6 +454,19 @@
   </div>
 </div>
 
+<!-- Dropped-pin actions sheet -->
+<div class="sheet-backdrop" id="waypoint-actions-backdrop"></div>
+<div class="sheet" id="waypoint-actions-modal">
+  <div class="sheet-handle"></div>
+  <h2>🚩 Pin dropped</h2>
+  <div class="coord-readout" id="waypoint-coords"></div>
+  <div class="btn-row" style="flex-direction:column;">
+    <button class="btn btn-primary" id="btn-waypoint-navigate">🧭 Navigate here</button>
+    <button class="btn btn-danger" id="btn-waypoint-remove">Remove pin</button>
+    <button class="btn btn-secondary" id="btn-waypoint-close">Close</button>
+  </div>
+</div>
+
 <!-- Share settings sheet -->
 <div class="sheet-backdrop" id="share-backdrop"></div>
 <div class="sheet" id="share-modal">
@@ -565,6 +581,9 @@ service cloud.firestore {
   var searchOpen = false;
 
   var drawingField = false;
+  var droppingPin = false;
+  var waypointMarker = null;
+  var pendingWaypointLatLng = null;
   var drawPoints = [];
   var pendingFieldPoints = null;
   var editingFieldId = null;
@@ -632,6 +651,7 @@ service cloud.firestore {
 
     map.on("click", function(e){
       if(drawingField){ addDrawPoint(e.latlng); }
+      else if(droppingPin){ dropWaypoint(e.latlng); }
       else { openAddModal(e.latlng); }
     });
 
@@ -1119,6 +1139,7 @@ service cloud.firestore {
     document.getElementById("input-note").value = "";
     selectSize("medium");
     document.getElementById("edit-only-row").classList.add("hidden");
+    updateFieldInfoHint();
     showSheet("rock-modal", "modal-backdrop");
   }
 
@@ -1131,7 +1152,30 @@ service cloud.firestore {
     document.getElementById("input-note").value = rock.note || "";
     selectSize(rock.size || "medium");
     document.getElementById("edit-only-row").classList.remove("hidden");
+    updateFieldInfoHint();
     showSheet("rock-modal", "modal-backdrop");
+  }
+
+  // Shows the matched field's acres/crop/harvest status right under the Field
+  // box in the Mark-a-rock sheet, so that info is visible even when someone
+  // taps inside a field (which marks a rock there) instead of tapping its
+  // small map label.
+  function updateFieldInfoHint(){
+    var hintEl = document.getElementById("field-info-hint");
+    if(!hintEl) return;
+    var name = document.getElementById("input-field").value.trim();
+    var f = fields.find(function(x){ return (x.name||"").trim().toLowerCase() === name.toLowerCase(); });
+    if(!name || !f){
+      hintEl.textContent = "";
+      return;
+    }
+    var acres = polygonAreaAcres(f.points);
+    var hStatus = harvestStatusOf(f);
+    var cropBit = f.crop ? ((CROP_ICONS[f.crop] ? CROP_ICONS[f.crop]+' ' : '') + f.crop + " · ") : "";
+    var harvestBit = hStatus === "Partial Harvested"
+      ? "Partial (" + partialAcresOf(f).toFixed(1) + " of " + acres.toFixed(1) + " ac)"
+      : hStatus;
+    hintEl.textContent = acres.toFixed(1) + " acres · " + cropBit + HARVEST_ICONS[hStatus] + " " + harvestBit;
   }
 
   function lastUsedField(){
@@ -1505,6 +1549,39 @@ service cloud.firestore {
   function openInGoogleMaps(lat, lng){
     var url = "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lng;
     window.open(url, "_blank");
+  }
+
+  // ---------- Drop-a-pin (ad hoc waypoint, not saved) ----------
+  // Lets anyone — a new employee who doesn't know the field names yet — tap
+  // any spot on the map and get turn-by-turn directions there. This pin is
+  // temporary (this device only, not synced) and just a shortcut into Maps.
+  function dropWaypoint(latlng){
+    droppingPin = false;
+    if(waypointMarker){ map.removeLayer(waypointMarker); }
+    waypointMarker = L.marker(latlng, {
+      icon: L.divIcon({className:"", html:'<div class="waypoint-pin">🚩</div>', iconSize:[0,0]})
+    }).addTo(map);
+    waypointMarker.on("click", function(ev){
+      L.DomEvent.stopPropagation(ev);
+      openWaypointActions(latlng);
+    });
+    openWaypointActions(latlng);
+  }
+
+  function openWaypointActions(latlng){
+    pendingWaypointLatLng = latlng;
+    document.getElementById("waypoint-coords").textContent = latlng.lat.toFixed(6) + ", " + latlng.lng.toFixed(6);
+    showSheet("waypoint-actions-modal", "waypoint-actions-backdrop");
+  }
+
+  function closeWaypointActions(){
+    hideSheet("waypoint-actions-modal", "waypoint-actions-backdrop");
+  }
+
+  function removeWaypoint(){
+    if(waypointMarker){ map.removeLayer(waypointMarker); waypointMarker = null; }
+    pendingWaypointLatLng = null;
+    closeWaypointActions();
   }
 
   // ---------- Export / Import ----------
@@ -1981,6 +2058,18 @@ service cloud.firestore {
     document.querySelectorAll(".color-swatch").forEach(function(el){
       el.addEventListener("click", function(){ selectFieldColor(el.getAttribute("data-color")); });
     });
+    document.getElementById("input-field").addEventListener("input", updateFieldInfoHint);
+
+    document.getElementById("btn-drop-pin").addEventListener("click", function(){
+      droppingPin = true;
+      toast("Tap anywhere on the map to drop a pin.", 2800);
+    });
+    document.getElementById("btn-waypoint-navigate").addEventListener("click", function(){
+      if(pendingWaypointLatLng){ openInGoogleMaps(pendingWaypointLatLng.lat, pendingWaypointLatLng.lng); }
+    });
+    document.getElementById("btn-waypoint-remove").addEventListener("click", removeWaypoint);
+    document.getElementById("btn-waypoint-close").addEventListener("click", closeWaypointActions);
+    document.getElementById("waypoint-actions-backdrop").addEventListener("click", closeWaypointActions);
     document.getElementById("input-field-crop").addEventListener("change", updateColorSectionForCrop);
     document.getElementById("input-field-harvest").addEventListener("change", updatePartialAcresRow);
     document.getElementById("btn-cancel-field").addEventListener("click", closeFieldModal);
