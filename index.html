@@ -263,6 +263,20 @@
   }
   #toast.show{opacity:1;transform:translate(-50%,0);}
 
+  /* Shown briefly after zooming to all bins — a shortcut into the full
+     bin-totals page without having to dig into the list drawer. */
+  #bin-zoom-cta{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);transform:translate(-50%,12px);z-index:850;
+    display:flex;align-items:center;gap:10px;background:rgba(20,30,18,.92);color:#fff;
+    padding:8px 8px 8px 16px;border-radius:26px;box-shadow:0 4px 16px rgba(0,0,0,.35);
+    opacity:0;pointer-events:none;transition:all .25s;max-width:90vw;
+  }
+  #bin-zoom-cta.show{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
+  #bin-zoom-cta span{font-size:13px;font-weight:700;white-space:nowrap;}
+  #bin-zoom-cta button{border:none;border-radius:20px;cursor:pointer;font-weight:800;font-family:inherit;}
+  #bin-zoom-cta #btn-bin-zoom-cta-go{background:var(--green);color:#fff;padding:8px 14px;font-size:13px;white-space:nowrap;}
+  #bin-zoom-cta #btn-bin-zoom-cta-dismiss{background:transparent;color:rgba(255,255,255,.7);padding:6px 8px;font-size:15px;line-height:1;}
+
   .hidden{display:none !important;}
   a.file-input-label{display:block;}
   input[type=file]{display:none;}
@@ -769,6 +783,12 @@ service cloud.firestore {
 
 <div id="toast"></div>
 
+<div id="bin-zoom-cta">
+  <span>📊 See all bin totals?</span>
+  <button id="btn-bin-zoom-cta-go">View</button>
+  <button id="btn-bin-zoom-cta-dismiss" title="Dismiss">✕</button>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
@@ -833,6 +853,7 @@ service cloud.firestore {
   var selectedSize = "medium";
   var currentFieldFilter = "all";
   var toastTimer = null;
+  var binZoomCtaTimer = null;
   var searchOpen = false;
 
   var drawingField = false;
@@ -886,6 +907,20 @@ service cloud.firestore {
     el.classList.add("show");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function(){ el.classList.remove("show"); }, ms || 2400);
+  }
+
+  // Small floating prompt shown after tapping the BINS button (which just
+  // zooms the map) offering a one-tap shortcut into the full bin-totals
+  // page, since that page lives a couple taps deep in the list drawer
+  // otherwise. Auto-dismisses itself so it doesn't linger over the map.
+  function showBinZoomCta(){
+    document.getElementById("bin-zoom-cta").classList.add("show");
+    clearTimeout(binZoomCtaTimer);
+    binZoomCtaTimer = setTimeout(hideBinZoomCta, 5000);
+  }
+  function hideBinZoomCta(){
+    document.getElementById("bin-zoom-cta").classList.remove("show");
+    clearTimeout(binZoomCtaTimer);
   }
 
   // ---------- Map setup ----------
@@ -3644,7 +3679,13 @@ service cloud.firestore {
     document.getElementById("bin-tab").addEventListener("click", function(){
       if(bins.length === 0) return;
       zoomToAllBins();
+      showBinZoomCta();
     });
+    document.getElementById("btn-bin-zoom-cta-go").addEventListener("click", function(){
+      hideBinZoomCta();
+      openBinTotalsSheet();
+    });
+    document.getElementById("btn-bin-zoom-cta-dismiss").addEventListener("click", hideBinZoomCta);
     document.getElementById("btn-view-all-bins").addEventListener("click", openBinTotalsSheet);
     document.getElementById("btn-bin-totals-close").addEventListener("click", function(){
       hideSheet("bin-totals-modal", "bin-totals-backdrop");
