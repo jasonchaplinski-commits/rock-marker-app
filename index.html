@@ -222,7 +222,12 @@
   input[type=file]{display:none;}
 
   .you-are-here{width:16px;height:16px;border-radius:50%;background:#2b7bff;border:3px solid #fff;box-shadow:0 0 0 4px rgba(43,123,255,.35);}
-  .waypoint-pin{font-size:34px;line-height:1;transform:translate(-50%,-92%);filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));cursor:pointer;}
+  .waypoint-marker{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);cursor:pointer;}
+  .waypoint-marker .waypoint-pin{font-size:32px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+  .waypoint-marker .waypoint-name{
+    margin-top:-4px;background:rgba(255,255,255,.92);border:1px solid #b3541e;border-radius:8px;padding:1px 8px;
+    font-size:11px;font-weight:800;color:var(--ink);white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25);
+  }
   .rock-pin{display:flex;align-items:center;justify-content:center;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5);border:3px solid var(--medium);transition:opacity .15s ease,background .15s ease,box-shadow .15s ease;}
   .rock-pin.size-small{width:26px;height:26px;font-size:13px;border-color:var(--small);}
   .rock-pin.size-medium{width:32px;height:32px;font-size:16px;border-color:var(--medium);}
@@ -357,9 +362,11 @@
   <div class="tab-row">
     <button class="tab-btn active" id="tab-rocks" data-tab="rocks">🪨 Rocks</button>
     <button class="tab-btn" id="tab-fields" data-tab="fields">🗺️ Fields</button>
+    <button class="tab-btn" id="tab-pins" data-tab="pins">🚩 Pins</button>
   </div>
   <div id="rock-list"></div>
   <div id="field-list" class="hidden"></div>
+  <div id="pin-list" class="hidden"></div>
   <div class="field-row" style="margin-top:10px;">
     <label>Export / Backup</label>
     <div class="export-menu">
@@ -458,11 +465,12 @@
 <div class="sheet-backdrop" id="waypoint-actions-backdrop"></div>
 <div class="sheet" id="waypoint-actions-modal">
   <div class="sheet-handle"></div>
-  <h2>🚩 Pin dropped</h2>
+  <h2 id="waypoint-actions-title">🚩 Pin</h2>
   <div class="coord-readout" id="waypoint-coords"></div>
   <div class="btn-row" style="flex-direction:column;">
     <button class="btn btn-primary" id="btn-waypoint-navigate">🧭 Navigate here</button>
-    <button class="btn btn-danger" id="btn-waypoint-remove">Remove pin</button>
+    <button class="btn btn-secondary" id="btn-waypoint-rename">✏️ Rename pin</button>
+    <button class="btn btn-danger" id="btn-waypoint-remove">🗑️ Delete pin</button>
     <button class="btn btn-secondary" id="btn-waypoint-close">Close</button>
   </div>
 </div>
@@ -572,7 +580,7 @@ service cloud.firestore {
   var rocks = [];
   var fields = [];
   var map, satelliteLayer, streetLayer, usingSatellite = true;
-  var rockLayerGroup, fieldLayerGroup, drawTempLayerGroup, youAreHereMarker;
+  var rockLayerGroup, fieldLayerGroup, drawTempLayerGroup, waypointLayerGroup, youAreHereMarker;
   var editingId = null;
   var pendingLatLng = null;
   var selectedSize = "medium";
@@ -582,8 +590,8 @@ service cloud.firestore {
 
   var drawingField = false;
   var droppingPin = false;
-  var waypointMarker = null;
-  var pendingWaypointLatLng = null;
+  var waypoints = [];
+  var pendingWaypointObj = null;
   var drawPoints = [];
   var pendingFieldPoints = null;
   var editingFieldId = null;
@@ -604,12 +612,13 @@ service cloud.firestore {
         var parsed = JSON.parse(raw);
         rocks = Array.isArray(parsed.rocks) ? parsed.rocks : [];
         fields = Array.isArray(parsed.fields) ? parsed.fields : [];
+        waypoints = Array.isArray(parsed.waypoints) ? parsed.waypoints : [];
       }
-    }catch(e){ rocks = []; fields = []; }
+    }catch(e){ rocks = []; fields = []; waypoints = []; }
   }
   function saveData(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints}));
     }catch(e){
       toast("Couldn't save — your browser storage may be full or blocked.");
     }
@@ -648,6 +657,7 @@ service cloud.firestore {
     rockLayerGroup = L.layerGroup().addTo(map);
     fieldLayerGroup = L.layerGroup().addTo(map);
     drawTempLayerGroup = L.layerGroup().addTo(map);
+    waypointLayerGroup = L.layerGroup().addTo(map);
 
     map.on("click", function(e){
       if(drawingField){ addDrawPoint(e.latlng); }
@@ -737,6 +747,8 @@ service cloud.firestore {
     renderList();
     renderFields();
     renderFieldList();
+    renderWaypoints();
+    renderPinList();
     updateFarmBadge();
     if(window.requestAnimationFrame){
       requestAnimationFrame(updateRockGhosting);
@@ -909,8 +921,32 @@ service cloud.firestore {
   function switchListTab(tab){
     document.getElementById("tab-rocks").classList.toggle("active", tab === "rocks");
     document.getElementById("tab-fields").classList.toggle("active", tab === "fields");
+    document.getElementById("tab-pins").classList.toggle("active", tab === "pins");
     document.getElementById("rock-list").classList.toggle("hidden", tab !== "rocks");
     document.getElementById("field-list").classList.toggle("hidden", tab !== "fields");
+    document.getElementById("pin-list").classList.toggle("hidden", tab !== "pins");
+  }
+
+  function renderPinList(){
+    var listEl = document.getElementById("pin-list");
+    if(waypoints.length === 0){
+      listEl.innerHTML = '<div id="empty-list">No pins dropped yet. Tap 🚩 on the map to drop one.</div>';
+      return;
+    }
+    var sorted = waypoints.slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||"", undefined, {numeric:true}); });
+    listEl.innerHTML = sorted.map(function(w){
+      return '<div class="rock-row" data-id="'+w.id+'">'+
+        '<div class="rock-dot" style="background:#b3541e;"></div>'+
+        '<div class="rock-info">'+
+          '<div class="r1">🚩 '+escapeHtml(w.name || "Pin")+'</div>'+
+          '<div class="r2">'+w.lat.toFixed(6)+', '+w.lng.toFixed(6)+'</div>'+
+        '</div>'+
+        '<div class="rock-actions">'+
+          '<button class="row-btn" data-action="goto">🎯</button>'+
+          '<button class="row-btn" data-action="gmaps" title="Navigate to this pin">🧭</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
   }
 
   function renderFieldList(){
@@ -1551,36 +1587,112 @@ service cloud.firestore {
     window.open(url, "_blank");
   }
 
-  // ---------- Drop-a-pin (ad hoc waypoint, not saved) ----------
+  // ---------- Drop-a-pin (named, persistent, shared waypoints) ----------
   // Lets anyone — a new employee who doesn't know the field names yet — tap
-  // any spot on the map and get turn-by-turn directions there. This pin is
-  // temporary (this device only, not synced) and just a shortcut into Maps.
-  function dropWaypoint(latlng){
-    droppingPin = false;
-    if(waypointMarker){ map.removeLayer(waypointMarker); }
-    waypointMarker = L.marker(latlng, {
-      icon: L.divIcon({className:"", html:'<div class="waypoint-pin">🚩</div>', iconSize:[0,0]})
-    }).addTo(map);
-    waypointMarker.on("click", function(ev){
-      L.DomEvent.stopPropagation(ev);
-      openWaypointActions(latlng);
-    });
-    openWaypointActions(latlng);
+  // any spot on the map to drop a named pin ("Pin 1", "Pin 2", ...). Pins
+  // save the same way rocks/fields do: locally, or straight into the shared
+  // farm in Firestore when sharing is on, so every connected device (and
+  // the employee's phone) sees the same pins and can navigate to them.
+  function waypointDocRef(id){
+    return firestoreDb.collection("farms").doc(farmCode).collection("waypoints").doc(id);
   }
 
-  function openWaypointActions(latlng){
-    pendingWaypointLatLng = latlng;
-    document.getElementById("waypoint-coords").textContent = latlng.lat.toFixed(6) + ", " + latlng.lng.toFixed(6);
+  function nextPinName(){
+    var maxN = 0;
+    waypoints.forEach(function(w){
+      var m = /^Pin (\d+)$/.exec(w.name || "");
+      if(m){ maxN = Math.max(maxN, parseInt(m[1], 10)); }
+    });
+    return "Pin " + (maxN + 1);
+  }
+
+  function renderWaypoints(){
+    waypointLayerGroup.clearLayers();
+    waypoints.forEach(function(w){
+      var marker = L.marker([w.lat, w.lng], {
+        pane: "fieldLabelPane",
+        icon: L.divIcon({
+          className:"",
+          html:'<div class="waypoint-marker"><div class="waypoint-pin">🚩</div><div class="waypoint-name">'+escapeHtml(w.name || "Pin")+'</div></div>',
+          iconSize:[0,0]
+        })
+      });
+      marker.on("click", function(ev){
+        L.DomEvent.stopPropagation(ev);
+        openWaypointActions(w);
+      });
+      marker.addTo(waypointLayerGroup);
+    });
+  }
+
+  function dropWaypoint(latlng){
+    droppingPin = false;
+    var wp = {
+      id: "w"+Date.now()+"_"+Math.floor(Math.random()*10000),
+      name: nextPinName(),
+      lat: latlng.lat, lng: latlng.lng,
+      createdAt: new Date().toISOString()
+    };
+    if(sharingEnabled){
+      waypointDocRef(wp.id).set({name:wp.name, lat:wp.lat, lng:wp.lng, createdAt:wp.createdAt}).catch(function(){
+        toast("Couldn't save to the shared map — check your connection.");
+      });
+    } else {
+      waypoints.push(wp);
+      saveData();
+      renderAll();
+    }
+    openWaypointActions(wp);
+  }
+
+  function currentWaypoint(){
+    if(!pendingWaypointObj) return null;
+    return waypoints.find(function(w){ return w.id === pendingWaypointObj.id; }) || pendingWaypointObj;
+  }
+
+  function openWaypointActions(wp){
+    pendingWaypointObj = wp;
+    document.getElementById("waypoint-actions-title").textContent = "🚩 " + (wp.name || "Pin");
+    document.getElementById("waypoint-coords").textContent = wp.lat.toFixed(6) + ", " + wp.lng.toFixed(6);
     showSheet("waypoint-actions-modal", "waypoint-actions-backdrop");
   }
 
   function closeWaypointActions(){
     hideSheet("waypoint-actions-modal", "waypoint-actions-backdrop");
+    pendingWaypointObj = null;
   }
 
-  function removeWaypoint(){
-    if(waypointMarker){ map.removeLayer(waypointMarker); waypointMarker = null; }
-    pendingWaypointLatLng = null;
+  function renameWaypoint(){
+    var wp = currentWaypoint();
+    if(!wp) return;
+    var newName = window.prompt("Pin name:", wp.name || "");
+    if(newName === null) return;
+    newName = newName.trim();
+    if(!newName) return;
+    if(sharingEnabled){
+      waypointDocRef(wp.id).update({name:newName}).catch(function(){
+        toast("Couldn't save to the shared map — check your connection.");
+      });
+    } else {
+      wp.name = newName;
+      saveData();
+      renderAll();
+    }
+    document.getElementById("waypoint-actions-title").textContent = "🚩 " + newName;
+  }
+
+  function deleteWaypoint(){
+    var wp = currentWaypoint();
+    if(!wp) return;
+    if(sharingEnabled){
+      waypointDocRef(wp.id).delete().catch(function(){
+        toast("Couldn't remove from the shared map — check your connection.");
+      });
+    } else {
+      waypoints = waypoints.filter(function(w){ return w.id !== wp.id; });
+      saveData();
+      renderAll();
+    }
     closeWaypointActions();
   }
 
@@ -1643,7 +1755,7 @@ service cloud.firestore {
   }
 
   function exportJSON(){
-    downloadBlob("rock-marker-backup.json", JSON.stringify({rocks:rocks, fields:fields}, null, 2), "application/json");
+    downloadBlob("rock-marker-backup.json", JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints}, null, 2), "application/json");
     toast("Backup downloaded");
   }
 
@@ -1654,7 +1766,8 @@ service cloud.firestore {
         var data = JSON.parse(e.target.result);
         var rocksIn = Array.isArray(data.rocks) ? data.rocks : [];
         var fieldsIn = Array.isArray(data.fields) ? data.fields : [];
-        if(!Array.isArray(data.rocks) && !Array.isArray(data.fields)){ throw new Error("bad format"); }
+        var waypointsIn = Array.isArray(data.waypoints) ? data.waypoints : [];
+        if(!Array.isArray(data.rocks) && !Array.isArray(data.fields) && !Array.isArray(data.waypoints)){ throw new Error("bad format"); }
 
         var existingIds = new Set(rocks.map(function(r){return r.id;}));
         var added = 0;
@@ -1682,8 +1795,21 @@ service cloud.firestore {
           }
         });
 
+        var existingWaypointIds = new Set(waypoints.map(function(w){return w.id;}));
+        var addedWaypoints = 0;
+        waypointsIn.forEach(function(w){
+          if(w && typeof w.lat === "number" && typeof w.lng === "number" && !existingWaypointIds.has(w.id)){
+            if(sharingEnabled){
+              waypointDocRef(w.id).set({name:w.name||"Pin", lat:w.lat, lng:w.lng, createdAt:w.createdAt||new Date().toISOString()});
+            } else {
+              waypoints.push(w);
+            }
+            addedWaypoints++;
+          }
+        });
+
         if(!sharingEnabled){ saveData(); updateFieldOptions(); renderAll(); }
-        toast(added + " rock(s), " + addedFields + " field(s) restored");
+        toast(added + " rock(s), " + addedFields + " field(s), " + addedWaypoints + " pin(s) restored");
       }catch(err){
         toast("Couldn't read that backup file.");
       }
@@ -1724,7 +1850,7 @@ service cloud.firestore {
   }
 
   function cacheSharedData(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields})); }catch(e){}
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints})); }catch(e){}
   }
 
   function subscribeToFarm(){
@@ -1761,6 +1887,20 @@ service cloud.firestore {
         toast("Sync error loading field boundaries.");
       })
     );
+
+    unsubscribeFns.push(
+      firestoreDb.collection("farms").doc(farmCode).collection("waypoints").onSnapshot(function(snapshot){
+        waypoints = snapshot.docs.map(function(d){
+          var data = d.data();
+          data.id = d.id;
+          return data;
+        });
+        cacheSharedData();
+        renderAll();
+      }, function(err){
+        toast("Sync error loading pins.");
+      })
+    );
   }
 
   function connectSharing(config, code, isAutoReconnect){
@@ -1782,12 +1922,13 @@ service cloud.firestore {
       // silently wiping this device's map with an empty shared collection.
       var localFieldsSnapshot = fields.slice();
       var localRocksSnapshot = rocks.slice();
+      var localWaypointsSnapshot = waypoints.slice();
 
       subscribeToFarm();
       setShareStatusUI();
       try{ localStorage.setItem(SHARE_KEY, JSON.stringify({config:config, farmCode:code})); }catch(e){}
       if(!isAutoReconnect){
-        seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot);
+        seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot, localWaypointsSnapshot);
         toast("Connected — sharing enabled");
         hideSheet("share-modal","share-backdrop");
       }
@@ -1801,13 +1942,16 @@ service cloud.firestore {
   // starts from your existing work instead of empty. If the farm code already
   // has data (someone else set it up, or you've connected before), this does
   // nothing and the shared data simply takes over, as usual.
-  function seedFarmIfEmpty(localFields, localRocks){
-    if(!localFields.length && !localRocks.length){ return; }
+  function seedFarmIfEmpty(localFields, localRocks, localWaypoints){
+    localWaypoints = localWaypoints || [];
+    if(!localFields.length && !localRocks.length && !localWaypoints.length){ return; }
     var fieldsRef = firestoreDb.collection("farms").doc(farmCode).collection("fields");
     var rocksRef = firestoreDb.collection("farms").doc(farmCode).collection("rocks");
-    Promise.all([fieldsRef.limit(1).get(), rocksRef.limit(1).get()]).then(function(results){
+    var waypointsRef = firestoreDb.collection("farms").doc(farmCode).collection("waypoints");
+    Promise.all([fieldsRef.limit(1).get(), rocksRef.limit(1).get(), waypointsRef.limit(1).get()]).then(function(results){
       var fieldsEmpty = results[0].empty;
       var rocksEmpty = results[1].empty;
+      var waypointsEmpty = results[2].empty;
       var uploaded = 0;
       if(fieldsEmpty && localFields.length){
         localFields.forEach(function(f){
@@ -1829,6 +1973,15 @@ service cloud.firestore {
             lat: r.lat, lng: r.lng, size: r.size || "medium",
             field: r.field || "", note: r.note || "",
             createdAt: r.createdAt || new Date().toISOString()
+          });
+          uploaded++;
+        });
+      }
+      if(waypointsEmpty && localWaypoints.length){
+        localWaypoints.forEach(function(w){
+          waypointsRef.doc(w.id).set({
+            name: w.name || "Pin", lat: w.lat, lng: w.lng,
+            createdAt: w.createdAt || new Date().toISOString()
           });
           uploaded++;
         });
@@ -2029,6 +2182,22 @@ service cloud.firestore {
 
     document.getElementById("tab-rocks").addEventListener("click", function(){ switchListTab("rocks"); });
     document.getElementById("tab-fields").addEventListener("click", function(){ switchListTab("fields"); });
+    document.getElementById("tab-pins").addEventListener("click", function(){ switchListTab("pins"); });
+
+    document.getElementById("pin-list").addEventListener("click", function(e){
+      var row = e.target.closest(".rock-row");
+      if(!row) return;
+      var id = row.getAttribute("data-id");
+      var w = waypoints.find(function(x){ return x.id === id; });
+      if(!w) return;
+      var action = e.target.getAttribute("data-action");
+      if(action === "goto"){
+        hideSheet("list-drawer", "list-backdrop");
+        map.setView([w.lat, w.lng], 18);
+      } else if(action === "gmaps"){
+        openInGoogleMaps(w.lat, w.lng);
+      }
+    });
 
     document.getElementById("field-list").addEventListener("click", function(e){
       var row = e.target.closest(".rock-row");
@@ -2065,9 +2234,11 @@ service cloud.firestore {
       toast("Tap anywhere on the map to drop a pin.", 2800);
     });
     document.getElementById("btn-waypoint-navigate").addEventListener("click", function(){
-      if(pendingWaypointLatLng){ openInGoogleMaps(pendingWaypointLatLng.lat, pendingWaypointLatLng.lng); }
+      var wp = currentWaypoint();
+      if(wp){ openInGoogleMaps(wp.lat, wp.lng); }
     });
-    document.getElementById("btn-waypoint-remove").addEventListener("click", removeWaypoint);
+    document.getElementById("btn-waypoint-rename").addEventListener("click", renameWaypoint);
+    document.getElementById("btn-waypoint-remove").addEventListener("click", deleteWaypoint);
     document.getElementById("btn-waypoint-close").addEventListener("click", closeWaypointActions);
     document.getElementById("waypoint-actions-backdrop").addEventListener("click", closeWaypointActions);
     document.getElementById("input-field-crop").addEventListener("change", updateColorSectionForCrop);
