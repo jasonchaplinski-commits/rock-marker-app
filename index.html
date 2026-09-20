@@ -54,6 +54,21 @@
   }
   .icon-btn:active{transform:scale(0.94);}
 
+  /* Hamburger side menu — slides in from the left, separate from the
+     bottom sheets everything else uses, since it's navigation rather than
+     a form or a list of map items. */
+  #side-menu{
+    position:fixed;top:0;left:0;bottom:0;width:78vw;max-width:300px;z-index:900;background:var(--cream);
+    box-shadow:4px 0 20px rgba(0,0,0,.3);transform:translateX(-105%);transition:transform .25s ease;
+    padding:calc(env(safe-area-inset-top,0px) + 18px) 0 18px 0;overflow-y:auto;
+  }
+  #side-menu.show{transform:translateX(0);}
+  #side-menu h2{margin:0 0 10px 0;padding:0 18px;font-size:18px;}
+  .side-menu-item{display:flex;align-items:center;gap:12px;padding:14px 18px;font-size:16px;font-weight:700;color:var(--ink);cursor:pointer;}
+  .side-menu-item:active{background:rgba(0,0,0,.06);}
+  .side-menu-item .smi-icon{font-size:20px;width:24px;text-align:center;flex-shrink:0;}
+  .side-menu-sep{height:1px;background:var(--line);margin:6px 18px;}
+
   /* Search bar */
   #searchwrap{position:absolute;top:56px;left:10px;right:10px;z-index:499;display:flex;gap:6px;}
   #searchwrap.hidden{display:none;}
@@ -249,9 +264,9 @@
   .field-label{
     display:inline-block;width:max-content;
     cursor:pointer;transform:translate(-50%,-50%);white-space:nowrap;
-    background:rgba(255,255,255,.85);border:2px solid #888;border-radius:10px;padding:5px 11px;
+    background:rgba(255,255,255,.92);border:2px solid #888;border-radius:10px;padding:5px 11px;
     font-size:15px;font-weight:800;color:var(--ink);text-align:center;line-height:1.25;
-    box-shadow:0 2px 6px rgba(0,0,0,.22);backdrop-filter:blur(1px);
+    box-shadow:0 2px 6px rgba(0,0,0,.22);
   }
   .field-label .emoji{font-size:20px;margin-right:4px;vertical-align:middle;}
   .field-label span{display:block;font-weight:700;color:var(--ink);font-size:11px;margin-top:1px;}
@@ -305,7 +320,7 @@
   .bin-marker .bin-pin{position:absolute;left:0;top:0;transform:translate(-50%,-50%);font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
   .bin-marker .bin-chip{
     position:absolute;left:0;top:0;transform:translate(-50%,12px);
-    background:rgba(255,255,255,.72);backdrop-filter:blur(1.5px);border:1px solid rgba(84,110,122,.85);border-radius:8px;padding:2px 8px;
+    background:rgba(255,255,255,.88);border:1px solid rgba(84,110,122,.85);border-radius:8px;padding:2px 8px;
     font-size:11px;font-weight:800;color:var(--ink);white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);text-align:center;
   }
   .bin-marker .bin-chip .bin-chip-sub{display:block;font-weight:800;color:var(--ink);font-size:10.5px;text-shadow:0 1px 1px rgba(255,255,255,.5);}
@@ -349,6 +364,41 @@
   .share-help li{margin-bottom:4px;}
   #input-farm-code{text-transform:none;}
 
+  /* Splash screen — shown the instant the page loads (before Leaflet/Firebase
+     even finish downloading), so the logo covers what would otherwise be a
+     blank white flash, then holds briefly and zooms in slightly before
+     fading out into the map. Purely cosmetic branding — hidden immediately
+     if the app fails to load so the error message underneath isn't blocked. */
+  #app-splash{
+    position:fixed;inset:0;z-index:3000;background:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity .5s ease;
+  }
+  #app-splash.hide{opacity:0;pointer-events:none;}
+  #app-splash-logo{
+    width:44vw;max-width:220px;
+    animation:appSplashZoom 1.3s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes appSplashZoom{
+    0%{transform:scale(0.72);opacity:0;}
+    40%{opacity:1;}
+    100%{transform:scale(1);opacity:1;}
+  }
+
+  /* Full-screen equipment photo viewer — custom pinch/pan/double-tap zoom,
+     since the app's own viewport meta disables native pinch-to-zoom
+     everywhere (needed so pinching the map doesn't also zoom the page). */
+  #photo-viewer{position:fixed;inset:0;z-index:1500;background:#000;display:flex;flex-direction:column;}
+  #photo-viewer.hidden{display:none;}
+  #photo-viewer-header{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 10px 14px;color:#fff;
+  }
+  #photo-viewer-title{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #photo-viewer-stage{flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;touch-action:none;}
+  #photo-viewer-img{max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;transform-origin:center center;will-change:transform;}
+  #photo-viewer-hint{color:rgba(255,255,255,.6);font-size:12px;text-align:center;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 10px) 0;}
+
   #load-error{
     position:fixed;inset:0;z-index:2000;background:var(--cream);display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;padding:30px;
@@ -368,6 +418,10 @@
 </head>
 <body>
 
+<div id="app-splash">
+  <img src="icon-512.png" alt="Chaplinski Farms" id="app-splash-logo">
+</div>
+
 <div id="map"></div>
 <div id="load-error" class="hidden">
   <div style="font-size:44px;margin-bottom:10px;">🪨📡</div>
@@ -377,11 +431,22 @@
 </div>
 
 <div id="topbar">
+  <button class="icon-btn" id="btn-menu" title="Menu">☰</button>
   <div id="app-title">🪨 Rock Marker</div>
   <select id="field-filter"><option value="all">All fields</option></select>
   <button class="icon-btn" id="btn-search-toggle" title="Search a place">🔎</button>
   <button class="icon-btn" id="btn-layer" title="Switch map view">🛰️</button>
   <button class="icon-btn" id="btn-share" title="Share with others">🔗</button>
+</div>
+
+<!-- Hamburger menu -->
+<div class="sheet-backdrop" id="side-menu-backdrop"></div>
+<div id="side-menu">
+  <h2>☰ Menu</h2>
+  <div class="side-menu-item" id="menu-item-home"><span class="smi-icon">🏠</span> Home</div>
+  <div class="side-menu-sep"></div>
+  <div class="side-menu-item" id="menu-item-equipment"><span class="smi-icon">🚜</span> Equipment</div>
+  <div class="side-menu-item" id="menu-item-belts"><span class="smi-icon">⚙️</span> Belts</div>
 </div>
 
 <div id="install-banner" class="hidden">
@@ -801,6 +866,120 @@ service cloud.firestore {
   </div>
 </div>
 
+<!-- Equipment list -->
+<div class="sheet-backdrop" id="equipment-list-backdrop"></div>
+<div class="sheet" id="equipment-list-modal">
+  <div class="sheet-handle"></div>
+  <h2>🚜 Equipment <button class="icon-btn" id="btn-close-equipment-list" style="font-size:14px;">✕</button></h2>
+  <div class="btn-row" style="margin-bottom:10px;">
+    <button class="btn btn-primary" id="btn-add-equipment">+ Add equipment</button>
+  </div>
+  <div id="equipment-list"></div>
+</div>
+
+<!-- Add/Edit equipment -->
+<div class="sheet-backdrop" id="equipment-backdrop"></div>
+<div class="sheet" id="equipment-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="equipment-modal-title">Add equipment</h2>
+
+  <div class="field-row">
+    <label>Name</label>
+    <input type="text" id="input-equip-name" placeholder="e.g. Tractor 1, Combine">
+  </div>
+  <div class="field-row">
+    <label>Year</label>
+    <input type="text" id="input-equip-year" inputmode="numeric" placeholder="e.g. 2018">
+  </div>
+  <div class="field-row">
+    <label>Model</label>
+    <input type="text" id="input-equip-model" placeholder="e.g. John Deere 8320">
+  </div>
+  <div class="field-row">
+    <label>Oil filter</label>
+    <input type="text" id="input-equip-oil-filter" placeholder="e.g. RE504836">
+  </div>
+  <div class="field-row">
+    <label>Fuel filter</label>
+    <input type="text" id="input-equip-fuel-filter" placeholder="e.g. RE62418">
+  </div>
+  <div class="field-row">
+    <label>Photo (optional)</label>
+    <label class="btn btn-secondary file-input-label" id="btn-pick-equip-photo" style="text-align:center;display:block;">📷 Add a photo (label, filter chart, etc.)
+      <input type="file" accept="image/*" id="input-equip-photo">
+    </label>
+    <div class="hidden" id="equip-photo-preview-wrap" style="margin-top:10px;">
+      <img id="equip-photo-preview" style="max-width:100%;border-radius:10px;border:1px solid var(--line);display:block;">
+      <button type="button" class="btn btn-danger" id="btn-remove-equip-photo" style="margin-top:8px;">Remove photo</button>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-cancel-equipment">Cancel</button>
+    <button class="btn btn-primary" id="btn-save-equipment">Save equipment</button>
+  </div>
+  <div class="btn-row hidden" id="equipment-edit-only-row">
+    <button class="btn btn-danger" id="btn-delete-equipment">Delete equipment</button>
+  </div>
+</div>
+
+<!-- Full-screen zoomable photo viewer (equipment photos) -->
+<div id="photo-viewer" class="hidden">
+  <div id="photo-viewer-header">
+    <span id="photo-viewer-title"></span>
+    <button class="icon-btn" id="btn-close-photo-viewer">✕</button>
+  </div>
+  <div id="photo-viewer-stage">
+    <img id="photo-viewer-img" draggable="false" alt="">
+  </div>
+  <div id="photo-viewer-hint">Pinch or double-tap to zoom · drag to pan</div>
+</div>
+
+<!-- Belts list -->
+<div class="sheet-backdrop" id="belts-list-backdrop"></div>
+<div class="sheet" id="belts-list-modal">
+  <div class="sheet-handle"></div>
+  <h2>⚙️ Belts <button class="icon-btn" id="btn-close-belts-list" style="font-size:14px;">✕</button></h2>
+  <div class="btn-row" style="margin-bottom:10px;">
+    <button class="btn btn-primary" id="btn-add-belt">+ Add system</button>
+  </div>
+  <div id="belts-list"></div>
+</div>
+
+<!-- Add/Edit belt -->
+<div class="sheet-backdrop" id="belt-backdrop"></div>
+<div class="sheet" id="belt-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="belt-modal-title">Add system</h2>
+
+  <div class="field-row">
+    <label>System</label>
+    <input type="text" id="input-belt-system" list="belt-system-suggestions" placeholder="e.g. Grain Leg, Bump Auger">
+    <datalist id="belt-system-suggestions">
+      <option value="Grain Leg">
+      <option value="Bump Auger">
+      <option value="Unload Auger">
+      <option value="Header">
+    </datalist>
+  </div>
+  <div class="field-row">
+    <label>Belt size</label>
+    <input type="text" id="input-belt-size" placeholder="e.g. A64">
+  </div>
+  <div class="field-row">
+    <label>Belt part number</label>
+    <input type="text" id="input-belt-number" placeholder="e.g. B-2050">
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-cancel-belt">Cancel</button>
+    <button class="btn btn-primary" id="btn-save-belt">Save belt</button>
+  </div>
+  <div class="btn-row hidden" id="belt-edit-only-row">
+    <button class="btn btn-danger" id="btn-delete-belt">Delete belt</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <div id="bin-zoom-cta">
@@ -866,6 +1045,14 @@ service cloud.firestore {
   var rocks = [];
   var fields = [];
   var bins = [];
+  var equipment = [];
+  var belts = [];
+  var editingEquipmentId = null;
+  var editingBeltId = null;
+  // undefined = photo untouched this time in the form; "" = explicitly
+  // removed; a data URL = a new/replacement photo was picked.
+  var pendingEquipPhoto = undefined;
+  var photoViewerState = {scale:1, x:0, y:0};
   var map, satelliteLayer, streetLayer, usingSatellite = true;
   var rockLayerGroup, fieldLayerGroup, drawTempLayerGroup, waypointLayerGroup, binLayerGroup, youAreHereMarker;
   var editingId = null;
@@ -908,13 +1095,15 @@ service cloud.firestore {
         fields = Array.isArray(parsed.fields) ? parsed.fields : [];
         waypoints = Array.isArray(parsed.waypoints) ? parsed.waypoints : [];
         bins = Array.isArray(parsed.bins) ? parsed.bins : [];
+        equipment = Array.isArray(parsed.equipment) ? parsed.equipment : [];
+        belts = Array.isArray(parsed.belts) ? parsed.belts : [];
         if(parsed.truckSizes && typeof parsed.truckSizes === "object"){ truckSizes = parsed.truckSizes; }
       }
-    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; }
+    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; equipment = []; belts = []; }
   }
   function saveData(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, truckSizes: truckSizes}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, equipment: equipment, belts: belts, truckSizes: truckSizes}));
     }catch(e){
       toast("Couldn't save — your browser storage may be full or blocked.");
     }
@@ -945,16 +1134,25 @@ service cloud.firestore {
 
   // ---------- Map setup ----------
   function initMap(){
-    map = L.map("map", {zoomControl:false, attributionControl:true, maxZoom:20}).setView([39.5, -98.35], 4);
+    // preferCanvas draws field/bin outlines to a single shared canvas instead
+    // of one SVG element per polygon — much less DOM work for Leaflet to
+    // reposition on every pan/zoom frame, which is what was making sliding
+    // the map around feel sluggish once there were a lot of fields/bins on
+    // screen at once.
+    map = L.map("map", {zoomControl:false, attributionControl:true, maxZoom:20, preferCanvas:true}).setView([39.5, -98.35], 4);
     L.control.zoom({position:"bottomleft"}).addTo(map);
 
+    // updateWhenZooming:false waits until a pinch-zoom gesture finishes
+    // before fetching the new zoom level's tiles (interpolating the current
+    // tiles in the meantime) instead of trying to load tiles continuously
+    // mid-gesture — noticeably smoother pinch-zooming on a phone.
     satelliteLayer = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      {maxZoom:20, maxNativeZoom:19, attribution:"Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics"}
+      {maxZoom:20, maxNativeZoom:19, updateWhenZooming:false, attribution:"Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics"}
     );
     streetLayer = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      {maxZoom:19, attribution:"&copy; OpenStreetMap contributors"}
+      {maxZoom:19, updateWhenZooming:false, attribution:"&copy; OpenStreetMap contributors"}
     );
     satelliteLayer.addTo(map);
 
@@ -2910,6 +3108,400 @@ service cloud.firestore {
     }).join("");
   }
 
+  // ---------- Hamburger menu ----------
+  function openSideMenu(){
+    document.getElementById("side-menu-backdrop").classList.add("show");
+    document.getElementById("side-menu").classList.add("show");
+  }
+  function closeSideMenu(){
+    document.getElementById("side-menu-backdrop").classList.remove("show");
+    document.getElementById("side-menu").classList.remove("show");
+  }
+
+  // ---------- Equipment ----------
+  function equipmentDocRef(id){
+    return firestoreDb.collection("farms").doc(farmCode).collection("equipment").doc(id);
+  }
+
+  function openEquipmentListSheet(){
+    renderEquipmentList();
+    showSheet("equipment-list-modal", "equipment-list-backdrop");
+  }
+
+  function renderEquipmentList(){
+    var listEl = document.getElementById("equipment-list");
+    if(!listEl) return;
+    if(equipment.length === 0){
+      listEl.innerHTML = '<div id="empty-list">No equipment added yet. Tap "+ Add equipment" above.</div>';
+      return;
+    }
+    var sorted = equipment.slice().sort(function(a,z){ return (a.name||"").localeCompare(z.name||""); });
+    listEl.innerHTML = sorted.map(function(e){
+      var ymBits = [e.year, e.model].filter(Boolean).join(" · ");
+      var filterBits = [];
+      if(e.oilFilter) filterBits.push("Oil filter: " + e.oilFilter);
+      if(e.fuelFilter) filterBits.push("Fuel filter: " + e.fuelFilter);
+      var line2 = [ymBits, filterBits.join(" · ")].filter(Boolean).join(" · ");
+      var camBit = e.photo ? ' <span title="Has a photo">📷</span>' : '';
+      return '<div class="rock-row" data-id="'+e.id+'">'+
+        '<div class="rock-info">'+
+          '<div class="r1">🚜 '+escapeHtml(e.name || "Equipment")+camBit+'</div>'+
+          (line2 ? '<div class="r2">'+escapeHtml(line2)+'</div>' : '')+
+        '</div>'+
+        '<div class="rock-actions">'+
+          '<button class="row-btn" data-action="edit">✏️</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+  }
+
+  // Shrinks/re-compresses a picked photo before it's stored, since a raw
+  // phone-camera photo (often several MB) is far too big for a Firestore
+  // document (~1MB limit) or for keeping several of them in localStorage.
+  // Tries progressively smaller/lower-quality passes until it fits.
+  function compressImageFile(file, callback){
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var img = new Image();
+      img.onload = function(){
+        function tryCompress(maxDim, quality){
+          var w = img.width, h = img.height;
+          var scale = Math.min(1, maxDim / Math.max(w, h));
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+          var canvas = document.createElement("canvas");
+          canvas.width = cw; canvas.height = ch;
+          canvas.getContext("2d").drawImage(img, 0, 0, cw, ch);
+          return canvas.toDataURL("image/jpeg", quality);
+        }
+        var dataUrl = tryCompress(1400, 0.72);
+        if(dataUrl.length > 900000){ dataUrl = tryCompress(1000, 0.55); }
+        if(dataUrl.length > 900000){ dataUrl = tryCompress(700, 0.5); }
+        if(dataUrl.length > 900000){ callback(null, "That photo is too large even after compressing — try a simpler or smaller photo."); return; }
+        callback(dataUrl, null);
+      };
+      img.onerror = function(){ callback(null, "Couldn't read that image file."); };
+      img.src = ev.target.result;
+    };
+    reader.onerror = function(){ callback(null, "Couldn't read that image file."); };
+    reader.readAsDataURL(file);
+  }
+
+  function showEquipPhotoPreview(dataUrl){
+    var wrap = document.getElementById("equip-photo-preview-wrap");
+    if(!dataUrl){ wrap.classList.add("hidden"); document.getElementById("equip-photo-preview").src = ""; return; }
+    document.getElementById("equip-photo-preview").src = dataUrl;
+    wrap.classList.remove("hidden");
+  }
+
+  function openEquipmentModal(e){
+    pendingEquipPhoto = undefined;
+    document.getElementById("input-equip-photo").value = "";
+    if(e){
+      editingEquipmentId = e.id;
+      document.getElementById("equipment-modal-title").textContent = "Edit equipment";
+      document.getElementById("input-equip-name").value = e.name || "";
+      document.getElementById("input-equip-year").value = e.year || "";
+      document.getElementById("input-equip-model").value = e.model || "";
+      document.getElementById("input-equip-oil-filter").value = e.oilFilter || "";
+      document.getElementById("input-equip-fuel-filter").value = e.fuelFilter || "";
+      document.getElementById("equipment-edit-only-row").classList.remove("hidden");
+      showEquipPhotoPreview(e.photo || "");
+    } else {
+      editingEquipmentId = null;
+      document.getElementById("equipment-modal-title").textContent = "Add equipment";
+      document.getElementById("input-equip-name").value = "";
+      document.getElementById("input-equip-year").value = "";
+      document.getElementById("input-equip-model").value = "";
+      document.getElementById("input-equip-oil-filter").value = "";
+      document.getElementById("input-equip-fuel-filter").value = "";
+      document.getElementById("equipment-edit-only-row").classList.add("hidden");
+      showEquipPhotoPreview("");
+    }
+    showSheet("equipment-modal", "equipment-backdrop");
+  }
+
+  function closeEquipmentModal(){
+    hideSheet("equipment-modal", "equipment-backdrop");
+    editingEquipmentId = null;
+    pendingEquipPhoto = undefined;
+  }
+
+  function saveEquipmentFromForm(){
+    var name = document.getElementById("input-equip-name").value.trim();
+    if(!name){ toast("Enter an equipment name."); return; }
+    var year = document.getElementById("input-equip-year").value.trim();
+    var model = document.getElementById("input-equip-model").value.trim();
+    var oilFilter = document.getElementById("input-equip-oil-filter").value.trim();
+    var fuelFilter = document.getElementById("input-equip-fuel-filter").value.trim();
+
+    var photo;
+    if(pendingEquipPhoto !== undefined){
+      photo = pendingEquipPhoto;
+    } else if(editingEquipmentId){
+      var existing = equipment.find(function(x){ return x.id === editingEquipmentId; });
+      photo = existing ? (existing.photo || "") : "";
+    } else {
+      photo = "";
+    }
+
+    if(editingEquipmentId){
+      var updates = {name:name, year:year, model:model, oilFilter:oilFilter, fuelFilter:fuelFilter, photo:photo};
+      if(sharingEnabled){
+        equipmentDocRef(editingEquipmentId).update(updates).catch(function(){
+          toast("Couldn't save to the shared map — check your connection.");
+        });
+      } else {
+        var ex = equipment.find(function(x){ return x.id === editingEquipmentId; });
+        if(ex){ ex.name=name; ex.year=year; ex.model=model; ex.oilFilter=oilFilter; ex.fuelFilter=fuelFilter; ex.photo=photo; }
+        saveData();
+        renderEquipmentList();
+      }
+      toast("Equipment updated");
+    } else {
+      var newEquip = {
+        id: "eq"+Date.now()+"_"+Math.floor(Math.random()*10000),
+        name:name, year:year, model:model, oilFilter:oilFilter, fuelFilter:fuelFilter, photo:photo,
+        createdAt: new Date().toISOString()
+      };
+      if(sharingEnabled){
+        equipmentDocRef(newEquip.id).set(newEquip).catch(function(){
+          toast("Couldn't save to the shared map — check your connection.");
+        });
+      } else {
+        equipment.push(newEquip);
+        saveData();
+        renderEquipmentList();
+      }
+      toast("Equipment saved");
+    }
+    closeEquipmentModal();
+  }
+
+  // ---------- Full-screen photo viewer ----------
+  function applyPhotoTransform(){
+    var img = document.getElementById("photo-viewer-img");
+    if(img) img.style.transform = "translate("+photoViewerState.x+"px,"+photoViewerState.y+"px) scale("+photoViewerState.scale+")";
+  }
+
+  function openPhotoViewer(dataUrl, title){
+    document.getElementById("photo-viewer-img").src = dataUrl;
+    document.getElementById("photo-viewer-title").textContent = title || "";
+    photoViewerState.scale = 1; photoViewerState.x = 0; photoViewerState.y = 0;
+    applyPhotoTransform();
+    document.getElementById("photo-viewer").classList.remove("hidden");
+  }
+
+  function closePhotoViewer(){
+    document.getElementById("photo-viewer").classList.add("hidden");
+    document.getElementById("photo-viewer-img").src = "";
+  }
+
+  // Pinch-to-zoom/pan/double-tap for the photo viewer, implemented by hand
+  // because the app's own viewport meta turns off native pinch-zoom
+  // everywhere (needed so pinching the map doesn't also zoom the browser
+  // page). Anchors pinch-zoom at the image's center rather than the exact
+  // fingers' midpoint — a deliberate simplification that's plenty for
+  // reading a photo of a label or chart, without the extra complexity of
+  // true midpoint-anchored zoom.
+  function initPhotoViewerGestures(){
+    var img = document.getElementById("photo-viewer-img");
+    var pointers = {};
+    var pinchStartDist = 0, pinchStartScale = 1;
+    var panStart = null;
+
+    function dist(p1, p2){
+      var dx = p1.x - p2.x, dy = p1.y - p2.y;
+      return Math.sqrt(dx*dx + dy*dy);
+    }
+    function clampPan(){
+      var maxOffset = 400 * photoViewerState.scale;
+      photoViewerState.x = Math.max(-maxOffset, Math.min(maxOffset, photoViewerState.x));
+      photoViewerState.y = Math.max(-maxOffset, Math.min(maxOffset, photoViewerState.y));
+    }
+
+    img.addEventListener("pointerdown", function(e){
+      img.setPointerCapture(e.pointerId);
+      pointers[e.pointerId] = {x:e.clientX, y:e.clientY};
+      var ids = Object.keys(pointers);
+      if(ids.length === 1){
+        panStart = {x:e.clientX, y:e.clientY, tx:photoViewerState.x, ty:photoViewerState.y};
+      } else if(ids.length === 2){
+        var pts = ids.map(function(id){ return pointers[id]; });
+        pinchStartDist = dist(pts[0], pts[1]);
+        pinchStartScale = photoViewerState.scale;
+        panStart = null;
+      }
+    });
+    img.addEventListener("pointermove", function(e){
+      if(!pointers[e.pointerId]) return;
+      pointers[e.pointerId] = {x:e.clientX, y:e.clientY};
+      var ids = Object.keys(pointers);
+      if(ids.length === 2){
+        var pts = ids.map(function(id){ return pointers[id]; });
+        var d = dist(pts[0], pts[1]);
+        if(pinchStartDist > 0){
+          var newScale = pinchStartScale * (d / pinchStartDist);
+          photoViewerState.scale = Math.max(1, Math.min(5, newScale));
+          clampPan();
+          applyPhotoTransform();
+        }
+      } else if(ids.length === 1 && panStart){
+        photoViewerState.x = panStart.tx + (e.clientX - panStart.x);
+        photoViewerState.y = panStart.ty + (e.clientY - panStart.y);
+        clampPan();
+        applyPhotoTransform();
+      }
+    });
+    function endPointer(e){
+      delete pointers[e.pointerId];
+      var ids = Object.keys(pointers);
+      if(ids.length === 1){
+        var id = ids[0];
+        panStart = {x:pointers[id].x, y:pointers[id].y, tx:photoViewerState.x, ty:photoViewerState.y};
+      } else {
+        panStart = null;
+      }
+    }
+    img.addEventListener("pointerup", endPointer);
+    img.addEventListener("pointercancel", endPointer);
+
+    img.addEventListener("dblclick", function(){
+      if(photoViewerState.scale > 1.05){
+        photoViewerState.scale = 1; photoViewerState.x = 0; photoViewerState.y = 0;
+      } else {
+        photoViewerState.scale = 2.5;
+      }
+      applyPhotoTransform();
+    });
+  }
+
+  function deleteCurrentEquipment(){
+    if(!editingEquipmentId) return;
+    if(sharingEnabled){
+      equipmentDocRef(editingEquipmentId).delete().catch(function(){
+        toast("Couldn't delete from the shared map — check your connection.");
+      });
+    } else {
+      equipment = equipment.filter(function(x){ return x.id !== editingEquipmentId; });
+      saveData();
+      renderEquipmentList();
+    }
+    closeEquipmentModal();
+    toast("Equipment deleted");
+  }
+
+  // ---------- Belts ----------
+  function beltDocRef(id){
+    return firestoreDb.collection("farms").doc(farmCode).collection("belts").doc(id);
+  }
+
+  function openBeltsListSheet(){
+    renderBeltsList();
+    showSheet("belts-list-modal", "belts-list-backdrop");
+  }
+
+  function renderBeltsList(){
+    var listEl = document.getElementById("belts-list");
+    if(!listEl) return;
+    if(belts.length === 0){
+      listEl.innerHTML = '<div id="empty-list">No belts added yet. Tap "+ Add system" above.</div>';
+      return;
+    }
+    var sorted = belts.slice().sort(function(a,z){ return (a.system||"").localeCompare(z.system||""); });
+    listEl.innerHTML = sorted.map(function(b){
+      var bits = [];
+      if(b.beltSize) bits.push("Size: " + b.beltSize);
+      if(b.beltNumber) bits.push("Part #: " + b.beltNumber);
+      return '<div class="rock-row" data-id="'+b.id+'">'+
+        '<div class="rock-info">'+
+          '<div class="r1">⚙️ '+escapeHtml(b.system || "System")+'</div>'+
+          (bits.length ? '<div class="r2">'+escapeHtml(bits.join(" · "))+'</div>' : '')+
+        '</div>'+
+        '<div class="rock-actions">'+
+          '<button class="row-btn" data-action="edit">✏️</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+  }
+
+  function openBeltModal(b){
+    if(b){
+      editingBeltId = b.id;
+      document.getElementById("belt-modal-title").textContent = "Edit system";
+      document.getElementById("input-belt-system").value = b.system || "";
+      document.getElementById("input-belt-size").value = b.beltSize || "";
+      document.getElementById("input-belt-number").value = b.beltNumber || "";
+      document.getElementById("belt-edit-only-row").classList.remove("hidden");
+    } else {
+      editingBeltId = null;
+      document.getElementById("belt-modal-title").textContent = "Add system";
+      document.getElementById("input-belt-system").value = "";
+      document.getElementById("input-belt-size").value = "";
+      document.getElementById("input-belt-number").value = "";
+      document.getElementById("belt-edit-only-row").classList.add("hidden");
+    }
+    showSheet("belt-modal", "belt-backdrop");
+  }
+
+  function closeBeltModal(){
+    hideSheet("belt-modal", "belt-backdrop");
+    editingBeltId = null;
+  }
+
+  function saveBeltFromForm(){
+    var system = document.getElementById("input-belt-system").value.trim();
+    if(!system){ toast("Enter a system name."); return; }
+    var beltSize = document.getElementById("input-belt-size").value.trim();
+    var beltNumber = document.getElementById("input-belt-number").value.trim();
+
+    if(editingBeltId){
+      var updates = {system:system, beltSize:beltSize, beltNumber:beltNumber};
+      if(sharingEnabled){
+        beltDocRef(editingBeltId).update(updates).catch(function(){
+          toast("Couldn't save to the shared map — check your connection.");
+        });
+      } else {
+        var exb = belts.find(function(x){ return x.id === editingBeltId; });
+        if(exb){ exb.system=system; exb.beltSize=beltSize; exb.beltNumber=beltNumber; }
+        saveData();
+        renderBeltsList();
+      }
+      toast("Belt updated");
+    } else {
+      var newBelt = {
+        id: "bl"+Date.now()+"_"+Math.floor(Math.random()*10000),
+        system:system, beltSize:beltSize, beltNumber:beltNumber,
+        createdAt: new Date().toISOString()
+      };
+      if(sharingEnabled){
+        beltDocRef(newBelt.id).set(newBelt).catch(function(){
+          toast("Couldn't save to the shared map — check your connection.");
+        });
+      } else {
+        belts.push(newBelt);
+        saveData();
+        renderBeltsList();
+      }
+      toast("Belt saved");
+    }
+    closeBeltModal();
+  }
+
+  function deleteCurrentBelt(){
+    if(!editingBeltId) return;
+    if(sharingEnabled){
+      beltDocRef(editingBeltId).delete().catch(function(){
+        toast("Couldn't delete from the shared map — check your connection.");
+      });
+    } else {
+      belts = belts.filter(function(x){ return x.id !== editingBeltId; });
+      saveData();
+      renderBeltsList();
+    }
+    closeBeltModal();
+    toast("Belt deleted");
+  }
+
   function saveRockFromForm(){
     var field = document.getElementById("input-field").value.trim();
     var note = document.getElementById("input-note").value.trim();
@@ -3344,7 +3936,7 @@ service cloud.firestore {
   }
 
   function cacheSharedData(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins, truckSizes:truckSizes})); }catch(e){}
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins, equipment:equipment, belts:belts, truckSizes:truckSizes})); }catch(e){}
   }
 
   function subscribeToFarm(){
@@ -3414,6 +4006,34 @@ service cloud.firestore {
     );
 
     unsubscribeFns.push(
+      firestoreDb.collection("farms").doc(farmCode).collection("equipment").onSnapshot(function(snapshot){
+        equipment = snapshot.docs.map(function(d){
+          var data = d.data();
+          data.id = d.id;
+          return data;
+        });
+        cacheSharedData();
+        renderEquipmentList();
+      }, function(err){
+        toast("Sync error loading equipment.");
+      })
+    );
+
+    unsubscribeFns.push(
+      firestoreDb.collection("farms").doc(farmCode).collection("belts").onSnapshot(function(snapshot){
+        belts = snapshot.docs.map(function(d){
+          var data = d.data();
+          data.id = d.id;
+          return data;
+        });
+        cacheSharedData();
+        renderBeltsList();
+      }, function(err){
+        toast("Sync error loading belts.");
+      })
+    );
+
+    unsubscribeFns.push(
       firestoreDb.collection("farms").doc(farmCode).collection("config").doc("truckSizes").onSnapshot(function(doc){
         if(doc.exists){
           var data = doc.data();
@@ -3448,13 +4068,15 @@ service cloud.firestore {
       var localRocksSnapshot = rocks.slice();
       var localWaypointsSnapshot = waypoints.slice();
       var localBinsSnapshot = bins.slice();
+      var localEquipmentSnapshot = equipment.slice();
+      var localBeltsSnapshot = belts.slice();
       var localTruckSizesSnapshot = {tandem: truckSizes.tandem, semi: truckSizes.semi};
 
       subscribeToFarm();
       setShareStatusUI();
       try{ localStorage.setItem(SHARE_KEY, JSON.stringify({config:config, farmCode:code})); }catch(e){}
       if(!isAutoReconnect){
-        seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot, localWaypointsSnapshot, localBinsSnapshot);
+        seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot, localWaypointsSnapshot, localBinsSnapshot, localEquipmentSnapshot, localBeltsSnapshot);
         // Truck sizes live in a single config doc, not a collection, so seed
         // them separately: only push this device's numbers up if the shared
         // farm doesn't have that doc yet (someone else may have set it).
@@ -3477,19 +4099,25 @@ service cloud.firestore {
   // starts from your existing work instead of empty. If the farm code already
   // has data (someone else set it up, or you've connected before), this does
   // nothing and the shared data simply takes over, as usual.
-  function seedFarmIfEmpty(localFields, localRocks, localWaypoints, localBins){
+  function seedFarmIfEmpty(localFields, localRocks, localWaypoints, localBins, localEquipment, localBelts){
     localWaypoints = localWaypoints || [];
     localBins = localBins || [];
-    if(!localFields.length && !localRocks.length && !localWaypoints.length && !localBins.length){ return; }
+    localEquipment = localEquipment || [];
+    localBelts = localBelts || [];
+    if(!localFields.length && !localRocks.length && !localWaypoints.length && !localBins.length && !localEquipment.length && !localBelts.length){ return; }
     var fieldsRef = firestoreDb.collection("farms").doc(farmCode).collection("fields");
     var rocksRef = firestoreDb.collection("farms").doc(farmCode).collection("rocks");
     var waypointsRef = firestoreDb.collection("farms").doc(farmCode).collection("waypoints");
     var binsRef = firestoreDb.collection("farms").doc(farmCode).collection("bins");
-    Promise.all([fieldsRef.limit(1).get(), rocksRef.limit(1).get(), waypointsRef.limit(1).get(), binsRef.limit(1).get()]).then(function(results){
+    var equipmentRef = firestoreDb.collection("farms").doc(farmCode).collection("equipment");
+    var beltsRef = firestoreDb.collection("farms").doc(farmCode).collection("belts");
+    Promise.all([fieldsRef.limit(1).get(), rocksRef.limit(1).get(), waypointsRef.limit(1).get(), binsRef.limit(1).get(), equipmentRef.limit(1).get(), beltsRef.limit(1).get()]).then(function(results){
       var fieldsEmpty = results[0].empty;
       var rocksEmpty = results[1].empty;
       var waypointsEmpty = results[2].empty;
       var binsEmpty = results[3].empty;
+      var equipmentEmpty = results[4].empty;
+      var beltsEmpty = results[5].empty;
       var uploaded = 0;
       if(fieldsEmpty && localFields.length){
         localFields.forEach(function(f){
@@ -3534,6 +4162,31 @@ service cloud.firestore {
             currentLoads: (typeof b.currentLoads === "number" ? b.currentLoads : 0),
             log: Array.isArray(b.log) ? b.log : [],
             points: pointsToFirestore(b.points),
+            createdAt: b.createdAt || new Date().toISOString()
+          });
+          uploaded++;
+        });
+      }
+      if(equipmentEmpty && localEquipment.length){
+        localEquipment.forEach(function(e){
+          equipmentRef.doc(e.id).set({
+            name: e.name || "Equipment",
+            year: e.year || "",
+            model: e.model || "",
+            oilFilter: e.oilFilter || "",
+            fuelFilter: e.fuelFilter || "",
+            photo: e.photo || "",
+            createdAt: e.createdAt || new Date().toISOString()
+          });
+          uploaded++;
+        });
+      }
+      if(beltsEmpty && localBelts.length){
+        localBelts.forEach(function(b){
+          beltsRef.doc(b.id).set({
+            system: b.system || "System",
+            beltSize: b.beltSize || "",
+            beltNumber: b.beltNumber || "",
             createdAt: b.createdAt || new Date().toISOString()
           });
           uploaded++;
@@ -3675,6 +4328,83 @@ service cloud.firestore {
 
   // ---------- Wire up UI ----------
   function wireUI(){
+    // ---------- Hamburger menu ----------
+    document.getElementById("btn-menu").addEventListener("click", openSideMenu);
+    document.getElementById("side-menu-backdrop").addEventListener("click", closeSideMenu);
+    document.getElementById("menu-item-home").addEventListener("click", closeSideMenu);
+    document.getElementById("menu-item-equipment").addEventListener("click", function(){
+      closeSideMenu();
+      openEquipmentListSheet();
+    });
+    document.getElementById("menu-item-belts").addEventListener("click", function(){
+      closeSideMenu();
+      openBeltsListSheet();
+    });
+
+    // ---------- Equipment ----------
+    document.getElementById("btn-close-equipment-list").addEventListener("click", function(){
+      hideSheet("equipment-list-modal", "equipment-list-backdrop");
+    });
+    document.getElementById("equipment-list-backdrop").addEventListener("click", function(){
+      hideSheet("equipment-list-modal", "equipment-list-backdrop");
+    });
+    document.getElementById("btn-add-equipment").addEventListener("click", function(){ openEquipmentModal(null); });
+    document.getElementById("equipment-list").addEventListener("click", function(e){
+      var row = e.target.closest(".rock-row");
+      if(!row) return;
+      var id = row.getAttribute("data-id");
+      var eq = equipment.find(function(x){ return x.id === id; });
+      if(!eq) return;
+      var action = e.target.getAttribute("data-action");
+      if(action === "edit"){ openEquipmentModal(eq); return; }
+      if(eq.photo){ openPhotoViewer(eq.photo, eq.name || "Equipment"); }
+      else { openEquipmentModal(eq); }
+    });
+    document.getElementById("btn-cancel-equipment").addEventListener("click", closeEquipmentModal);
+    document.getElementById("btn-save-equipment").addEventListener("click", saveEquipmentFromForm);
+    document.getElementById("btn-delete-equipment").addEventListener("click", deleteCurrentEquipment);
+    document.getElementById("equipment-backdrop").addEventListener("click", closeEquipmentModal);
+    document.getElementById("input-equip-photo").addEventListener("change", function(e){
+      var file = e.target.files && e.target.files[0];
+      if(!file) return;
+      toast("Processing photo…", 1500);
+      compressImageFile(file, function(dataUrl, err){
+        if(err){ toast(err); return; }
+        pendingEquipPhoto = dataUrl;
+        showEquipPhotoPreview(dataUrl);
+      });
+    });
+    document.getElementById("btn-remove-equip-photo").addEventListener("click", function(){
+      pendingEquipPhoto = "";
+      document.getElementById("input-equip-photo").value = "";
+      showEquipPhotoPreview("");
+    });
+
+    document.getElementById("btn-close-photo-viewer").addEventListener("click", closePhotoViewer);
+    initPhotoViewerGestures();
+
+    // ---------- Belts ----------
+    document.getElementById("btn-close-belts-list").addEventListener("click", function(){
+      hideSheet("belts-list-modal", "belts-list-backdrop");
+    });
+    document.getElementById("belts-list-backdrop").addEventListener("click", function(){
+      hideSheet("belts-list-modal", "belts-list-backdrop");
+    });
+    document.getElementById("btn-add-belt").addEventListener("click", function(){ openBeltModal(null); });
+    document.getElementById("belts-list").addEventListener("click", function(e){
+      var row = e.target.closest(".rock-row");
+      if(!row) return;
+      var id = row.getAttribute("data-id");
+      var bl = belts.find(function(x){ return x.id === id; });
+      if(!bl) return;
+      var action = e.target.getAttribute("data-action");
+      if(action === "edit"){ openBeltModal(bl); }
+    });
+    document.getElementById("btn-cancel-belt").addEventListener("click", closeBeltModal);
+    document.getElementById("btn-save-belt").addEventListener("click", saveBeltFromForm);
+    document.getElementById("btn-delete-belt").addEventListener("click", deleteCurrentBelt);
+    document.getElementById("belt-backdrop").addEventListener("click", closeBeltModal);
+
     document.querySelectorAll(".size-opt").forEach(function(el){
       el.addEventListener("click", function(){ selectSize(el.getAttribute("data-size")); });
     });
@@ -4010,6 +4740,14 @@ service cloud.firestore {
     });
   }
 
+  // ---------- Splash screen ----------
+  function hideSplash(){
+    var splash = document.getElementById("app-splash");
+    if(!splash) return;
+    splash.classList.add("hide");
+    setTimeout(function(){ if(splash.parentNode) splash.parentNode.removeChild(splash); }, 550);
+  }
+
   // ---------- Init ----------
   try{
     if(typeof L === "undefined"){
@@ -4027,8 +4765,13 @@ service cloud.firestore {
     setTimeout(function(){
       try{ fitToAllData(); }catch(e){}
     }, 500);
+    // Hold the splash for a beat after everything's ready, so it reads as a
+    // deliberate brief splash screen rather than flickering away instantly
+    // on a fast load.
+    setTimeout(hideSplash, 1400);
   }catch(err){
     document.getElementById("load-error").classList.remove("hidden");
+    hideSplash();
   }
 })();
 </script>
