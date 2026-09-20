@@ -1295,8 +1295,6 @@ service cloud.firestore {
 
       var center = polygonCentroid(b.points);
       var holdingHtml = binHoldingHtml(b);
-      var loadsText = (typeof b.currentLoads === "number" && b.currentLoads > 0)
-        ? (b.currentLoads + (b.currentLoads === 1 ? " load" : " loads")) : "";
       var labelMarker = L.marker(center, {
         interactive:true,
         pane: "fieldLabelPane",
@@ -1306,7 +1304,6 @@ service cloud.firestore {
             '<div class="bin-pin">🛢️</div>'+
             '<div class="bin-chip">'+escapeHtml(b.name || "Bin")+
               '<span class="bin-chip-sub">'+holdingHtml+'</span>'+
-              (loadsText ? '<span class="bin-chip-sub">'+escapeHtml(loadsText)+'</span>' : '')+
             '</div>'+
           '</div>',
           iconSize:[0,0]
@@ -1721,14 +1718,9 @@ service cloud.firestore {
           '<span>≈'+bb.bu.toLocaleString()+' bu</span>'+
         '</div>';
       }).join("");
-      var truckBits = [];
-      if(totals.truckCounts.Tandem) truckBits.push(totals.truckCounts.Tandem + " tandem");
-      if(totals.truckCounts.Semi) truckBits.push(totals.truckCounts.Semi + " semi");
 
       el.innerHTML = header+
-        binRows+
-        '<div class="fb-sub">Trucks dumped (all-time)</div>'+
-        '<div class="fb-row"><span>🚛 Total</span><span>'+escapeHtml(truckBits.length ? truckBits.join(" · ") : "None yet")+'</span></div>';
+        binRows;
     }
     el.classList.remove("hidden");
 
