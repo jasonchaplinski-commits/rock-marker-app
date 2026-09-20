@@ -293,7 +293,7 @@
     cursor:pointer;transform:translate(-50%,-50%);white-space:nowrap;
     background:rgba(255,255,255,.92);border:2px solid #888;border-radius:10px;padding:5px 11px;
     font-size:15px;font-weight:800;color:var(--ink);text-align:center;line-height:1.25;
-    box-shadow:0 2px 6px rgba(0,0,0,.22);
+    box-shadow:0 2px 6px rgba(0,0,0,.22);touch-action:manipulation;
   }
   .field-label .emoji{font-size:20px;margin-right:4px;vertical-align:middle;}
   .field-label span{display:block;font-weight:700;color:var(--ink);font-size:11px;margin-top:1px;}
@@ -332,8 +332,15 @@
   input[type=file]{display:none;}
 
   .you-are-here{width:16px;height:16px;border-radius:50%;background:#2b7bff;border:3px solid #fff;box-shadow:0 0 0 4px rgba(43,123,255,.35);}
-  .waypoint-marker{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);cursor:pointer;}
-  .waypoint-marker .waypoint-pin{font-size:32px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+  /* will-change hints the browser to composite this marker on its own GPU
+     layer (its filter:drop-shadow is otherwise expensive to keep repainting
+     every frame while the map is dragged), and touch-action:manipulation
+     drops the browser's wait-for-a-second-tap delay so a tap on the flag
+     registers right away instead of sometimes needing a second try. There
+     are always few enough waypoints that promoting each to its own layer
+     is a net win (unlike rocks, which can number in the hundreds). */
+  .waypoint-marker{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);cursor:pointer;touch-action:manipulation;will-change:transform;}
+  .waypoint-marker .waypoint-pin{font-size:32px;line-height:1;padding:6px;margin:-6px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
   .waypoint-marker .waypoint-name{
     margin-top:-4px;background:rgba(255,255,255,.92);border:1px solid #b3541e;border-radius:8px;padding:1px 8px;
     font-size:11px;font-weight:800;color:var(--ink);white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25);
@@ -343,8 +350,14 @@
      full details (capacity, current holding, log) live in the tap sheet. */
   /* The pin sits fixed at (0,0), the true bin location — decluttering must
      never move it, only the chip, or the label stops pointing at its bin. */
-  .bin-marker{position:relative;width:0;height:0;cursor:pointer;}
-  .bin-marker .bin-pin{position:absolute;left:0;top:0;transform:translate(-50%,-50%);font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+  /* Same reasoning as .waypoint-marker above: will-change promotes each bin
+     pin to its own GPU layer (cheap here since a farmyard only has a
+     handful of bins) so its drop-shadow isn't repainted every pan frame,
+     touch-action:manipulation drops the tap-response delay, and the padding
+     on .bin-pin (position:absolute, so it stays perfectly centered) grows
+     the tappable area without changing how it looks. */
+  .bin-marker{position:relative;width:0;height:0;cursor:pointer;touch-action:manipulation;will-change:transform;}
+  .bin-marker .bin-pin{position:absolute;left:0;top:0;transform:translate(-50%,-50%);font-size:26px;line-height:1;padding:6px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
   .bin-marker .bin-chip{
     position:absolute;left:0;top:0;transform:translate(-50%,12px);
     background:rgba(255,255,255,.88);border:1px solid rgba(84,110,122,.85);border-radius:8px;padding:2px 8px;
@@ -370,7 +383,10 @@
   .log-entry-edit{color:var(--ink);}
   .log-entry-del:active{background:#fbeae7;}
   .log-entry-edit:active{background:var(--line);}
-  .rock-pin{display:flex;align-items:center;justify-content:center;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5);border:3px solid var(--medium);transition:opacity .15s ease,background .15s ease,box-shadow .15s ease;}
+  /* touch-action:manipulation drops the browser's built-in wait-for-a-
+     second-tap delay on these markers, so a tap registers immediately
+     instead of sometimes needing a second try on Android. */
+  .rock-pin{display:flex;align-items:center;justify-content:center;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5);border:3px solid var(--medium);transition:opacity .15s ease,background .15s ease,box-shadow .15s ease;touch-action:manipulation;}
   .rock-pin.size-small{width:26px;height:26px;font-size:13px;border-color:var(--small);}
   .rock-pin.size-medium{width:32px;height:32px;font-size:16px;border-color:var(--medium);}
   .rock-pin.size-large{width:38px;height:38px;font-size:19px;border-color:var(--large);}
@@ -1272,9 +1288,17 @@ service cloud.firestore {
     // what reads as "buggy" pinch-zooming on a phone. wheelPxPerZoomLevel
     // is bumped so trackpad/mouse-wheel zooming (desktop) is similarly
     // gradual instead of jumping a whole level per notch.
+    //
+    // markerZoomAnimation:false skips the CSS transition Leaflet normally
+    // plays to slide every pin into its new spot while a pinch-zoom
+    // animation is still finishing — on a phone with more than a handful
+    // of pins that transition and the zoom animation fight over the same
+    // frames, which is what showed up as the map feeling like it needed a
+    // moment to "catch up" before it would pan smoothly right after
+    // zooming in. Pins just snap straight to their new position instead.
     map = L.map("map", {
       zoomControl:false, attributionControl:true, maxZoom:20, preferCanvas:true,
-      zoomSnap:0.25, zoomDelta:0.5, wheelPxPerZoomLevel:90
+      zoomSnap:0.25, zoomDelta:0.5, wheelPxPerZoomLevel:90, markerZoomAnimation:false
     }).setView([39.5, -98.35], 4);
     L.control.zoom({position:"bottomleft"}).addTo(map);
 
