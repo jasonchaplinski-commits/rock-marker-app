@@ -239,6 +239,20 @@
     margin-top:-4px;background:rgba(255,255,255,.92);border:1px solid #b3541e;border-radius:8px;padding:1px 8px;
     font-size:11px;font-weight:800;color:var(--ink);white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25);
   }
+  /* Bins sit tightly packed in a farmyard, so their marker is a compact
+     icon + tiny chip (like a pin) rather than the big field-label card —
+     full details (capacity, current holding, log) live in the tap sheet. */
+  .bin-marker{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);cursor:pointer;}
+  .bin-marker .bin-pin{font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+  .bin-marker .bin-chip{
+    margin-top:-4px;background:rgba(255,255,255,.94);border:1px solid #546e7a;border-radius:8px;padding:1px 7px;
+    font-size:10.5px;font-weight:800;color:var(--ink);white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25);text-align:center;
+  }
+  .bin-marker .bin-chip .bin-chip-sub{display:block;font-weight:700;color:var(--muted);font-size:9.5px;}
+  .log-entry{border-bottom:1px solid var(--line);padding:8px 0;font-size:13px;}
+  .log-entry:last-child{border-bottom:none;}
+  .log-entry .le1{font-weight:700;}
+  .log-entry .le2{color:var(--muted);font-size:12px;}
   .rock-pin{display:flex;align-items:center;justify-content:center;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5);border:3px solid var(--medium);transition:opacity .15s ease,background .15s ease,box-shadow .15s ease;}
   .rock-pin.size-small{width:26px;height:26px;font-size:13px;border-color:var(--small);}
   .rock-pin.size-medium{width:32px;height:32px;font-size:16px;border-color:var(--medium);}
@@ -323,7 +337,7 @@
 </div>
 
 <div id="draw-toolbar" class="hidden">
-  <div class="msg">Tap the map to trace the field's edge — <span id="draw-count">0 points</span></div>
+  <div class="msg" id="draw-toolbar-msg">Tap the map to trace the <span id="draw-target-label">field's</span> edge — <span id="draw-count">0 points</span></div>
   <div class="btn-row">
     <button class="btn btn-secondary" id="btn-undo-draw">Undo point</button>
     <button class="btn btn-secondary" id="btn-cancel-draw">Cancel</button>
@@ -379,10 +393,15 @@
     <button class="tab-btn active" id="tab-rocks" data-tab="rocks">🪨 Rocks</button>
     <button class="tab-btn" id="tab-fields" data-tab="fields">🗺️ Fields</button>
     <button class="tab-btn" id="tab-pins" data-tab="pins">🚩 Pins</button>
+    <button class="tab-btn" id="tab-bins" data-tab="bins">🛢 Bins</button>
   </div>
   <div id="rock-list"></div>
   <div id="field-list" class="hidden"></div>
   <div id="pin-list" class="hidden"></div>
+  <div id="bin-list-wrap" class="hidden">
+    <button class="btn btn-secondary" id="btn-draw-bin" style="width:100%;margin-bottom:10px;">📐 Outline a new bin</button>
+    <div id="bin-list"></div>
+  </div>
   <div class="field-row" style="margin-top:10px;">
     <label>Export / Backup</label>
     <div class="export-menu">
@@ -474,6 +493,95 @@
     <button class="btn btn-primary" id="btn-label-edit-field">✏️ Edit field details</button>
     <button class="btn btn-secondary" id="btn-label-mark-rock">🪨 Mark a rock here</button>
     <button class="btn btn-secondary" id="btn-label-actions-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- Bin outline sheet -->
+<div class="sheet-backdrop" id="bin-backdrop"></div>
+<div class="sheet" id="bin-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="bin-modal-title">Name this bin</h2>
+
+  <div class="field-row">
+    <label>Bin name</label>
+    <input type="text" id="input-bin-name" placeholder="e.g. Bin 1">
+  </div>
+
+  <div class="field-row">
+    <label>Capacity (bushels, optional)</label>
+    <input type="number" id="input-bin-capacity" min="0" step="1" placeholder="e.g. 8000">
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-cancel-bin">Cancel</button>
+    <button class="btn btn-primary" id="btn-save-bin">Save bin</button>
+  </div>
+  <div class="btn-row hidden" id="bin-edit-only-row">
+    <button class="btn btn-maps" id="btn-redraw-bin">📐 Redraw outline</button>
+    <button class="btn btn-danger" id="btn-delete-bin">Delete bin</button>
+  </div>
+</div>
+
+<!-- Bin tap menu -->
+<div class="sheet-backdrop" id="bin-actions-backdrop"></div>
+<div class="sheet" id="bin-actions-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="bin-actions-title">Bin</h2>
+  <div class="summary-card" id="bin-actions-stats"></div>
+  <div class="summary-subtitle">Recent activity</div>
+  <div id="bin-actions-log"></div>
+  <div class="btn-row" style="flex-direction:column;margin-top:10px;">
+    <button class="btn btn-primary" id="btn-bin-add-log">➕ Add log entry</button>
+    <button class="btn btn-secondary" id="btn-bin-edit">✏️ Edit bin details</button>
+    <button class="btn btn-secondary" id="btn-bin-actions-close">Close</button>
+  </div>
+</div>
+
+<!-- Bin log entry sheet -->
+<div class="sheet-backdrop" id="bin-log-backdrop"></div>
+<div class="sheet" id="bin-log-modal">
+  <div class="sheet-handle"></div>
+  <h2>Add log entry</h2>
+
+  <div class="field-row">
+    <label>Date</label>
+    <input type="date" id="input-log-date">
+  </div>
+
+  <div class="field-row">
+    <label>What happened</label>
+    <select id="input-log-action">
+      <option value="Filled">🟢 Filled (starting fresh)</option>
+      <option value="Added">➕ Added more</option>
+      <option value="Removed">➖ Removed some</option>
+      <option value="Emptied">⬜ Emptied</option>
+    </select>
+  </div>
+
+  <div class="field-row" id="log-crop-row">
+    <label>Crop</label>
+    <select id="input-log-crop">
+      <option value="">No Crop</option>
+      <option value="Corn">🌽 Corn</option>
+      <option value="Canola">🌼 Canola</option>
+      <option value="Soybeans">🫘 Soybeans</option>
+      <option value="Wheat">🌾 Wheat</option>
+    </select>
+  </div>
+
+  <div class="field-row" id="log-bushels-row">
+    <label>Bushels</label>
+    <input type="number" id="input-log-bushels" min="0" step="1" placeholder="e.g. 2500">
+  </div>
+
+  <div class="field-row">
+    <label>Note (optional)</label>
+    <textarea id="input-log-note" rows="2" placeholder="e.g. trucked to elevator"></textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-cancel-log">Cancel</button>
+    <button class="btn btn-primary" id="btn-save-log">Save entry</button>
   </div>
 </div>
 
@@ -595,8 +703,9 @@ service cloud.firestore {
   }
   var rocks = [];
   var fields = [];
+  var bins = [];
   var map, satelliteLayer, streetLayer, usingSatellite = true;
-  var rockLayerGroup, fieldLayerGroup, drawTempLayerGroup, waypointLayerGroup, youAreHereMarker;
+  var rockLayerGroup, fieldLayerGroup, drawTempLayerGroup, waypointLayerGroup, binLayerGroup, youAreHereMarker;
   var editingId = null;
   var pendingLatLng = null;
   var selectedSize = "medium";
@@ -605,12 +714,16 @@ service cloud.firestore {
   var searchOpen = false;
 
   var drawingField = false;
+  var drawingBin = false;
   var droppingPin = false;
   var waypoints = [];
   var pendingWaypointObj = null;
   var drawPoints = [];
   var pendingFieldPoints = null;
+  var pendingBinPoints = null;
   var editingFieldId = null;
+  var editingBinId = null;
+  var binActionsBinId = null;
   var selectedFieldColor = FIELD_COLORS[0];
 
   var sharingEnabled = false;
@@ -629,12 +742,13 @@ service cloud.firestore {
         rocks = Array.isArray(parsed.rocks) ? parsed.rocks : [];
         fields = Array.isArray(parsed.fields) ? parsed.fields : [];
         waypoints = Array.isArray(parsed.waypoints) ? parsed.waypoints : [];
+        bins = Array.isArray(parsed.bins) ? parsed.bins : [];
       }
-    }catch(e){ rocks = []; fields = []; waypoints = []; }
+    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; }
   }
   function saveData(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins}));
     }catch(e){
       toast("Couldn't save — your browser storage may be full or blocked.");
     }
@@ -674,14 +788,15 @@ service cloud.firestore {
     fieldLayerGroup = L.layerGroup().addTo(map);
     drawTempLayerGroup = L.layerGroup().addTo(map);
     waypointLayerGroup = L.layerGroup().addTo(map);
+    binLayerGroup = L.layerGroup().addTo(map);
 
     map.on("click", function(e){
-      if(drawingField){ addDrawPoint(e.latlng); }
+      if(drawingField || drawingBin){ addDrawPoint(e.latlng); }
       else if(droppingPin){ dropWaypoint(e.latlng, true); }
       else { openAddModal(e.latlng); }
     });
 
-    map.on("zoomend", function(){ renderFields(); updateRockGhosting(); });
+    map.on("zoomend", function(){ renderFields(); renderBins(); updateRockGhosting(); });
     // Recompute rock/label overlap only once a pan settles, not on every
     // intermediate "move" tick. Doing this continuously during a drag forces
     // a layout reflow (getBoundingClientRect over every rock + label) many
@@ -802,6 +917,8 @@ service cloud.firestore {
     renderFieldList();
     renderWaypoints();
     renderPinList();
+    renderBins();
+    renderBinList();
     updateFarmBadge();
     if(window.requestAnimationFrame){
       requestAnimationFrame(updateRockGhosting);
@@ -917,6 +1034,53 @@ service cloud.firestore {
     });
   }
 
+  // Bins are drawn as a filled footprint (like fields) but labeled with a
+  // small icon+chip marker (like a dropped pin), since farmyard bins sit
+  // tightly packed and a full field-style card would overlap badly.
+  var BIN_COLOR = "#546e7a";
+  function binHoldingText(b){
+    var bu = (typeof b.currentBu === "number" && b.currentBu > 0) ? b.currentBu : 0;
+    if(bu <= 0) return "Empty";
+    var pct = (typeof b.capacityBu === "number" && b.capacityBu > 0) ? Math.round((bu / b.capacityBu) * 100) : null;
+    var cropBit = b.currentCrop ? (b.currentCrop + " · ") : "";
+    return cropBit + bu.toLocaleString() + " bu" + (pct !== null ? " (" + pct + "%)" : "");
+  }
+
+  function renderBins(){
+    binLayerGroup.clearLayers();
+    var labelScale = fieldLabelScale();
+    bins.forEach(function(b){
+      if(!b.points || b.points.length < 3) return;
+      var latlngs = b.points.map(function(p){ return [p[0], p[1]]; });
+      L.polygon(latlngs, {
+        color: BIN_COLOR, weight: 3,
+        fillColor: BIN_COLOR, fillOpacity: 0.28,
+        interactive: false
+      }).addTo(binLayerGroup);
+
+      var center = polygonCentroid(b.points);
+      var holdingText = binHoldingText(b);
+      var labelMarker = L.marker(center, {
+        interactive:true,
+        pane: "fieldLabelPane",
+        icon: L.divIcon({
+          className:"",
+          html:'<div class="bin-marker" style="transform:translate(-50%,-50%) scale('+labelScale.toFixed(2)+');">'+
+            '<div class="bin-pin">🛢️</div>'+
+            '<div class="bin-chip">'+escapeHtml(b.name || "Bin")+'<span class="bin-chip-sub">'+escapeHtml(holdingText)+'</span></div>'+
+          '</div>',
+          iconSize:[0,0]
+        })
+      });
+      labelMarker.on("click", function(ev){
+        L.DomEvent.stopPropagation(ev);
+        if(droppingPin){ dropWaypoint(ev.latlng, true); return; }
+        openBinActions(b.id);
+      });
+      labelMarker.addTo(binLayerGroup);
+    });
+  }
+
   function updateFieldOptions(){
     var fieldNames = Array.from(new Set(
       rocks.map(function(r){ return r.field && r.field.trim() ? r.field.trim() : "(no field)"; })
@@ -976,9 +1140,11 @@ service cloud.firestore {
     document.getElementById("tab-rocks").classList.toggle("active", tab === "rocks");
     document.getElementById("tab-fields").classList.toggle("active", tab === "fields");
     document.getElementById("tab-pins").classList.toggle("active", tab === "pins");
+    document.getElementById("tab-bins").classList.toggle("active", tab === "bins");
     document.getElementById("rock-list").classList.toggle("hidden", tab !== "rocks");
     document.getElementById("field-list").classList.toggle("hidden", tab !== "fields");
     document.getElementById("pin-list").classList.toggle("hidden", tab !== "pins");
+    document.getElementById("bin-list-wrap").classList.toggle("hidden", tab !== "bins");
   }
 
   function renderPinList(){
@@ -1276,13 +1442,28 @@ service cloud.firestore {
   // ---------- Field outline drawing ----------
   function startDrawingField(){
     setDroppingPin(false);
+    hideSheet("list-drawer", "list-backdrop");
     drawingField = true;
     drawPoints = [];
+    document.getElementById("draw-target-label").textContent = "field's";
     renderDrawTemp();
     updateDrawToolbar();
     document.getElementById("fabs").classList.add("hidden");
     document.getElementById("draw-toolbar").classList.remove("hidden");
     toast("Tap the map to trace the field's edge, then Finish.", 3000);
+  }
+
+  function startDrawingBin(){
+    setDroppingPin(false);
+    hideSheet("list-drawer", "list-backdrop");
+    drawingBin = true;
+    drawPoints = [];
+    document.getElementById("draw-target-label").textContent = "bin's";
+    renderDrawTemp();
+    updateDrawToolbar();
+    document.getElementById("fabs").classList.add("hidden");
+    document.getElementById("draw-toolbar").classList.remove("hidden");
+    toast("Tap the map to trace the bin's outline, then Finish.", 3000);
   }
 
   function addDrawPoint(latlng){
@@ -1314,6 +1495,7 @@ service cloud.firestore {
 
   function exitDrawingMode(){
     drawingField = false;
+    drawingBin = false;
     drawPoints = [];
     drawTempLayerGroup.clearLayers();
     document.getElementById("draw-toolbar").classList.add("hidden");
@@ -1327,6 +1509,12 @@ service cloud.firestore {
 
   function finishDrawing(){
     if(drawPoints.length < 3){ toast("Add at least 3 points to close a shape."); return; }
+    if(drawingBin){
+      pendingBinPoints = drawPoints.slice();
+      exitDrawingMode();
+      openBinModal(editingBinId ? bins.find(function(b){ return b.id === editingBinId; }) : null);
+      return;
+    }
     pendingFieldPoints = drawPoints.slice();
     exitDrawingMode();
     openFieldModal(editingFieldId ? fields.find(function(f){ return f.id === editingFieldId; }) : null);
@@ -1553,6 +1741,231 @@ service cloud.firestore {
     }
     closeFieldModal();
     toast("Field deleted");
+  }
+
+  // ---------- Bins (outline / capacity / current holding / activity log) ----------
+  function binDocRef(id){
+    return firestoreDb.collection("farms").doc(farmCode).collection("bins").doc(id);
+  }
+
+  function openBinModal(bin){
+    if(bin){
+      editingBinId = bin.id;
+      document.getElementById("bin-modal-title").textContent = "Edit bin";
+      document.getElementById("input-bin-name").value = bin.name || "";
+      document.getElementById("input-bin-capacity").value =
+        (typeof bin.capacityBu === "number" && !isNaN(bin.capacityBu)) ? bin.capacityBu : "";
+      document.getElementById("bin-edit-only-row").classList.remove("hidden");
+    } else {
+      editingBinId = null;
+      document.getElementById("bin-modal-title").textContent = "Name this bin";
+      document.getElementById("input-bin-name").value = "";
+      document.getElementById("input-bin-capacity").value = "";
+      document.getElementById("bin-edit-only-row").classList.add("hidden");
+    }
+    showSheet("bin-modal", "bin-backdrop");
+  }
+
+  function closeBinModal(){
+    hideSheet("bin-modal", "bin-backdrop");
+    pendingBinPoints = null;
+  }
+
+  function saveBinFromForm(){
+    var name = document.getElementById("input-bin-name").value.trim();
+    if(!name){ toast("Enter a bin name."); return; }
+    var rawCap = parseFloat(document.getElementById("input-bin-capacity").value);
+    var capacityBu = (!isNaN(rawCap) && rawCap >= 0) ? rawCap : null;
+
+    if(editingBinId){
+      var updates = {name:name, capacityBu:capacityBu};
+      if(pendingBinPoints){ updates.points = pendingBinPoints; }
+      if(sharingEnabled){
+        var fsUpdates = {name:updates.name, capacityBu:updates.capacityBu};
+        if(updates.points){ fsUpdates.points = pointsToFirestore(updates.points); }
+        binDocRef(editingBinId).update(fsUpdates).catch(function(){
+          toast("Couldn't save to the shared map — check your connection.");
+        });
+      } else {
+        var b = bins.find(function(x){ return x.id === editingBinId; });
+        if(b){
+          b.name = updates.name; b.capacityBu = updates.capacityBu;
+          if(updates.points){ b.points = updates.points; }
+        }
+        saveData();
+        renderAll();
+      }
+      toast("Bin updated");
+    } else {
+      if(!pendingBinPoints || pendingBinPoints.length < 3){
+        toast("Outline the bin on the map first.");
+        return;
+      }
+      var newBin = {
+        id: "bn"+Date.now()+"_"+Math.floor(Math.random()*10000),
+        name: name,
+        capacityBu: capacityBu,
+        currentCrop: "",
+        currentBu: 0,
+        log: [],
+        points: pendingBinPoints,
+        createdAt: new Date().toISOString()
+      };
+      if(sharingEnabled){
+        binDocRef(newBin.id).set({
+          name:newBin.name, capacityBu:newBin.capacityBu, currentCrop:newBin.currentCrop,
+          currentBu:newBin.currentBu, log:newBin.log, points:pointsToFirestore(newBin.points), createdAt:newBin.createdAt
+        }).catch(function(){
+          toast("Couldn't save to the shared map — check your connection.");
+        });
+      } else {
+        bins.push(newBin);
+        saveData();
+        renderAll();
+      }
+      toast("Bin saved");
+    }
+    closeBinModal();
+  }
+
+  function deleteCurrentBin(){
+    if(!editingBinId) return;
+    if(sharingEnabled){
+      binDocRef(editingBinId).delete().catch(function(){
+        toast("Couldn't delete from the shared map — check your connection.");
+      });
+    } else {
+      bins = bins.filter(function(x){ return x.id !== editingBinId; });
+      saveData();
+      renderAll();
+    }
+    closeBinModal();
+    toast("Bin deleted");
+  }
+
+  function openBinActions(binId){
+    var b = bins.find(function(x){ return x.id === binId; });
+    if(!b) return;
+    binActionsBinId = binId;
+    document.getElementById("bin-actions-title").textContent = "🛢 " + (b.name || "Bin");
+
+    var capLine = (typeof b.capacityBu === "number" && b.capacityBu > 0)
+      ? (b.capacityBu.toLocaleString() + " bu capacity") : "No capacity set";
+    var holdingText = binHoldingText(b);
+
+    document.getElementById("bin-actions-stats").innerHTML =
+      '<div class="summary-row summary-total"><span>Currently holding</span><span>'+escapeHtml(holdingText)+'</span></div>'+
+      '<div class="summary-row"><span>'+escapeHtml(capLine)+'</span></div>';
+
+    var logEl = document.getElementById("bin-actions-log");
+    var sortedLog = (b.log || []).slice().sort(function(a,z){ return (z.date||"").localeCompare(a.date||""); });
+    if(sortedLog.length === 0){
+      logEl.innerHTML = '<div id="empty-list" style="padding:14px 0;">No activity logged yet.</div>';
+    } else {
+      logEl.innerHTML = sortedLog.slice(0,10).map(function(e){
+        var dateStr = e.date ? new Date(e.date+"T00:00:00").toLocaleDateString() : "";
+        var amt = (typeof e.bu === "number" && e.bu > 0) ? (e.bu.toLocaleString()+" bu"+(e.crop?" "+e.crop:"")) : "";
+        return '<div class="log-entry">'+
+          '<div class="le1">'+escapeHtml(e.action||"")+(amt ? " — "+escapeHtml(amt) : "")+'</div>'+
+          '<div class="le2">'+escapeHtml(dateStr)+(e.note ? " · "+escapeHtml(e.note) : "")+'</div>'+
+        '</div>';
+      }).join("");
+    }
+
+    showSheet("bin-actions-modal", "bin-actions-backdrop");
+  }
+
+  function closeBinActions(){
+    hideSheet("bin-actions-modal", "bin-actions-backdrop");
+    binActionsBinId = null;
+  }
+
+  function updateLogFormForAction(){
+    var action = document.getElementById("input-log-action").value;
+    var needsCrop = (action === "Filled" || action === "Added");
+    document.getElementById("log-crop-row").classList.toggle("hidden", !needsCrop);
+  }
+
+  function openBinLogModal(){
+    document.getElementById("input-log-date").value = new Date().toISOString().slice(0,10);
+    document.getElementById("input-log-action").value = "Filled";
+    document.getElementById("input-log-crop").value = "";
+    document.getElementById("input-log-bushels").value = "";
+    document.getElementById("input-log-note").value = "";
+    updateLogFormForAction();
+    showSheet("bin-log-modal", "bin-log-backdrop");
+  }
+
+  function closeBinLogModal(){
+    hideSheet("bin-log-modal", "bin-log-backdrop");
+  }
+
+  function saveBinLogFromForm(){
+    var binId = binActionsBinId;
+    var b = bins.find(function(x){ return x.id === binId; });
+    if(!b) return;
+    var date = document.getElementById("input-log-date").value || new Date().toISOString().slice(0,10);
+    var action = document.getElementById("input-log-action").value;
+    var crop = document.getElementById("input-log-crop").value;
+    var rawBu = parseFloat(document.getElementById("input-log-bushels").value);
+    var bu = (!isNaN(rawBu) && rawBu >= 0) ? rawBu : 0;
+    var note = document.getElementById("input-log-note").value.trim();
+
+    var entry = {id:"le"+Date.now()+"_"+Math.floor(Math.random()*10000), date:date, action:action, crop:crop, bu:bu, note:note};
+    var newLog = (b.log || []).concat([entry]);
+
+    var newCurrentCrop = b.currentCrop || "";
+    var newCurrentBu = (typeof b.currentBu === "number") ? b.currentBu : 0;
+    if(action === "Filled"){
+      newCurrentCrop = crop;
+      newCurrentBu = bu;
+    } else if(action === "Added"){
+      newCurrentCrop = crop || newCurrentCrop;
+      newCurrentBu = newCurrentBu + bu;
+    } else if(action === "Removed"){
+      newCurrentBu = Math.max(0, newCurrentBu - bu);
+      if(newCurrentBu === 0){ newCurrentCrop = ""; }
+    } else if(action === "Emptied"){
+      newCurrentBu = 0;
+      newCurrentCrop = "";
+    }
+
+    if(sharingEnabled){
+      binDocRef(binId).update({log:newLog, currentCrop:newCurrentCrop, currentBu:newCurrentBu}).catch(function(){
+        toast("Couldn't save to the shared map — check your connection.");
+      });
+    } else {
+      b.log = newLog; b.currentCrop = newCurrentCrop; b.currentBu = newCurrentBu;
+      saveData();
+      renderAll();
+    }
+    closeBinLogModal();
+    toast("Log entry saved");
+    openBinActions(binId); // refresh the sheet behind it with the new numbers
+  }
+
+  function renderBinList(){
+    var listEl = document.getElementById("bin-list");
+    if(bins.length === 0){
+      listEl.innerHTML = '<div id="empty-list">No bins outlined yet. Tap "Outline a new bin" above to trace one.</div>';
+      return;
+    }
+    var sorted = bins.slice().sort(function(a,z){ return (a.name||"").localeCompare(z.name||"", undefined, {numeric:true}); });
+    listEl.innerHTML = sorted.map(function(b){
+      var holdingText = binHoldingText(b);
+      var capLine = (typeof b.capacityBu === "number" && b.capacityBu > 0) ? (b.capacityBu.toLocaleString()+" bu cap") : "no cap set";
+      return '<div class="rock-row" data-id="'+b.id+'">'+
+        '<div class="rock-dot" style="background:'+BIN_COLOR+'"></div>'+
+        '<div class="rock-info">'+
+          '<div class="r1">🛢 '+escapeHtml(b.name)+'</div>'+
+          '<div class="r2">'+escapeHtml(holdingText)+' · '+escapeHtml(capLine)+'</div>'+
+        '</div>'+
+        '<div class="rock-actions">'+
+          '<button class="row-btn" data-action="goto">🎯</button>'+
+          '<button class="row-btn" data-action="edit">✏️</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
   }
 
   function saveRockFromForm(){
@@ -1832,7 +2245,7 @@ service cloud.firestore {
   }
 
   function exportJSON(){
-    downloadBlob("rock-marker-backup.json", JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints}, null, 2), "application/json");
+    downloadBlob("rock-marker-backup.json", JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins}, null, 2), "application/json");
     toast("Backup downloaded");
   }
 
@@ -1844,7 +2257,8 @@ service cloud.firestore {
         var rocksIn = Array.isArray(data.rocks) ? data.rocks : [];
         var fieldsIn = Array.isArray(data.fields) ? data.fields : [];
         var waypointsIn = Array.isArray(data.waypoints) ? data.waypoints : [];
-        if(!Array.isArray(data.rocks) && !Array.isArray(data.fields) && !Array.isArray(data.waypoints)){ throw new Error("bad format"); }
+        var binsIn = Array.isArray(data.bins) ? data.bins : [];
+        if(!Array.isArray(data.rocks) && !Array.isArray(data.fields) && !Array.isArray(data.waypoints) && !Array.isArray(data.bins)){ throw new Error("bad format"); }
 
         var existingIds = new Set(rocks.map(function(r){return r.id;}));
         var added = 0;
@@ -1885,8 +2299,27 @@ service cloud.firestore {
           }
         });
 
+        var existingBinIds = new Set(bins.map(function(b){return b.id;}));
+        var addedBins = 0;
+        binsIn.forEach(function(b){
+          if(b && Array.isArray(b.points) && b.points.length >= 3 && !existingBinIds.has(b.id)){
+            if(sharingEnabled){
+              binDocRef(b.id).set({
+                name:b.name||"Bin",
+                capacityBu:(typeof b.capacityBu === "number" ? b.capacityBu : null),
+                currentCrop:b.currentCrop||"", currentBu:(typeof b.currentBu === "number" ? b.currentBu : 0),
+                log:Array.isArray(b.log) ? b.log : [],
+                points:pointsToFirestore(b.points), createdAt:b.createdAt||new Date().toISOString()
+              });
+            } else {
+              bins.push(b);
+            }
+            addedBins++;
+          }
+        });
+
         if(!sharingEnabled){ saveData(); updateFieldOptions(); renderAll(); }
-        toast(added + " rock(s), " + addedFields + " field(s), " + addedWaypoints + " pin(s) restored");
+        toast(added + " rock(s), " + addedFields + " field(s), " + addedWaypoints + " pin(s), " + addedBins + " bin(s) restored");
       }catch(err){
         toast("Couldn't read that backup file.");
       }
@@ -1927,7 +2360,7 @@ service cloud.firestore {
   }
 
   function cacheSharedData(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints})); }catch(e){}
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins})); }catch(e){}
   }
 
   function subscribeToFarm(){
@@ -1978,6 +2411,23 @@ service cloud.firestore {
         toast("Sync error loading pins.");
       })
     );
+
+    unsubscribeFns.push(
+      firestoreDb.collection("farms").doc(farmCode).collection("bins").onSnapshot(function(snapshot){
+        bins = snapshot.docs.map(function(d){
+          var data = d.data();
+          data.id = d.id;
+          data.points = pointsFromFirestore(data.points);
+          data.log = Array.isArray(data.log) ? data.log : [];
+          return data;
+        });
+        cacheSharedData();
+        renderAll();
+        if(binActionsBinId){ openBinActions(binActionsBinId); } // keep an open sheet fresh
+      }, function(err){
+        toast("Sync error loading bins.");
+      })
+    );
   }
 
   function connectSharing(config, code, isAutoReconnect){
@@ -2000,12 +2450,13 @@ service cloud.firestore {
       var localFieldsSnapshot = fields.slice();
       var localRocksSnapshot = rocks.slice();
       var localWaypointsSnapshot = waypoints.slice();
+      var localBinsSnapshot = bins.slice();
 
       subscribeToFarm();
       setShareStatusUI();
       try{ localStorage.setItem(SHARE_KEY, JSON.stringify({config:config, farmCode:code})); }catch(e){}
       if(!isAutoReconnect){
-        seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot, localWaypointsSnapshot);
+        seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot, localWaypointsSnapshot, localBinsSnapshot);
         toast("Connected — sharing enabled");
         hideSheet("share-modal","share-backdrop");
       }
@@ -2019,16 +2470,19 @@ service cloud.firestore {
   // starts from your existing work instead of empty. If the farm code already
   // has data (someone else set it up, or you've connected before), this does
   // nothing and the shared data simply takes over, as usual.
-  function seedFarmIfEmpty(localFields, localRocks, localWaypoints){
+  function seedFarmIfEmpty(localFields, localRocks, localWaypoints, localBins){
     localWaypoints = localWaypoints || [];
-    if(!localFields.length && !localRocks.length && !localWaypoints.length){ return; }
+    localBins = localBins || [];
+    if(!localFields.length && !localRocks.length && !localWaypoints.length && !localBins.length){ return; }
     var fieldsRef = firestoreDb.collection("farms").doc(farmCode).collection("fields");
     var rocksRef = firestoreDb.collection("farms").doc(farmCode).collection("rocks");
     var waypointsRef = firestoreDb.collection("farms").doc(farmCode).collection("waypoints");
-    Promise.all([fieldsRef.limit(1).get(), rocksRef.limit(1).get(), waypointsRef.limit(1).get()]).then(function(results){
+    var binsRef = firestoreDb.collection("farms").doc(farmCode).collection("bins");
+    Promise.all([fieldsRef.limit(1).get(), rocksRef.limit(1).get(), waypointsRef.limit(1).get(), binsRef.limit(1).get()]).then(function(results){
       var fieldsEmpty = results[0].empty;
       var rocksEmpty = results[1].empty;
       var waypointsEmpty = results[2].empty;
+      var binsEmpty = results[3].empty;
       var uploaded = 0;
       if(fieldsEmpty && localFields.length){
         localFields.forEach(function(f){
@@ -2059,6 +2513,20 @@ service cloud.firestore {
           waypointsRef.doc(w.id).set({
             name: w.name || "Pin", lat: w.lat, lng: w.lng,
             createdAt: w.createdAt || new Date().toISOString()
+          });
+          uploaded++;
+        });
+      }
+      if(binsEmpty && localBins.length){
+        localBins.forEach(function(b){
+          binsRef.doc(b.id).set({
+            name: b.name || "Bin",
+            capacityBu: (typeof b.capacityBu === "number" ? b.capacityBu : null),
+            currentCrop: b.currentCrop || "",
+            currentBu: (typeof b.currentBu === "number" ? b.currentBu : 0),
+            log: Array.isArray(b.log) ? b.log : [],
+            points: pointsToFirestore(b.points),
+            createdAt: b.createdAt || new Date().toISOString()
           });
           uploaded++;
         });
@@ -2218,6 +2686,7 @@ service cloud.firestore {
     document.getElementById("btn-list").addEventListener("click", function(){
       renderList();
       renderFieldList();
+      renderBinList();
       showSheet("list-drawer", "list-backdrop");
     });
     document.getElementById("btn-close-list").addEventListener("click", function(){
@@ -2260,6 +2729,7 @@ service cloud.firestore {
     document.getElementById("tab-rocks").addEventListener("click", function(){ switchListTab("rocks"); });
     document.getElementById("tab-fields").addEventListener("click", function(){ switchListTab("fields"); });
     document.getElementById("tab-pins").addEventListener("click", function(){ switchListTab("pins"); });
+    document.getElementById("tab-bins").addEventListener("click", function(){ switchListTab("bins"); });
 
     document.getElementById("pin-list").addEventListener("click", function(e){
       var row = e.target.closest(".rock-row");
@@ -2291,6 +2761,60 @@ service cloud.firestore {
         hideSheet("list-drawer", "list-backdrop");
         openFieldModal(f);
       }
+    });
+
+    document.getElementById("bin-list").addEventListener("click", function(e){
+      var row = e.target.closest(".rock-row");
+      if(!row) return;
+      var id = row.getAttribute("data-id");
+      var b = bins.find(function(x){ return x.id === id; });
+      if(!b) return;
+      var action = e.target.getAttribute("data-action");
+      if(action === "goto"){
+        hideSheet("list-drawer", "list-backdrop");
+        var bounds = L.latLngBounds(b.points.map(function(p){ return [p[0], p[1]]; }));
+        map.fitBounds(bounds, {padding:[50,50]});
+      } else if(action === "edit"){
+        hideSheet("list-drawer", "list-backdrop");
+        openBinModal(b);
+      }
+    });
+
+    document.getElementById("btn-draw-bin").addEventListener("click", function(){
+      editingBinId = null;
+      startDrawingBin();
+    });
+    document.getElementById("btn-cancel-bin").addEventListener("click", closeBinModal);
+    document.getElementById("btn-save-bin").addEventListener("click", saveBinFromForm);
+    document.getElementById("btn-delete-bin").addEventListener("click", deleteCurrentBin);
+    document.getElementById("btn-redraw-bin").addEventListener("click", function(){
+      hideSheet("bin-modal", "bin-backdrop");
+      startDrawingBin();
+    });
+    document.getElementById("bin-backdrop").addEventListener("click", closeBinModal);
+
+    document.getElementById("btn-bin-add-log").addEventListener("click", function(){
+      hideSheet("bin-actions-modal", "bin-actions-backdrop");
+      openBinLogModal();
+    });
+    document.getElementById("btn-bin-edit").addEventListener("click", function(){
+      var binId = binActionsBinId;
+      closeBinActions();
+      var b = bins.find(function(x){ return x.id === binId; });
+      if(b) openBinModal(b);
+    });
+    document.getElementById("btn-bin-actions-close").addEventListener("click", closeBinActions);
+    document.getElementById("bin-actions-backdrop").addEventListener("click", closeBinActions);
+
+    document.getElementById("input-log-action").addEventListener("change", updateLogFormForAction);
+    document.getElementById("btn-cancel-log").addEventListener("click", function(){
+      closeBinLogModal();
+      if(binActionsBinId){ openBinActions(binActionsBinId); }
+    });
+    document.getElementById("btn-save-log").addEventListener("click", saveBinLogFromForm);
+    document.getElementById("bin-log-backdrop").addEventListener("click", function(){
+      closeBinLogModal();
+      if(binActionsBinId){ openBinActions(binActionsBinId); }
     });
 
     document.getElementById("btn-draw-field").addEventListener("click", function(){
