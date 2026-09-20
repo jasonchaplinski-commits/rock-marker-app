@@ -74,6 +74,10 @@
   .fab:active{transform:scale(0.96);}
   .fab-main{padding:14px 20px;font-size:15px;font-weight:700;}
   .fab-small{width:46px;height:46px;border-radius:50%;background:#fff;color:var(--ink);font-size:19px;justify-content:center;}
+  .fab-small.active{background:var(--green);color:#fff;box-shadow:0 0 0 4px rgba(74,124,42,.35),0 3px 10px rgba(0,0,0,.35);}
+  #drop-pin-banner{position:absolute;left:10px;right:10px;top:10px;z-index:600;background:#1f2d17;color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 3px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  #drop-pin-banner button{background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;}
+  #drop-pin-banner.hidden{display:none;}
 
   #count-badge{
     position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 335px);z-index:500;max-width:66vw;
@@ -298,6 +302,10 @@
 <div id="count-badge">0 rocks</div>
 <div id="farm-badge" class="hidden"></div>
 
+<div id="drop-pin-banner" class="hidden">
+  <span>📍 Tap anywhere on the map to drop a pin</span>
+  <button id="btn-drop-pin-done">Done</button>
+</div>
 <div id="fabs">
   <button class="fab fab-small" id="btn-drop-pin" title="Drop a pin to navigate">🚩</button>
   <button class="fab fab-small" id="btn-draw-field" title="Outline a field">📐</button>
@@ -661,7 +669,7 @@ service cloud.firestore {
 
     map.on("click", function(e){
       if(drawingField){ addDrawPoint(e.latlng); }
-      else if(droppingPin){ dropWaypoint(e.latlng); }
+      else if(droppingPin){ dropWaypoint(e.latlng, true); }
       else { openAddModal(e.latlng); }
     });
 
@@ -739,6 +747,7 @@ service cloud.firestore {
       var m = L.marker([r.lat, r.lng], {icon: rockIcon(r.size)});
       m.on("click", function(ev){
         L.DomEvent.stopPropagation(ev);
+        if(droppingPin){ dropWaypoint(ev.latlng, true); return; }
         openEditModal(r);
       });
       m.addTo(rockLayerGroup);
@@ -857,6 +866,7 @@ service cloud.firestore {
       });
       labelMarker.on("click", function(ev){
         L.DomEvent.stopPropagation(ev);
+        if(droppingPin){ dropWaypoint(ev.latlng, true); return; }
         openFieldLabelActions(f.id);
       });
       labelMarker.addTo(fieldLayerGroup);
@@ -1211,7 +1221,7 @@ service cloud.firestore {
     var harvestBit = hStatus === "Partial Harvested"
       ? "Partial (" + partialAcresOf(f).toFixed(1) + " of " + acres.toFixed(1) + " ac)"
       : hStatus;
-    hintEl.textContent = acres.toFixed(1) + " acres · " + cropBit + HARVEST_ICONS[hStatus] + " " + harvestBit;
+    hintEl.innerHTML = escapeHtml(acres.toFixed(1) + " acres") + " · " + cropBit + HARVEST_ICONS[hStatus] + " " + escapeHtml(harvestBit);
   }
 
   function lastUsedField(){
@@ -1221,6 +1231,7 @@ service cloud.firestore {
 
   // ---------- Field outline drawing ----------
   function startDrawingField(){
+    setDroppingPin(false);
     drawingField = true;
     drawPoints = [];
     renderDrawTemp();
@@ -1420,6 +1431,10 @@ service cloud.firestore {
     }
 
     if(editingFieldId){
+      var existingField = fields.find(function(x){ return x.id === editingFieldId; });
+      var oldName = existingField ? (existingField.name || "").trim() : "";
+      var nameChanged = oldName && oldName !== name.trim();
+
       var updates = {name:name, crop:crop, harvestStatus:harvestStatus, partialAcresHarvested:partialAcresHarvested, color:color};
       if(pendingFieldPoints){ updates.points = pendingFieldPoints; }
       if(sharingEnabled){
@@ -1428,12 +1443,22 @@ service cloud.firestore {
         fieldDocRef(editingFieldId).update(fsUpdates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
+        if(nameChanged){
+          rocks.filter(function(r){ return (r.field || "").trim() === oldName; }).forEach(function(r){
+            rockDocRef(r.id).update({field:name}).catch(function(){});
+          });
+        }
       } else {
         var f = fields.find(function(x){ return x.id === editingFieldId; });
         if(f){
           f.name = updates.name; f.crop = updates.crop; f.harvestStatus = updates.harvestStatus;
           f.partialAcresHarvested = updates.partialAcresHarvested; f.color = updates.color;
           if(updates.points){ f.points = updates.points; }
+        }
+        if(nameChanged){
+          rocks.forEach(function(r){
+            if((r.field || "").trim() === oldName){ r.field = name; }
+          });
         }
         saveData();
         updateFieldOptions();
@@ -1619,14 +1644,22 @@ service cloud.firestore {
       });
       marker.on("click", function(ev){
         L.DomEvent.stopPropagation(ev);
+        if(droppingPin){ dropWaypoint(ev.latlng, true); return; }
         openWaypointActions(w);
       });
       marker.addTo(waypointLayerGroup);
     });
   }
 
+  function setDroppingPin(on){
+    droppingPin = on;
+    var btn = document.getElementById("btn-drop-pin");
+    var banner = document.getElementById("drop-pin-banner");
+    if(btn){ btn.classList.toggle("active", on); }
+    if(banner){ banner.classList.toggle("hidden", !on); }
+  }
+
   function dropWaypoint(latlng){
-    droppingPin = false;
     var wp = {
       id: "w"+Date.now()+"_"+Math.floor(Math.random()*10000),
       name: nextPinName(),
@@ -2230,8 +2263,11 @@ service cloud.firestore {
     document.getElementById("input-field").addEventListener("input", updateFieldInfoHint);
 
     document.getElementById("btn-drop-pin").addEventListener("click", function(){
-      droppingPin = true;
-      toast("Tap anywhere on the map to drop a pin.", 2800);
+      setDroppingPin(!droppingPin);
+      if(droppingPin){ toast("Tap anywhere on the map to drop a pin.", 2800); }
+    });
+    document.getElementById("btn-drop-pin-done").addEventListener("click", function(){
+      setDroppingPin(false);
     });
     document.getElementById("btn-waypoint-navigate").addEventListener("click", function(){
       var wp = currentWaypoint();
