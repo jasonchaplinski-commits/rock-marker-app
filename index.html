@@ -435,6 +435,26 @@
     100%{transform:scale(2.6);opacity:1;}
   }
 
+  /* Access code gate — sits above everything, including the splash screen,
+     and only shows up if this device hasn't already unlocked the app with
+     the current code (see ACCESS_CODE in the script below). Appears right
+     as the splash finishes so first-time visitors still get the intro
+     animation instead of it being covered up. */
+  #access-gate{
+    position:fixed;inset:0;z-index:3500;background:var(--cream);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  #access-gate.hidden{display:none;}
+  #access-gate-card{width:100%;max-width:320px;text-align:center;}
+  #access-gate-logo{width:88px;height:88px;border-radius:20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+  #access-gate-card h2{margin:0 0 6px 0;color:var(--ink);}
+  #access-gate-card p{margin:0 0 18px 0;color:var(--ink);font-size:14px;}
+  #input-access-code{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:22px;font-family:inherit;
+    text-align:center;letter-spacing:.08em;background:#fff;color:var(--ink);margin-bottom:10px;box-sizing:border-box;
+  }
+  #access-gate-error{color:#b3261e;font-size:13px;font-weight:700;margin-bottom:10px;}
+
   /* Full-screen equipment photo viewer — custom pinch/pan/double-tap zoom,
      since the app's own viewport meta disables native pinch-to-zoom
      everywhere (needed so pinching the map doesn't also zoom the page). */
@@ -494,6 +514,17 @@
 
 <div id="app-splash">
   <img src="icon-512.png" alt="Chaplinski Farms" id="app-splash-logo">
+</div>
+
+<div id="access-gate" class="hidden">
+  <div id="access-gate-card">
+    <img src="icon-512.png" alt="Chaplinski Farms" id="access-gate-logo">
+    <h2>Enter Access Code</h2>
+    <p>Ask Jason for the code to unlock Chaplinski Farms.</p>
+    <input type="text" id="input-access-code" inputmode="numeric" autocomplete="off" placeholder="Code">
+    <div class="hidden" id="access-gate-error">That code isn't right — try again.</div>
+    <button class="btn btn-primary" id="btn-access-gate-submit" style="width:100%;">Unlock</button>
+  </div>
 </div>
 
 <div id="map"></div>
@@ -1115,6 +1146,18 @@ service cloud.firestore {
 
   var STORAGE_KEY = "rockMarkerData_v1";
   var SHARE_KEY = "rockMarkerShareConfig_v1";
+
+  // ---------- Access code ----------
+  // Whoever downloads/opens the app has to enter this once. To change the
+  // code, just edit this line to the new value and re-upload index.html —
+  // everyone who already unlocked it with the OLD code will automatically
+  // be asked again next time they open the app, since their saved code no
+  // longer matches this one. There's no server-side check here (it's a
+  // plain client-side gate, not real account security) — it's meant to
+  // keep casual/accidental visitors out, not to stop someone determined
+  // who goes looking at the page source.
+  var ACCESS_CODE = "3308";
+  var ACCESS_CODE_KEY = "rockMarkerAccessCode_v1";
   var FIELD_COLORS = ["#2e7d32","#1565c0","#ef6c00","#6a1b9a","#ad1457","#00838f","#9e9d24","#5d4037"];
   var CROP_COLORS = {
     "Corn": "#f6c90e",
@@ -5495,11 +5538,58 @@ service cloud.firestore {
     setTimeout(function(){ if(splash.parentNode) splash.parentNode.removeChild(splash); }, 550);
   }
 
+  // ---------- Access code ----------
+  // Checked once at launch. A device that's already entered the current
+  // ACCESS_CODE has it saved in localStorage and never sees this again —
+  // until the code above gets changed, at which point the saved value no
+  // longer matches and everyone's asked once more.
+  function hasValidAccessCode(){
+    try{
+      return localStorage.getItem(ACCESS_CODE_KEY) === ACCESS_CODE;
+    }catch(e){
+      return false; // no localStorage (private browsing, etc.) — ask every time
+    }
+  }
+
+  function showAccessGate(){
+    var gate = document.getElementById("access-gate");
+    if(!gate) return;
+    gate.classList.remove("hidden");
+    setTimeout(function(){
+      var input = document.getElementById("input-access-code");
+      if(input) input.focus();
+    }, 60);
+  }
+
+  function submitAccessCode(){
+    var input = document.getElementById("input-access-code");
+    var errEl = document.getElementById("access-gate-error");
+    var entered = (input.value || "").trim();
+    if(entered === ACCESS_CODE){
+      try{ localStorage.setItem(ACCESS_CODE_KEY, entered); }catch(e){}
+      errEl.classList.add("hidden");
+      document.getElementById("access-gate").classList.add("hidden");
+    } else {
+      errEl.classList.remove("hidden");
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  function wireAccessGate(){
+    document.getElementById("btn-access-gate-submit").addEventListener("click", submitAccessCode);
+    document.getElementById("input-access-code").addEventListener("keydown", function(e){
+      if(e.key === "Enter"){ submitAccessCode(); }
+    });
+  }
+
   // ---------- Init ----------
   try{
     if(typeof L === "undefined"){
       throw new Error("Leaflet failed to load");
     }
+    var accessAlreadyGranted = hasValidAccessCode();
+    wireAccessGate();
     loadData();
     initMap();
     updateFieldOptions();
@@ -5514,8 +5604,13 @@ service cloud.firestore {
     }, 500);
     // Let the fly-at-you zoom animation (1.7s) play all the way through
     // before fading the splash away, so it reads as a deliberate intro
-    // rather than flickering away instantly on a fast load.
-    setTimeout(hideSplash, 1700);
+    // rather than flickering away instantly on a fast load. The access
+    // gate (if this device hasn't unlocked the current code yet) appears
+    // right as the splash fades, instead of covering up the intro.
+    setTimeout(function(){
+      hideSplash();
+      if(!accessAlreadyGranted){ showAccessGate(); }
+    }, 1700);
   }catch(err){
     document.getElementById("load-error").classList.remove("hidden");
     hideSplash();
