@@ -200,6 +200,28 @@
   .log-opt.selected{border-color:var(--green);color:var(--ink);background:#eef4ec;}
   .log-opt[data-action="Removed"].selected{border-color:var(--danger);color:var(--ink);background:#fbeae7;}
 
+  /* Fine-grained slider under the 1/4-1/2-3/4-Full "Set Level" buttons —
+     the buttons cover the common cases, this covers everything between.
+     The track's fill color is set inline per-value (a green/cream split
+     gradient) so it reads at a glance like a little bin gauge. */
+  .bin-level-slider-wrap{margin-top:14px;}
+  .bin-level-slider-readout{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+  .bin-level-slider-readout span:first-child, .bin-level-slider-readout span:last-child{color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-size:11px;}
+  #log-level-slider-pct{font-size:15px;color:var(--green-dark);}
+  #input-log-level-slider{
+    -webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:6px;
+    background:var(--line);outline:none;cursor:pointer;margin:0;display:block;
+  }
+  #input-log-level-slider::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:28px;height:28px;border-radius:50%;
+    background:var(--green);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer;
+  }
+  #input-log-level-slider::-moz-range-thumb{
+    width:28px;height:28px;border-radius:50%;background:var(--green);border:3px solid #fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer;
+  }
+  #input-log-level-slider::-moz-range-track{height:10px;border-radius:6px;background:var(--line);}
+
   .btn-row{display:flex;gap:10px;margin-top:16px;}
   .btn{flex:1;border:none;border-radius:12px;padding:13px 10px;font-size:15px;font-weight:700;cursor:pointer;}
   .btn-primary{background:var(--green);color:#fff;}
@@ -780,6 +802,14 @@
       <button type="button" class="log-opt" data-level="1">Full</button>
     </div>
     <input type="hidden" id="input-log-level" value="1">
+    <div class="bin-level-slider-wrap">
+      <div class="bin-level-slider-readout">
+        <span>Empty</span>
+        <span id="log-level-slider-pct">100%</span>
+        <span>Full</span>
+      </div>
+      <input type="range" id="input-log-level-slider" min="0" max="100" step="1" value="100">
+    </div>
     <div class="coord-readout" id="log-level-bushels-preview" style="margin-top:6px;margin-bottom:0;font-weight:700;"></div>
   </div>
 
@@ -2983,12 +3013,33 @@ service cloud.firestore {
     updateLogBushelsPreview();
   }
 
+  // level is a 0-1 fraction. Drives the 1/4-1/2-3/4-Full preset buttons AND
+  // the fine-grained slider from one place, so however the value changes —
+  // a preset click, the slider itself, or pre-filling an edited entry — both
+  // controls (and the bushels preview) always agree with each other.
   function setLogLevel(level){
     document.getElementById("input-log-level").value = level;
     document.querySelectorAll("#log-setlevel-options .log-opt").forEach(function(btn){
       btn.classList.toggle("selected", btn.getAttribute("data-level") === String(level));
     });
+    var pct = Math.round(Math.max(0, Math.min(1, parseFloat(level) || 0)) * 100);
+    var slider = document.getElementById("input-log-level-slider");
+    if(slider){
+      slider.value = pct;
+      updateLogLevelSliderFill(slider);
+    }
+    var pctLabel = document.getElementById("log-level-slider-pct");
+    if(pctLabel){ pctLabel.textContent = pct + "%"; }
     updateLogLevelPreview();
+  }
+
+  function updateLogLevelSliderFill(slider){
+    var pct = slider.value;
+    slider.style.background = "linear-gradient(to right, var(--green) 0%, var(--green) " + pct + "%, var(--line) " + pct + "%, var(--line) 100%)";
+  }
+
+  function onLogLevelSliderInput(pct){
+    setLogLevel((Math.max(0, Math.min(100, pct)) / 100).toString());
   }
 
   function updateLogBushelsPreview(){
@@ -5115,6 +5166,9 @@ service cloud.firestore {
     });
     document.querySelectorAll("#log-setlevel-options .log-opt").forEach(function(btn){
       btn.addEventListener("click", function(){ setLogLevel(btn.getAttribute("data-level")); });
+    });
+    document.getElementById("input-log-level-slider").addEventListener("input", function(e){
+      onLogLevelSliderInput(parseInt(e.target.value, 10));
     });
     document.getElementById("btn-truck-sizes").addEventListener("click", openTruckSizesModal);
     document.getElementById("btn-cancel-truck-sizes").addEventListener("click", closeTruckSizesModal);
