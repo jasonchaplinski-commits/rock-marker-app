@@ -980,10 +980,10 @@ service cloud.firestore {
   </div>
   <div class="field-row">
     <label>Files (optional)</label>
-    <label class="btn btn-secondary file-input-label" id="btn-pick-equip-file" style="text-align:center;display:block;">📎 Add a photo or PDF (label, filter chart, manual page, etc.)
-      <input type="file" accept="image/*,application/pdf" id="input-equip-file">
+    <label class="btn btn-secondary file-input-label" id="btn-pick-equip-file" style="text-align:center;display:block;">📎 Add photos or PDFs (label, filter chart, parts manual, etc.)
+      <input type="file" accept="image/*,application/pdf" id="input-equip-file" multiple>
     </label>
-    <div class="coord-readout" style="margin-top:6px;margin-bottom:0;">A PDF is converted to zoomable page images when you add it (up to 10 pages). Keep files small — everything attached to one piece of equipment needs to fit in a shared size budget.</div>
+    <div class="coord-readout" style="margin-top:6px;margin-bottom:0;">Pick several at once (e.g. a filters PDF, a parts PDF, and a belts PDF), or tap again to add more later. Each PDF is converted to zoomable page images (up to 10 pages). Keep files small — everything attached to one piece of equipment needs to fit in a shared size budget.</div>
     <div class="hidden" id="equip-files-preview-wrap" style="margin-top:10px;"></div>
   </div>
 
@@ -4914,29 +4914,43 @@ service cloud.firestore {
     document.getElementById("btn-delete-equipment").addEventListener("click", deleteCurrentEquipment);
     document.getElementById("equipment-backdrop").addEventListener("click", closeEquipmentModal);
     document.getElementById("input-equip-file").addEventListener("change", function(e){
-      var file = e.target.files && e.target.files[0];
-      if(!file) return;
-      var isPdf = (file.type === "application/pdf") || /\.pdf$/i.test(file.name || "");
-      var fileId = "f"+Date.now()+"_"+Math.floor(Math.random()*10000);
-      if(isPdf){
-        toast("Processing PDF…", 2500);
-        renderPdfFileToPages(file, function(pages, err, fullText){
-          if(err){ toast(err); return; }
-          addPendingEquipFile({id:fileId, kind:"pdf", name:file.name || "PDF", pages:pages});
-          if(fullText){
-            applyFilterScanResults(scanPdfTextForFilters(fullText));
-          }
-        });
-      } else if(file.type.indexOf("image/") === 0){
-        toast("Processing photo…", 1500);
-        compressImageFile(file, function(dataUrl, err){
-          if(err){ toast(err); return; }
-          addPendingEquipFile({id:fileId, kind:"image", name:file.name || "Photo", pages:[dataUrl]});
-        });
-      } else {
-        toast("Pick an image or a PDF file.");
-      }
+      var files = e.target.files ? Array.prototype.slice.call(e.target.files) : [];
       e.target.value = "";
+      if(!files.length) return;
+      var total = files.length;
+      // Processed one at a time (not in parallel) even when several files
+      // were picked at once, since each one needs to check the running
+      // shared-size budget against whatever was already added by the file
+      // before it.
+      function processNext(i){
+        if(i >= total) return;
+        var file = files[i];
+        var countBit = total > 1 ? (" (" + (i+1) + " of " + total + ")") : "";
+        var isPdf = (file.type === "application/pdf") || /\.pdf$/i.test(file.name || "");
+        var fileId = "f"+Date.now()+"_"+Math.floor(Math.random()*10000)+"_"+i;
+        if(isPdf){
+          toast("Processing PDF" + countBit + "…", 2500);
+          renderPdfFileToPages(file, function(pages, err, fullText){
+            if(err){ toast(err); processNext(i + 1); return; }
+            addPendingEquipFile({id:fileId, kind:"pdf", name:file.name || "PDF", pages:pages});
+            if(fullText){
+              applyFilterScanResults(scanPdfTextForFilters(fullText));
+            }
+            processNext(i + 1);
+          });
+        } else if(file.type.indexOf("image/") === 0){
+          toast("Processing photo" + countBit + "…", 1500);
+          compressImageFile(file, function(dataUrl, err){
+            if(err){ toast(err); processNext(i + 1); return; }
+            addPendingEquipFile({id:fileId, kind:"image", name:file.name || "Photo", pages:[dataUrl]});
+            processNext(i + 1);
+          });
+        } else {
+          toast("Skipped " + (file.name || "a file") + " — pick images or PDFs only.");
+          processNext(i + 1);
+        }
+      }
+      processNext(0);
     });
     document.getElementById("equip-files-preview-wrap").addEventListener("click", function(e){
       var fileId = e.target.getAttribute("data-remove-file");
