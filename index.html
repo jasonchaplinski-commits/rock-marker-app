@@ -5419,7 +5419,24 @@ service cloud.firestore {
         map.fitBounds(bounds, {padding:[50,50]});
       }
     });
-    window.addEventListener("resize", function(){ positionBinBadge(); positionCountBadge(); });
+    // Leaflet measures the #map div's pixel size once, when the map is
+    // created, and caches it — it doesn't automatically notice if the
+    // container's real size changes afterward (address bar showing/hiding,
+    // the phone rotating, the on-screen keyboard opening/closing, or the
+    // browser's chrome settling into place a moment after the page first
+    // paints). When that cached size drifts from the container's actual
+    // size, dragging/pinching can go dead or feel wrong over part of the
+    // screen — the touch coordinates land somewhere that doesn't match
+    // where Leaflet thinks the map's edges are. invalidateSize() tells it
+    // to re-measure and fix its internal math up to match reality.
+    function resyncMapSize(){
+      if(map){ map.invalidateSize(); }
+    }
+    window.addEventListener("resize", function(){ positionBinBadge(); positionCountBadge(); resyncMapSize(); });
+    window.addEventListener("orientationchange", function(){ setTimeout(resyncMapSize, 300); });
+    if(window.visualViewport){
+      window.visualViewport.addEventListener("resize", resyncMapSize);
+    }
 
     document.getElementById("btn-draw-field").addEventListener("click", function(){
       editingFieldId = null;
@@ -5569,6 +5586,7 @@ service cloud.firestore {
       try{ localStorage.setItem(ACCESS_CODE_KEY, entered); }catch(e){}
       errEl.classList.add("hidden");
       document.getElementById("access-gate").classList.add("hidden");
+      if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
     } else {
       errEl.classList.remove("hidden");
       input.value = "";
@@ -5601,6 +5619,13 @@ service cloud.firestore {
     tryAutoReconnect();
     setTimeout(function(){
       try{ fitToAllData(); }catch(e){}
+      // A phone's browser chrome (address bar, etc.) can still be settling
+      // into its final size right when the map is created — re-measuring
+      // here, once things have had a moment to stabilize, prevents Leaflet
+      // from being left with a stale idea of how big the map actually is
+      // (which shows up as dragging/pinching going dead over part of the
+      // screen).
+      map.invalidateSize();
     }, 500);
     // Let the fly-at-you zoom animation (1.7s) play all the way through
     // before fading the splash away, so it reads as a deliberate intro
@@ -5610,6 +5635,7 @@ service cloud.firestore {
     setTimeout(function(){
       hideSplash();
       if(!accessAlreadyGranted){ showAccessGate(); }
+      map.invalidateSize();
     }, 1700);
   }catch(err){
     document.getElementById("load-error").classList.remove("hidden");
