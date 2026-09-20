@@ -574,17 +574,15 @@
   <h2>Add log entry</h2>
 
   <div class="field-row">
-    <label>Date</label>
-    <input type="date" id="input-log-date">
+    <label>Date &amp; time</label>
+    <input type="datetime-local" id="input-log-date">
   </div>
 
   <div class="field-row">
     <label>What happened</label>
     <select id="input-log-action">
-      <option value="Filled">🟢 Filled (starting fresh)</option>
-      <option value="Added">➕ Added more</option>
-      <option value="Removed">➖ Removed some</option>
-      <option value="Emptied">⬜ Emptied</option>
+      <option value="Added">➕ Added</option>
+      <option value="Removed">➖ Removed</option>
     </select>
   </div>
 
@@ -1483,6 +1481,14 @@ service cloud.firestore {
       top = fb.getBoundingClientRect().bottom + 8;
     }
     bb.style.top = top + "px";
+    // With a lot of bins, the expanded list can run tall enough to spill over
+    // the rock-count badge, the BINS tab, and the map FABs beneath it. Cap
+    // its height to whatever room is actually left above those, so it
+    // scrolls internally instead of covering them.
+    var reserveBottom = 170;
+    var maxH = window.innerHeight - top - reserveBottom;
+    if(maxH < 120) maxH = 120;
+    bb.style.maxHeight = maxH + "px";
   }
 
   function openBinTotalsSheet(){
@@ -2146,7 +2152,7 @@ service cloud.firestore {
       logEl.innerHTML = '<div id="empty-list" style="padding:14px 0;">No activity logged yet.</div>';
     } else {
       logEl.innerHTML = sortedLog.slice(0,10).map(function(e){
-        var dateStr = e.date ? new Date(e.date+"T00:00:00").toLocaleDateString() : "";
+        var dateStr = formatLogTimestamp(e.date);
         var truckBit = e.truckType ? (e.truckType + (e.fraction ? " " + fractionLabel(e.fraction) : "")) : "";
         var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(e.crop?" "+e.crop:"")) : "";
         var detail = [truckBit, amt].filter(Boolean).join(" · ");
@@ -2174,20 +2180,45 @@ service cloud.firestore {
     return n.toString();
   }
 
-  // Crop is locked to a bin from the moment it's filled until it's emptied —
-  // a bin can't be mixed — so the crop question only shows up once, and every
-  // "Added" load after that silently reuses whatever crop is already in there.
+  // Log entries used to store just a date ("2026-09-20"); they now store a
+  // full local date+time ("2026-09-20T14:35") from the datetime-local input.
+  // This formats either shape for display, and skips printing a time for
+  // old date-only entries instead of showing a misleading midnight.
+  function formatLogTimestamp(dateStr){
+    if(!dateStr) return "";
+    var hasTime = dateStr.indexOf("T") !== -1;
+    var s = hasTime ? dateStr : (dateStr + "T00:00");
+    var d = new Date(s);
+    if(isNaN(d.getTime())) return dateStr;
+    var dateBit = d.toLocaleDateString();
+    if(!hasTime) return dateBit;
+    var timeBit = d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    return dateBit + " · " + timeBit;
+  }
+
+  function nowLocalDatetimeValue(){
+    var d = new Date();
+    var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) +
+      "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  // Crop is locked to a bin from the moment it's first added until it's
+  // fully emptied out — a bin can't be mixed — so the crop question only
+  // shows up on the very first "Added" into an empty bin, and every load
+  // after that silently reuses whatever crop is already in there. "Removed"
+  // never asks, since it's just taking out whatever's already there.
   function updateLogFormForAction(){
     var b = bins.find(function(x){ return x.id === binActionsBinId; });
     var action = document.getElementById("input-log-action").value;
-    var binHasCrop = !!(b && b.currentCrop);
+    var binHasProduct = !!(b && b.currentCrop && b.currentBu > 0);
     var lockedNoteEl = document.getElementById("log-crop-locked-note");
     var cropSelectEl = document.getElementById("input-log-crop");
 
-    var showCropRow = (action === "Filled") || (action === "Added" && binHasCrop);
+    var showCropRow = (action === "Added");
     document.getElementById("log-crop-row").classList.toggle("hidden", !showCropRow);
 
-    if(action === "Added" && binHasCrop){
+    if(action === "Added" && binHasProduct){
       cropSelectEl.classList.add("hidden");
       lockedNoteEl.textContent = "Locked to " + b.currentCrop + " until this bin is emptied.";
     } else {
@@ -2195,10 +2226,7 @@ service cloud.firestore {
       lockedNoteEl.textContent = "";
     }
 
-    var showTruck = (action === "Filled" || action === "Added" || action === "Removed");
-    document.getElementById("log-truck-row").classList.toggle("hidden", !showTruck);
-    document.getElementById("log-fraction-row").classList.toggle("hidden", !showTruck);
-    if(showTruck){ updateLogBushelsPreview(); } else { document.getElementById("log-bushels-preview").textContent = ""; }
+    updateLogBushelsPreview();
   }
 
   function updateLogBushelsPreview(){
@@ -2214,14 +2242,11 @@ service cloud.firestore {
   }
 
   function openBinLogModal(){
-    // If the bin already holds product, default to "Added more" (crop stays
-    // locked/hidden) instead of always defaulting to "Filled" — that was
-    // forcing the crop dropdown to show up on every single entry, even
-    // though the bin can only ever hold one crop at a time anyway.
-    var b = bins.find(function(x){ return x.id === binActionsBinId; });
-    var binHasProduct = !!(b && b.currentCrop && b.currentBu > 0);
-    document.getElementById("input-log-date").value = new Date().toISOString().slice(0,10);
-    document.getElementById("input-log-action").value = binHasProduct ? "Added" : "Filled";
+    // "Added" covers both a fresh fill into an empty bin and topping off one
+    // that already has product — updateLogFormForAction() decides whether
+    // the crop question needs to show based on the bin's current state.
+    document.getElementById("input-log-date").value = nowLocalDatetimeValue();
+    document.getElementById("input-log-action").value = "Added";
     document.getElementById("input-log-crop").value = "";
     document.getElementById("input-log-truck").value = "Tandem";
     document.getElementById("input-log-fraction").value = "1";
@@ -2238,24 +2263,21 @@ service cloud.firestore {
     var binId = binActionsBinId;
     var b = bins.find(function(x){ return x.id === binId; });
     if(!b) return;
-    var date = document.getElementById("input-log-date").value || new Date().toISOString().slice(0,10);
+    var date = document.getElementById("input-log-date").value || nowLocalDatetimeValue();
     var action = document.getElementById("input-log-action").value;
     var note = document.getElementById("input-log-note").value.trim();
+    var binHasProduct = !!(b.currentCrop && b.currentBu > 0);
 
-    var needsTruck = (action === "Filled" || action === "Added" || action === "Removed");
-    var truckType = needsTruck ? document.getElementById("input-log-truck").value : "";
-    var fraction = needsTruck ? parseFloat(document.getElementById("input-log-fraction").value) : null;
-    var bu = 0;
-    if(needsTruck){
-      var computed = truckLoadBushels(truckType, fraction);
-      if(computed === null){
-        toast("Set your truck sizes first — tap 🚛 Truck sizes.");
-        return;
-      }
-      bu = computed;
+    var truckType = document.getElementById("input-log-truck").value;
+    var fraction = parseFloat(document.getElementById("input-log-fraction").value);
+    var computed = truckLoadBushels(truckType, fraction);
+    if(computed === null){
+      toast("Set your truck sizes first — tap 🚛 Truck sizes.");
+      return;
     }
+    var bu = computed;
 
-    var crop = (action === "Filled") ? document.getElementById("input-log-crop").value : (b.currentCrop || "");
+    var crop = (action === "Added" && !binHasProduct) ? document.getElementById("input-log-crop").value : (b.currentCrop || "");
 
     var entry = {
       id:"le"+Date.now()+"_"+Math.floor(Math.random()*10000), date:date, action:action,
@@ -2263,24 +2285,20 @@ service cloud.firestore {
     };
     var newLog = (b.log || []).concat([entry]);
 
+    // Add and Remove now always accumulate — no more "Filled" wiping the
+    // bin back to a single load's worth, which is what made the totals look
+    // like they weren't updating.
     var newCurrentCrop = b.currentCrop || "";
     var newCurrentBu = (typeof b.currentBu === "number") ? b.currentBu : 0;
     var newCurrentLoads = (typeof b.currentLoads === "number") ? b.currentLoads : 0;
-    if(action === "Filled"){
-      newCurrentCrop = crop;
-      newCurrentBu = bu;
-      newCurrentLoads = 1;
-    } else if(action === "Added"){
+    if(action === "Added"){
+      if(!binHasProduct){ newCurrentCrop = crop; }
       newCurrentBu = newCurrentBu + bu;
       newCurrentLoads = newCurrentLoads + 1;
     } else if(action === "Removed"){
       newCurrentBu = Math.max(0, newCurrentBu - bu);
       newCurrentLoads = Math.max(0, newCurrentLoads - 1);
       if(newCurrentBu === 0){ newCurrentCrop = ""; newCurrentLoads = 0; }
-    } else if(action === "Emptied"){
-      newCurrentBu = 0;
-      newCurrentCrop = "";
-      newCurrentLoads = 0;
     }
 
     if(sharingEnabled){
@@ -3214,6 +3232,7 @@ service cloud.firestore {
     document.getElementById("bin-totals-backdrop").addEventListener("click", function(){
       hideSheet("bin-totals-modal", "bin-totals-backdrop");
     });
+    window.addEventListener("resize", function(){ positionBinBadge(); });
 
     document.getElementById("btn-draw-field").addEventListener("click", function(){
       editingFieldId = null;
