@@ -173,6 +173,14 @@
   .size-opt[data-size=boulder] .dot{background:var(--boulder);}
   .size-opt.selected{border-color:var(--green);color:var(--ink);background:#eef4ec;}
 
+  .log-action-options{display:flex;gap:8px;}
+  .log-action-opt{
+    flex:1;border:2px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center;
+    background:#fff;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);font-family:inherit;
+  }
+  .log-action-opt[data-action="Added"].selected{border-color:var(--green);color:var(--ink);background:#eef4ec;}
+  .log-action-opt[data-action="Removed"].selected{border-color:var(--danger);color:var(--ink);background:#fbeae7;}
+
   .btn-row{display:flex;gap:10px;margin-top:16px;}
   .btn{flex:1;border:none;border-radius:12px;padding:13px 10px;font-size:15px;font-weight:700;cursor:pointer;}
   .btn-primary{background:var(--green);color:#fff;}
@@ -580,10 +588,11 @@
 
   <div class="field-row">
     <label>What happened</label>
-    <select id="input-log-action">
-      <option value="Added">➕ Added</option>
-      <option value="Removed">➖ Removed</option>
-    </select>
+    <div class="log-action-options" id="log-action-options">
+      <button type="button" class="log-action-opt" data-action="Added">➕ Added</button>
+      <button type="button" class="log-action-opt" data-action="Removed">➖ Removed</button>
+    </div>
+    <input type="hidden" id="input-log-action" value="Added">
   </div>
 
   <div class="field-row" id="log-crop-row">
@@ -2246,6 +2255,17 @@ service cloud.firestore {
     updateLogBushelsPreview();
   }
 
+  // Drives the Added/Removed button pair — keeps the hidden input in sync
+  // (everything else still just reads its .value) and refreshes the crop
+  // row + bushels preview for the newly-selected action.
+  function setLogAction(action){
+    document.getElementById("input-log-action").value = action;
+    document.querySelectorAll(".log-action-opt").forEach(function(btn){
+      btn.classList.toggle("selected", btn.getAttribute("data-action") === action);
+    });
+    updateLogFormForAction();
+  }
+
   function updateLogBushelsPreview(){
     var truckType = document.getElementById("input-log-truck").value;
     var fraction = parseFloat(document.getElementById("input-log-fraction").value);
@@ -2263,12 +2283,11 @@ service cloud.firestore {
     // that already has product — updateLogFormForAction() decides whether
     // the crop question needs to show based on the bin's current state.
     document.getElementById("input-log-date").value = nowLocalDatetimeValue();
-    document.getElementById("input-log-action").value = "Added";
     document.getElementById("input-log-crop").value = "";
     document.getElementById("input-log-truck").value = "Tandem";
     document.getElementById("input-log-fraction").value = "1";
     document.getElementById("input-log-note").value = "";
-    updateLogFormForAction();
+    setLogAction("Added"); // also refreshes the crop row + bushels preview
     showSheet("bin-log-modal", "bin-log-backdrop");
   }
 
@@ -3221,7 +3240,9 @@ service cloud.firestore {
     document.getElementById("btn-bin-actions-close").addEventListener("click", closeBinActions);
     document.getElementById("bin-actions-backdrop").addEventListener("click", closeBinActions);
 
-    document.getElementById("input-log-action").addEventListener("change", updateLogFormForAction);
+    document.querySelectorAll(".log-action-opt").forEach(function(btn){
+      btn.addEventListener("click", function(){ setLogAction(btn.getAttribute("data-action")); });
+    });
     document.getElementById("input-log-truck").addEventListener("change", updateLogBushelsPreview);
     document.getElementById("input-log-fraction").addEventListener("change", updateLogBushelsPreview);
     document.getElementById("btn-truck-sizes").addEventListener("click", openTruckSizesModal);
