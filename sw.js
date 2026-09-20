@@ -1,7 +1,7 @@
 // Rock Marker service worker — caches the app shell so the app opens and
 // stays usable with weak or no signal. Map tiles, search, and shared-map
 // sync all go straight to the network (they're never cached here).
-var CACHE_NAME = "rock-marker-shell-v3";
+var CACHE_NAME = "rock-marker-shell-v4";
 var SHELL_FILES = [
   "./",
   "./index.html",

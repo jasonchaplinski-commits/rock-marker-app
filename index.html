@@ -118,6 +118,31 @@
   #farm-badge .fb-row .fb-muted{color:var(--muted);font-weight:500;font-size:11px;}
   #farm-badge .fb-sub{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:7px 0 2px;}
 
+  #bin-badge{
+    position:absolute;top:64px;right:10px;z-index:498;max-width:64vw;
+    background:rgba(255,255,255,.92);border-radius:14px;padding:8px 12px;color:var(--ink);
+    box-shadow:0 3px 10px rgba(0,0,0,.25);line-height:1.4;max-height:60vh;overflow-y:auto;
+  }
+  #bin-badge.hidden{display:none;}
+  #bin-badge .fb-header{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none;}
+  #bin-badge .fb-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+  #bin-badge .fb-chevron{font-size:10px;color:var(--muted);flex-shrink:0;}
+  #bin-badge .fb-total{font-size:16px;font-weight:800;margin-top:2px;margin-bottom:6px;}
+  #bin-badge.collapsed .fb-total{margin-bottom:0;}
+  #bin-badge .fb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;font-weight:600;padding:2px 0;}
+  #bin-badge .fb-row .fb-muted{color:var(--muted);font-weight:500;font-size:11px;}
+  #bin-badge .fb-sub{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:7px 0 2px;}
+
+  #bin-tab{
+    position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:499;
+    background:#546e7a;color:#fff;border:none;border-radius:12px 0 0 12px;
+    padding:12px 8px 12px 12px;font-size:11px;font-weight:800;letter-spacing:.02em;
+    box-shadow:-2px 2px 8px rgba(0,0,0,.3);cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.1;
+  }
+  #bin-tab.hidden{display:none;}
+  #bin-tab .bt-icon{font-size:18px;}
+
   /* Bottom sheets */
   .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:800;opacity:0;pointer-events:none;transition:opacity .2s;}
   .sheet-backdrop.show{opacity:1;pointer-events:auto;}
@@ -322,6 +347,8 @@
 
 <div id="count-badge">0 rocks</div>
 <div id="farm-badge" class="hidden"></div>
+<div id="bin-badge" class="hidden"></div>
+<button id="bin-tab" class="hidden"><span class="bt-icon">🛢</span>BINS</button>
 <div id="app-credit">Created by Jason Chaplinski</div>
 
 <div id="drop-pin-banner" class="hidden">
@@ -622,6 +649,19 @@
   <div class="btn-row">
     <button class="btn btn-secondary" id="btn-cancel-truck-sizes">Cancel</button>
     <button class="btn btn-primary" id="btn-save-truck-sizes">Save</button>
+  </div>
+</div>
+
+<!-- Bin totals sheet (opened via the BINS tab on the right edge) -->
+<div class="sheet-backdrop" id="bin-totals-backdrop"></div>
+<div class="sheet" id="bin-totals-modal">
+  <div class="sheet-handle"></div>
+  <h2>🛢 Bin Totals</h2>
+  <div class="summary-card" id="bin-totals-summary"></div>
+  <div class="summary-subtitle">By bin</div>
+  <div id="bin-totals-list"></div>
+  <div class="btn-row" style="margin-top:10px;">
+    <button class="btn btn-secondary" id="btn-bin-totals-close">Close</button>
   </div>
 </div>
 
@@ -962,6 +1002,7 @@ service cloud.firestore {
     renderBins();
     renderBinList();
     updateFarmBadge();
+    updateBinBadge();
     if(window.requestAnimationFrame){
       requestAnimationFrame(updateRockGhosting);
     } else {
@@ -1102,6 +1143,8 @@ service cloud.firestore {
 
       var center = polygonCentroid(b.points);
       var holdingText = binHoldingText(b);
+      var loadsText = (typeof b.currentLoads === "number" && b.currentLoads > 0)
+        ? (b.currentLoads + (b.currentLoads === 1 ? " load" : " loads")) : "";
       var labelMarker = L.marker(center, {
         interactive:true,
         pane: "fieldLabelPane",
@@ -1109,7 +1152,10 @@ service cloud.firestore {
           className:"",
           html:'<div class="bin-marker" style="transform:translate(-50%,-50%) scale('+labelScale.toFixed(2)+');">'+
             '<div class="bin-pin">🛢️</div>'+
-            '<div class="bin-chip">'+escapeHtml(b.name || "Bin")+'<span class="bin-chip-sub">'+escapeHtml(holdingText)+'</span></div>'+
+            '<div class="bin-chip">'+escapeHtml(b.name || "Bin")+
+              '<span class="bin-chip-sub">'+escapeHtml(holdingText)+'</span>'+
+              (loadsText ? '<span class="bin-chip-sub">'+escapeHtml(loadsText)+'</span>' : '')+
+            '</div>'+
           '</div>',
           iconSize:[0,0]
         })
@@ -1325,7 +1371,158 @@ service cloud.firestore {
       toggleEl.onclick = function(){
         farmBadgeCollapsed = !farmBadgeCollapsed;
         updateFarmBadge();
+        positionBinBadge();
       };
+    }
+  }
+
+  // ---------- Bin totals ----------
+  // Aggregates across every bin: how much is currently sitting in storage,
+  // and — separately — how many truck loads have ever been dumped, broken
+  // down by truck type, so the farm totals stay meaningful even after bins
+  // get emptied out over the season.
+  function computeBinTotals(){
+    var totalBu = 0, totalCapacity = 0, totalLoads = 0;
+    var truckCounts = {Tandem:0, Semi:0};
+    var byBin = [];
+    bins.forEach(function(b){
+      var bu = (typeof b.currentBu === "number" && b.currentBu > 0) ? b.currentBu : 0;
+      var loads = (typeof b.currentLoads === "number" && b.currentLoads > 0) ? b.currentLoads : 0;
+      totalBu += bu;
+      totalLoads += loads;
+      if(typeof b.capacityBu === "number" && b.capacityBu > 0){ totalCapacity += b.capacityBu; }
+      (b.log || []).forEach(function(e){
+        if((e.action === "Filled" || e.action === "Added") && e.truckType && truckCounts.hasOwnProperty(e.truckType)){
+          truckCounts[e.truckType] += 1;
+        }
+      });
+      byBin.push({
+        name: b.name || "Bin",
+        bu: bu,
+        capacityBu: (typeof b.capacityBu === "number" && b.capacityBu > 0) ? b.capacityBu : null,
+        loads: loads,
+        crop: b.currentCrop || ""
+      });
+    });
+    byBin.sort(function(a,z){ return z.bu - a.bu; });
+    return {
+      totalBu: totalBu,
+      totalCapacity: totalCapacity,
+      totalLoads: totalLoads,
+      truckCounts: truckCounts,
+      byBin: byBin
+    };
+  }
+
+  var binBadgeCollapsed = true; // starts collapsed so it doesn't cover the map
+
+  function updateBinBadge(){
+    var el = document.getElementById("bin-badge");
+    var tabEl = document.getElementById("bin-tab");
+    if(!el) return;
+    if(bins.length === 0 || searchOpen){
+      el.classList.add("hidden");
+      el.innerHTML = "";
+      if(tabEl) tabEl.classList.add("hidden");
+      return;
+    }
+    if(tabEl) tabEl.classList.remove("hidden");
+
+    var totals = computeBinTotals();
+    var header = '<div class="fb-header" id="bb-toggle">'+
+        '<span class="fb-title">Bin totals</span>'+
+        '<span class="fb-chevron">'+(binBadgeCollapsed ? "▸ tap for more" : "▾ tap to collapse")+'</span>'+
+      '</div>'+
+      '<div class="fb-total">≈'+totals.totalBu.toLocaleString()+' bu in bins</div>';
+
+    if(binBadgeCollapsed){
+      el.classList.add("collapsed");
+      el.innerHTML = header;
+    } else {
+      el.classList.remove("collapsed");
+      var binRows = totals.byBin.map(function(bb){
+        var loadsBit = bb.loads > 0 ? (bb.loads + (bb.loads===1?" load":" loads")) : "empty";
+        return '<div class="fb-row">'+
+          '<span>'+escapeHtml(bb.name)+' <span class="fb-muted">('+escapeHtml(loadsBit)+')</span></span>'+
+          '<span>≈'+bb.bu.toLocaleString()+' bu</span>'+
+        '</div>';
+      }).join("");
+      var truckBits = [];
+      if(totals.truckCounts.Tandem) truckBits.push(totals.truckCounts.Tandem + " tandem");
+      if(totals.truckCounts.Semi) truckBits.push(totals.truckCounts.Semi + " semi");
+
+      el.innerHTML = header+
+        binRows+
+        '<div class="fb-sub">Trucks dumped (all-time)</div>'+
+        '<div class="fb-row"><span>🚛 Total</span><span>'+escapeHtml(truckBits.length ? truckBits.join(" · ") : "None yet")+'</span></div>';
+    }
+    el.classList.remove("hidden");
+
+    var toggleEl = document.getElementById("bb-toggle");
+    if(toggleEl){
+      toggleEl.onclick = function(){
+        binBadgeCollapsed = !binBadgeCollapsed;
+        updateBinBadge();
+      };
+    }
+    positionBinBadge();
+  }
+
+  // Stacks the bin-totals badge directly under the farm-totals badge
+  // (whatever that badge's current height happens to be, collapsed or
+  // expanded) instead of a fixed offset that would either overlap it or
+  // leave an odd gap.
+  function positionBinBadge(){
+    var fb = document.getElementById("farm-badge");
+    var bb = document.getElementById("bin-badge");
+    if(!bb || bb.classList.contains("hidden")) return;
+    var top = 64;
+    var installBanner = document.getElementById("install-banner");
+    if(installBanner && !installBanner.classList.contains("hidden")) top = 120;
+    if(fb && !fb.classList.contains("hidden")){
+      top = fb.getBoundingClientRect().bottom + 8;
+    }
+    bb.style.top = top + "px";
+  }
+
+  function openBinTotalsSheet(){
+    var totals = computeBinTotals();
+    var truckBits = [];
+    if(totals.truckCounts.Tandem) truckBits.push(totals.truckCounts.Tandem + " tandem");
+    if(totals.truckCounts.Semi) truckBits.push(totals.truckCounts.Semi + " semi");
+    var truckLine = truckBits.length ? truckBits.join(" · ") : "No loads logged yet";
+
+    document.getElementById("bin-totals-summary").innerHTML =
+      '<div class="summary-row summary-total"><span>Total in bins</span><span>≈'+totals.totalBu.toLocaleString()+' bu</span></div>'+
+      (totals.totalCapacity > 0 ? '<div class="summary-row"><span>Total capacity</span><span>'+totals.totalCapacity.toLocaleString()+' bu</span></div>' : '')+
+      '<div class="summary-row"><span>Trucks dumped (all-time)</span><span>'+escapeHtml(truckLine)+'</span></div>';
+
+    var listEl = document.getElementById("bin-totals-list");
+    if(totals.byBin.length === 0){
+      listEl.innerHTML = '<div id="empty-list" style="padding:14px 0;">No bins outlined yet.</div>';
+    } else {
+      listEl.innerHTML = totals.byBin.map(function(bb){
+        var cropBit = bb.crop ? (bb.crop + " · ") : "";
+        var capBit = bb.capacityBu ? (" / "+bb.capacityBu.toLocaleString()+" bu") : "";
+        var loadsBit = bb.loads > 0 ? (bb.loads + (bb.loads===1?" load":" loads")) : "No loads yet";
+        return '<div class="log-entry">'+
+          '<div class="le1">🛢 '+escapeHtml(bb.name)+'</div>'+
+          '<div class="le2">'+escapeHtml(cropBit)+'≈'+bb.bu.toLocaleString()+' bu'+capBit+' · '+escapeHtml(loadsBit)+'</div>'+
+        '</div>';
+      }).join("");
+    }
+    showSheet("bin-totals-modal", "bin-totals-backdrop");
+  }
+
+  function zoomToAllBins(){
+    var allPoints = [];
+    bins.forEach(function(b){
+      if(b.points && b.points.length >= 3){
+        allPoints = allPoints.concat(b.points.map(function(p){ return [p[0], p[1]]; }));
+      }
+    });
+    if(allPoints.length){
+      map.fitBounds(L.latLngBounds(allPoints), {padding:[60,60]});
     }
   }
 
@@ -2017,8 +2214,14 @@ service cloud.firestore {
   }
 
   function openBinLogModal(){
+    // If the bin already holds product, default to "Added more" (crop stays
+    // locked/hidden) instead of always defaulting to "Filled" — that was
+    // forcing the crop dropdown to show up on every single entry, even
+    // though the bin can only ever hold one crop at a time anyway.
+    var b = bins.find(function(x){ return x.id === binActionsBinId; });
+    var binHasProduct = !!(b && b.currentCrop && b.currentBu > 0);
     document.getElementById("input-log-date").value = new Date().toISOString().slice(0,10);
-    document.getElementById("input-log-action").value = "Filled";
+    document.getElementById("input-log-action").value = binHasProduct ? "Added" : "Filled";
     document.getElementById("input-log-crop").value = "";
     document.getElementById("input-log-truck").value = "Tandem";
     document.getElementById("input-log-fraction").value = "1";
@@ -2766,6 +2969,7 @@ service cloud.firestore {
             document.getElementById("searchwrap").classList.add("hidden");
             searchOpen = false;
             updateFarmBadge();
+            updateBinBadge();
           });
         });
       })
@@ -2999,6 +3203,18 @@ service cloud.firestore {
       if(binActionsBinId){ openBinActions(binActionsBinId); }
     });
 
+    document.getElementById("bin-tab").addEventListener("click", function(){
+      if(bins.length === 0) return;
+      zoomToAllBins();
+      openBinTotalsSheet();
+    });
+    document.getElementById("btn-bin-totals-close").addEventListener("click", function(){
+      hideSheet("bin-totals-modal", "bin-totals-backdrop");
+    });
+    document.getElementById("bin-totals-backdrop").addEventListener("click", function(){
+      hideSheet("bin-totals-modal", "bin-totals-backdrop");
+    });
+
     document.getElementById("btn-draw-field").addEventListener("click", function(){
       editingFieldId = null;
       startDrawingField();
@@ -3061,6 +3277,7 @@ service cloud.firestore {
       wrap.classList.toggle("hidden");
       searchOpen = !wrap.classList.contains("hidden");
       updateFarmBadge();
+      updateBinBadge();
       document.getElementById("search-input").focus();
     });
     document.getElementById("search-input").addEventListener("input", function(){
