@@ -245,8 +245,8 @@
   .bin-marker{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);cursor:pointer;}
   .bin-marker .bin-pin{font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
   .bin-marker .bin-chip{
-    margin-top:-4px;background:rgba(255,255,255,.94);border:1px solid #546e7a;border-radius:8px;padding:1px 7px;
-    font-size:10.5px;font-weight:800;color:var(--ink);white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25);text-align:center;
+    margin-top:-4px;background:rgba(255,255,255,.5);backdrop-filter:blur(1px);border:1px solid rgba(84,110,122,.7);border-radius:8px;padding:1px 7px;
+    font-size:10.5px;font-weight:800;color:var(--ink);white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.2);text-align:center;
   }
   .bin-marker .bin-chip .bin-chip-sub{display:block;font-weight:700;color:var(--muted);font-size:9.5px;}
   .log-entry{border-bottom:1px solid var(--line);padding:8px 0;font-size:13px;}
@@ -399,7 +399,10 @@
   <div id="field-list" class="hidden"></div>
   <div id="pin-list" class="hidden"></div>
   <div id="bin-list-wrap" class="hidden">
-    <button class="btn btn-secondary" id="btn-draw-bin" style="width:100%;margin-bottom:10px;">📐 Outline a new bin</button>
+    <div class="btn-row" style="margin-bottom:10px;">
+      <button class="btn btn-secondary" id="btn-draw-bin">📐 Outline a new bin</button>
+      <button class="btn btn-secondary" id="btn-truck-sizes">🚛 Truck sizes</button>
+    </div>
     <div id="bin-list"></div>
   </div>
   <div class="field-row" style="margin-top:10px;">
@@ -567,11 +570,26 @@
       <option value="Soybeans">🫘 Soybeans</option>
       <option value="Wheat">🌾 Wheat</option>
     </select>
+    <div class="coord-readout" id="log-crop-locked-note" style="margin-top:6px;margin-bottom:0;"></div>
   </div>
 
-  <div class="field-row" id="log-bushels-row">
-    <label>Bushels</label>
-    <input type="number" id="input-log-bushels" min="0" step="1" placeholder="e.g. 2500">
+  <div class="field-row" id="log-truck-row">
+    <label>Truck</label>
+    <select id="input-log-truck">
+      <option value="Tandem">Tandem</option>
+      <option value="Semi">Semi</option>
+    </select>
+  </div>
+
+  <div class="field-row" id="log-fraction-row">
+    <label>How full was the load</label>
+    <select id="input-log-fraction">
+      <option value="0.25">1/4 truck</option>
+      <option value="0.5">1/2 truck</option>
+      <option value="0.75">3/4 truck</option>
+      <option value="1">Full truck</option>
+    </select>
+    <div class="coord-readout" id="log-bushels-preview" style="margin-top:6px;margin-bottom:0;font-weight:700;"></div>
   </div>
 
   <div class="field-row">
@@ -582,6 +600,28 @@
   <div class="btn-row">
     <button class="btn btn-secondary" id="btn-cancel-log">Cancel</button>
     <button class="btn btn-primary" id="btn-save-log">Save entry</button>
+  </div>
+</div>
+
+<!-- Truck sizes settings sheet -->
+<div class="sheet-backdrop" id="truck-sizes-backdrop"></div>
+<div class="sheet" id="truck-sizes-modal">
+  <div class="sheet-handle"></div>
+  <h2>Truck sizes</h2>
+  <div class="coord-readout" style="margin-bottom:12px;">
+    Set approximately how many bushels a FULL load of each truck holds. Used to calculate bushels when logging bin activity.
+  </div>
+  <div class="field-row">
+    <label>Tandem — full load (bushels)</label>
+    <input type="number" id="input-truck-tandem" min="0" step="1" placeholder="e.g. 900">
+  </div>
+  <div class="field-row">
+    <label>Semi — full load (bushels)</label>
+    <input type="number" id="input-truck-semi" min="0" step="1" placeholder="e.g. 1100">
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-cancel-truck-sizes">Cancel</button>
+    <button class="btn btn-primary" id="btn-save-truck-sizes">Save</button>
   </div>
 </div>
 
@@ -724,6 +764,7 @@ service cloud.firestore {
   var editingFieldId = null;
   var editingBinId = null;
   var binActionsBinId = null;
+  var truckSizes = {tandem: null, semi: null}; // approx bushels for a FULL load of each truck type
   var selectedFieldColor = FIELD_COLORS[0];
 
   var sharingEnabled = false;
@@ -743,12 +784,13 @@ service cloud.firestore {
         fields = Array.isArray(parsed.fields) ? parsed.fields : [];
         waypoints = Array.isArray(parsed.waypoints) ? parsed.waypoints : [];
         bins = Array.isArray(parsed.bins) ? parsed.bins : [];
+        if(parsed.truckSizes && typeof parsed.truckSizes === "object"){ truckSizes = parsed.truckSizes; }
       }
     }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; }
   }
   function saveData(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, truckSizes: truckSizes}));
     }catch(e){
       toast("Couldn't save — your browser storage may be full or blocked.");
     }
@@ -1043,7 +1085,7 @@ service cloud.firestore {
     if(bu <= 0) return "Empty";
     var pct = (typeof b.capacityBu === "number" && b.capacityBu > 0) ? Math.round((bu / b.capacityBu) * 100) : null;
     var cropBit = b.currentCrop ? (b.currentCrop + " · ") : "";
-    return cropBit + bu.toLocaleString() + " bu" + (pct !== null ? " (" + pct + "%)" : "");
+    return cropBit + "≈" + bu.toLocaleString() + " bu" + (pct !== null ? " (" + pct + "%)" : "");
   }
 
   function renderBins(){
@@ -1748,6 +1790,46 @@ service cloud.firestore {
     return firestoreDb.collection("farms").doc(farmCode).collection("bins").doc(id);
   }
 
+  function truckSizesDocRef(){
+    return firestoreDb.collection("farms").doc(farmCode).collection("config").doc("truckSizes");
+  }
+
+  function openTruckSizesModal(){
+    document.getElementById("input-truck-tandem").value = (typeof truckSizes.tandem === "number") ? truckSizes.tandem : "";
+    document.getElementById("input-truck-semi").value = (typeof truckSizes.semi === "number") ? truckSizes.semi : "";
+    showSheet("truck-sizes-modal", "truck-sizes-backdrop");
+  }
+
+  function closeTruckSizesModal(){
+    hideSheet("truck-sizes-modal", "truck-sizes-backdrop");
+  }
+
+  function saveTruckSizesFromForm(){
+    var rawTandem = parseFloat(document.getElementById("input-truck-tandem").value);
+    var rawSemi = parseFloat(document.getElementById("input-truck-semi").value);
+    truckSizes = {
+      tandem: (!isNaN(rawTandem) && rawTandem > 0) ? rawTandem : null,
+      semi: (!isNaN(rawSemi) && rawSemi > 0) ? rawSemi : null
+    };
+    if(sharingEnabled){
+      truckSizesDocRef().set(truckSizes).catch(function(){
+        toast("Couldn't save to the shared map — check your connection.");
+      });
+    } else {
+      saveData();
+    }
+    closeTruckSizesModal();
+    toast("Truck sizes saved");
+  }
+
+  // A full truck's worth of bushels for the picked type + fraction, or null
+  // if that truck type hasn't been sized yet in settings.
+  function truckLoadBushels(truckType, fraction){
+    var full = truckType === "Semi" ? truckSizes.semi : truckSizes.tandem;
+    if(typeof full !== "number" || full <= 0) return null;
+    return Math.round(full * fraction);
+  }
+
   function openBinModal(bin){
     if(bin){
       editingBinId = bin.id;
@@ -1807,6 +1889,7 @@ service cloud.firestore {
         capacityBu: capacityBu,
         currentCrop: "",
         currentBu: 0,
+        currentLoads: 0,
         log: [],
         points: pendingBinPoints,
         createdAt: new Date().toISOString()
@@ -1814,7 +1897,7 @@ service cloud.firestore {
       if(sharingEnabled){
         binDocRef(newBin.id).set({
           name:newBin.name, capacityBu:newBin.capacityBu, currentCrop:newBin.currentCrop,
-          currentBu:newBin.currentBu, log:newBin.log, points:pointsToFirestore(newBin.points), createdAt:newBin.createdAt
+          currentBu:newBin.currentBu, currentLoads:newBin.currentLoads, log:newBin.log, points:pointsToFirestore(newBin.points), createdAt:newBin.createdAt
         }).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
@@ -1852,9 +1935,12 @@ service cloud.firestore {
     var capLine = (typeof b.capacityBu === "number" && b.capacityBu > 0)
       ? (b.capacityBu.toLocaleString() + " bu capacity") : "No capacity set";
     var holdingText = binHoldingText(b);
+    var loadsLine = (typeof b.currentLoads === "number" && b.currentLoads > 0)
+      ? (b.currentLoads + (b.currentLoads === 1 ? " load in" : " loads in")) : null;
 
     document.getElementById("bin-actions-stats").innerHTML =
       '<div class="summary-row summary-total"><span>Currently holding</span><span>'+escapeHtml(holdingText)+'</span></div>'+
+      (loadsLine ? '<div class="summary-row"><span>'+escapeHtml(loadsLine)+'</span></div>' : '')+
       '<div class="summary-row"><span>'+escapeHtml(capLine)+'</span></div>';
 
     var logEl = document.getElementById("bin-actions-log");
@@ -1864,9 +1950,11 @@ service cloud.firestore {
     } else {
       logEl.innerHTML = sortedLog.slice(0,10).map(function(e){
         var dateStr = e.date ? new Date(e.date+"T00:00:00").toLocaleDateString() : "";
-        var amt = (typeof e.bu === "number" && e.bu > 0) ? (e.bu.toLocaleString()+" bu"+(e.crop?" "+e.crop:"")) : "";
+        var truckBit = e.truckType ? (e.truckType + (e.fraction ? " " + fractionLabel(e.fraction) : "")) : "";
+        var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(e.crop?" "+e.crop:"")) : "";
+        var detail = [truckBit, amt].filter(Boolean).join(" · ");
         return '<div class="log-entry">'+
-          '<div class="le1">'+escapeHtml(e.action||"")+(amt ? " — "+escapeHtml(amt) : "")+'</div>'+
+          '<div class="le1">'+escapeHtml(e.action||"")+(detail ? " — "+escapeHtml(detail) : "")+'</div>'+
           '<div class="le2">'+escapeHtml(dateStr)+(e.note ? " · "+escapeHtml(e.note) : "")+'</div>'+
         '</div>';
       }).join("");
@@ -1880,17 +1968,60 @@ service cloud.firestore {
     binActionsBinId = null;
   }
 
+  function fractionLabel(fraction){
+    var n = parseFloat(fraction);
+    if(n >= 1) return "full";
+    if(n === 0.75) return "3/4";
+    if(n === 0.5) return "1/2";
+    if(n === 0.25) return "1/4";
+    return n.toString();
+  }
+
+  // Crop is locked to a bin from the moment it's filled until it's emptied —
+  // a bin can't be mixed — so the crop question only shows up once, and every
+  // "Added" load after that silently reuses whatever crop is already in there.
   function updateLogFormForAction(){
+    var b = bins.find(function(x){ return x.id === binActionsBinId; });
     var action = document.getElementById("input-log-action").value;
-    var needsCrop = (action === "Filled" || action === "Added");
-    document.getElementById("log-crop-row").classList.toggle("hidden", !needsCrop);
+    var binHasCrop = !!(b && b.currentCrop);
+    var lockedNoteEl = document.getElementById("log-crop-locked-note");
+    var cropSelectEl = document.getElementById("input-log-crop");
+
+    var showCropRow = (action === "Filled") || (action === "Added" && binHasCrop);
+    document.getElementById("log-crop-row").classList.toggle("hidden", !showCropRow);
+
+    if(action === "Added" && binHasCrop){
+      cropSelectEl.classList.add("hidden");
+      lockedNoteEl.textContent = "Locked to " + b.currentCrop + " until this bin is emptied.";
+    } else {
+      cropSelectEl.classList.remove("hidden");
+      lockedNoteEl.textContent = "";
+    }
+
+    var showTruck = (action === "Filled" || action === "Added" || action === "Removed");
+    document.getElementById("log-truck-row").classList.toggle("hidden", !showTruck);
+    document.getElementById("log-fraction-row").classList.toggle("hidden", !showTruck);
+    if(showTruck){ updateLogBushelsPreview(); } else { document.getElementById("log-bushels-preview").textContent = ""; }
+  }
+
+  function updateLogBushelsPreview(){
+    var truckType = document.getElementById("input-log-truck").value;
+    var fraction = parseFloat(document.getElementById("input-log-fraction").value);
+    var bu = truckLoadBushels(truckType, fraction);
+    var previewEl = document.getElementById("log-bushels-preview");
+    if(bu === null){
+      previewEl.innerHTML = "Set your truck sizes first (🚛 Truck sizes button) so this can be calculated.";
+    } else {
+      previewEl.textContent = "≈ " + bu.toLocaleString() + " bushels";
+    }
   }
 
   function openBinLogModal(){
     document.getElementById("input-log-date").value = new Date().toISOString().slice(0,10);
     document.getElementById("input-log-action").value = "Filled";
     document.getElementById("input-log-crop").value = "";
-    document.getElementById("input-log-bushels").value = "";
+    document.getElementById("input-log-truck").value = "Tandem";
+    document.getElementById("input-log-fraction").value = "1";
     document.getElementById("input-log-note").value = "";
     updateLogFormForAction();
     showSheet("bin-log-modal", "bin-log-backdrop");
@@ -1906,36 +2037,55 @@ service cloud.firestore {
     if(!b) return;
     var date = document.getElementById("input-log-date").value || new Date().toISOString().slice(0,10);
     var action = document.getElementById("input-log-action").value;
-    var crop = document.getElementById("input-log-crop").value;
-    var rawBu = parseFloat(document.getElementById("input-log-bushels").value);
-    var bu = (!isNaN(rawBu) && rawBu >= 0) ? rawBu : 0;
     var note = document.getElementById("input-log-note").value.trim();
 
-    var entry = {id:"le"+Date.now()+"_"+Math.floor(Math.random()*10000), date:date, action:action, crop:crop, bu:bu, note:note};
+    var needsTruck = (action === "Filled" || action === "Added" || action === "Removed");
+    var truckType = needsTruck ? document.getElementById("input-log-truck").value : "";
+    var fraction = needsTruck ? parseFloat(document.getElementById("input-log-fraction").value) : null;
+    var bu = 0;
+    if(needsTruck){
+      var computed = truckLoadBushels(truckType, fraction);
+      if(computed === null){
+        toast("Set your truck sizes first — tap 🚛 Truck sizes.");
+        return;
+      }
+      bu = computed;
+    }
+
+    var crop = (action === "Filled") ? document.getElementById("input-log-crop").value : (b.currentCrop || "");
+
+    var entry = {
+      id:"le"+Date.now()+"_"+Math.floor(Math.random()*10000), date:date, action:action,
+      crop:crop, bu:bu, truckType:truckType, fraction:fraction, note:note
+    };
     var newLog = (b.log || []).concat([entry]);
 
     var newCurrentCrop = b.currentCrop || "";
     var newCurrentBu = (typeof b.currentBu === "number") ? b.currentBu : 0;
+    var newCurrentLoads = (typeof b.currentLoads === "number") ? b.currentLoads : 0;
     if(action === "Filled"){
       newCurrentCrop = crop;
       newCurrentBu = bu;
+      newCurrentLoads = 1;
     } else if(action === "Added"){
-      newCurrentCrop = crop || newCurrentCrop;
       newCurrentBu = newCurrentBu + bu;
+      newCurrentLoads = newCurrentLoads + 1;
     } else if(action === "Removed"){
       newCurrentBu = Math.max(0, newCurrentBu - bu);
-      if(newCurrentBu === 0){ newCurrentCrop = ""; }
+      newCurrentLoads = Math.max(0, newCurrentLoads - 1);
+      if(newCurrentBu === 0){ newCurrentCrop = ""; newCurrentLoads = 0; }
     } else if(action === "Emptied"){
       newCurrentBu = 0;
       newCurrentCrop = "";
+      newCurrentLoads = 0;
     }
 
     if(sharingEnabled){
-      binDocRef(binId).update({log:newLog, currentCrop:newCurrentCrop, currentBu:newCurrentBu}).catch(function(){
+      binDocRef(binId).update({log:newLog, currentCrop:newCurrentCrop, currentBu:newCurrentBu, currentLoads:newCurrentLoads}).catch(function(){
         toast("Couldn't save to the shared map — check your connection.");
       });
     } else {
-      b.log = newLog; b.currentCrop = newCurrentCrop; b.currentBu = newCurrentBu;
+      b.log = newLog; b.currentCrop = newCurrentCrop; b.currentBu = newCurrentBu; b.currentLoads = newCurrentLoads;
       saveData();
       renderAll();
     }
@@ -1954,11 +2104,12 @@ service cloud.firestore {
     listEl.innerHTML = sorted.map(function(b){
       var holdingText = binHoldingText(b);
       var capLine = (typeof b.capacityBu === "number" && b.capacityBu > 0) ? (b.capacityBu.toLocaleString()+" bu cap") : "no cap set";
+      var loadsBit = (typeof b.currentLoads === "number" && b.currentLoads > 0) ? (" · "+b.currentLoads+(b.currentLoads===1?" load":" loads")) : "";
       return '<div class="rock-row" data-id="'+b.id+'">'+
         '<div class="rock-dot" style="background:'+BIN_COLOR+'"></div>'+
         '<div class="rock-info">'+
           '<div class="r1">🛢 '+escapeHtml(b.name)+'</div>'+
-          '<div class="r2">'+escapeHtml(holdingText)+' · '+escapeHtml(capLine)+'</div>'+
+          '<div class="r2">'+escapeHtml(holdingText)+loadsBit+' · '+escapeHtml(capLine)+'</div>'+
         '</div>'+
         '<div class="rock-actions">'+
           '<button class="row-btn" data-action="goto">🎯</button>'+
@@ -2308,6 +2459,7 @@ service cloud.firestore {
                 name:b.name||"Bin",
                 capacityBu:(typeof b.capacityBu === "number" ? b.capacityBu : null),
                 currentCrop:b.currentCrop||"", currentBu:(typeof b.currentBu === "number" ? b.currentBu : 0),
+                currentLoads:(typeof b.currentLoads === "number" ? b.currentLoads : 0),
                 log:Array.isArray(b.log) ? b.log : [],
                 points:pointsToFirestore(b.points), createdAt:b.createdAt||new Date().toISOString()
               });
@@ -2360,7 +2512,7 @@ service cloud.firestore {
   }
 
   function cacheSharedData(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins})); }catch(e){}
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins, truckSizes:truckSizes})); }catch(e){}
   }
 
   function subscribeToFarm(){
@@ -2428,6 +2580,19 @@ service cloud.firestore {
         toast("Sync error loading bins.");
       })
     );
+
+    unsubscribeFns.push(
+      firestoreDb.collection("farms").doc(farmCode).collection("config").doc("truckSizes").onSnapshot(function(doc){
+        if(doc.exists){
+          var data = doc.data();
+          truckSizes = {
+            tandem: (typeof data.tandem === "number") ? data.tandem : null,
+            semi: (typeof data.semi === "number") ? data.semi : null
+          };
+          cacheSharedData();
+        }
+      }, function(err){ /* best-effort */ })
+    );
   }
 
   function connectSharing(config, code, isAutoReconnect){
@@ -2451,12 +2616,22 @@ service cloud.firestore {
       var localRocksSnapshot = rocks.slice();
       var localWaypointsSnapshot = waypoints.slice();
       var localBinsSnapshot = bins.slice();
+      var localTruckSizesSnapshot = {tandem: truckSizes.tandem, semi: truckSizes.semi};
 
       subscribeToFarm();
       setShareStatusUI();
       try{ localStorage.setItem(SHARE_KEY, JSON.stringify({config:config, farmCode:code})); }catch(e){}
       if(!isAutoReconnect){
         seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot, localWaypointsSnapshot, localBinsSnapshot);
+        // Truck sizes live in a single config doc, not a collection, so seed
+        // them separately: only push this device's numbers up if the shared
+        // farm doesn't have that doc yet (someone else may have set it).
+        if(localTruckSizesSnapshot.tandem || localTruckSizesSnapshot.semi){
+          var truckDocRef = firestoreDb.collection("farms").doc(farmCode).collection("config").doc("truckSizes");
+          truckDocRef.get().then(function(doc){
+            if(!doc.exists){ truckDocRef.set(localTruckSizesSnapshot); }
+          }).catch(function(){});
+        }
         toast("Connected — sharing enabled");
         hideSheet("share-modal","share-backdrop");
       }
@@ -2524,6 +2699,7 @@ service cloud.firestore {
             capacityBu: (typeof b.capacityBu === "number" ? b.capacityBu : null),
             currentCrop: b.currentCrop || "",
             currentBu: (typeof b.currentBu === "number" ? b.currentBu : 0),
+            currentLoads: (typeof b.currentLoads === "number" ? b.currentLoads : 0),
             log: Array.isArray(b.log) ? b.log : [],
             points: pointsToFirestore(b.points),
             createdAt: b.createdAt || new Date().toISOString()
@@ -2807,6 +2983,12 @@ service cloud.firestore {
     document.getElementById("bin-actions-backdrop").addEventListener("click", closeBinActions);
 
     document.getElementById("input-log-action").addEventListener("change", updateLogFormForAction);
+    document.getElementById("input-log-truck").addEventListener("change", updateLogBushelsPreview);
+    document.getElementById("input-log-fraction").addEventListener("change", updateLogBushelsPreview);
+    document.getElementById("btn-truck-sizes").addEventListener("click", openTruckSizesModal);
+    document.getElementById("btn-cancel-truck-sizes").addEventListener("click", closeTruckSizesModal);
+    document.getElementById("btn-save-truck-sizes").addEventListener("click", saveTruckSizesFromForm);
+    document.getElementById("truck-sizes-backdrop").addEventListener("click", closeTruckSizesModal);
     document.getElementById("btn-cancel-log").addEventListener("click", function(){
       closeBinLogModal();
       if(binActionsBinId){ openBinActions(binActionsBinId); }
