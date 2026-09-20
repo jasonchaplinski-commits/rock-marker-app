@@ -1468,26 +1468,43 @@ service cloud.firestore {
 
   // Stacks the bin-totals badge directly under the farm-totals badge
   // (whatever that badge's current height happens to be, collapsed or
-  // expanded) instead of a fixed offset that would either overlap it or
-  // leave an odd gap.
+  // expanded), and caps BOTH badges' heights to whatever room is actually
+  // left above the rock-count badge, the BINS tab, and the map FABs — all
+  // of which sit lower on the right side of the screen. Measuring their
+  // real position (rather than guessing a fixed pixel offset) is what
+  // makes this work across screen sizes instead of just shrinking the
+  // overlap to a different spot.
   function positionBinBadge(){
     var fb = document.getElementById("farm-badge");
     var bb = document.getElementById("bin-badge");
-    if(!bb || bb.classList.contains("hidden")) return;
-    var top = 64;
     var installBanner = document.getElementById("install-banner");
-    if(installBanner && !installBanner.classList.contains("hidden")) top = 120;
+    var baseTop = (installBanner && !installBanner.classList.contains("hidden")) ? 120 : 64;
+
+    var obstacles = [
+      document.getElementById("count-badge"),
+      document.getElementById("bin-tab"),
+      document.getElementById("fabs")
+    ];
+    var obstacleTop = window.innerHeight - 12;
+    obstacles.forEach(function(elx){
+      if(!elx || elx.classList.contains("hidden")) return;
+      var r = elx.getBoundingClientRect();
+      if(r.top > 0 && r.top < obstacleTop){ obstacleTop = r.top; }
+    });
+
+    if(fb && !fb.classList.contains("hidden")){
+      var fbMaxH = obstacleTop - baseTop - 8;
+      fb.style.maxHeight = (fbMaxH < 100 ? 100 : fbMaxH) + "px";
+    }
+
+    if(!bb || bb.classList.contains("hidden")) return;
+    var top = baseTop;
     if(fb && !fb.classList.contains("hidden")){
       top = fb.getBoundingClientRect().bottom + 8;
     }
     bb.style.top = top + "px";
-    // With a lot of bins, the expanded list can run tall enough to spill over
-    // the rock-count badge, the BINS tab, and the map FABs beneath it. Cap
-    // its height to whatever room is actually left above those, so it
-    // scrolls internally instead of covering them.
-    var reserveBottom = 170;
-    var maxH = window.innerHeight - top - reserveBottom;
-    if(maxH < 120) maxH = 120;
+    var maxH = obstacleTop - top - 8;
+    if(maxH < 90) maxH = 90;
     bb.style.maxHeight = maxH + "px";
   }
 
