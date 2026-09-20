@@ -195,15 +195,15 @@
   .field-label{
     display:inline-block;width:max-content;
     cursor:pointer;transform:translate(-50%,-50%);white-space:nowrap;
-    background:rgba(255,255,255,.8);border:2px solid #888;border-radius:9px;padding:4px 9px;
-    font-size:13px;font-weight:800;color:var(--ink);text-align:center;line-height:1.25;
+    background:rgba(255,255,255,.85);border:2px solid #888;border-radius:10px;padding:5px 11px;
+    font-size:15px;font-weight:800;color:var(--ink);text-align:center;line-height:1.25;
     box-shadow:0 2px 6px rgba(0,0,0,.22);backdrop-filter:blur(1px);
   }
-  .field-label .emoji{font-size:17px;margin-right:3px;vertical-align:middle;}
-  .field-label span{display:block;font-weight:700;color:var(--muted);font-size:10px;margin-top:1px;}
+  .field-label .emoji{font-size:20px;margin-right:4px;vertical-align:middle;}
+  .field-label span{display:block;font-weight:700;color:var(--muted);font-size:11px;margin-top:1px;}
   .field-label .harvest-badge{
-    display:inline-block;margin-top:2px;padding:1px 7px;border-radius:20px;
-    font-size:9px;font-weight:800;color:#fff;
+    display:inline-block;margin-top:3px;padding:1px 8px;border-radius:20px;
+    font-size:10px;font-weight:800;color:#fff;
   }
   .field-label .harvest-badge.harvest-not-harvested{background:#8a8f98;}
   .field-label .harvest-badge.harvest-partial-harvested{background:#e6a817;}
@@ -341,7 +341,7 @@
     <button class="btn btn-primary" id="btn-save">Save rock</button>
   </div>
   <div class="btn-row" id="edit-only-row">
-    <button class="btn btn-maps" id="btn-open-gmaps">📍 Open in Google Maps</button>
+    <button class="btn btn-maps" id="btn-open-gmaps">🧭 Navigate to this rock</button>
     <button class="btn btn-danger" id="btn-delete">Delete rock</button>
   </div>
 </div>
@@ -443,6 +443,7 @@
 <div class="sheet" id="field-label-actions-modal">
   <div class="sheet-handle"></div>
   <h2 id="field-label-actions-title">Field</h2>
+  <div class="summary-card" id="field-label-actions-stats"></div>
   <div class="btn-row" style="flex-direction:column;">
     <button class="btn btn-primary" id="btn-label-edit-field">✏️ Edit field details</button>
     <button class="btn btn-secondary" id="btn-label-mark-rock">🪨 Mark a rock here</button>
@@ -872,7 +873,7 @@ service cloud.firestore {
         '</div>'+
         '<div class="rock-actions">'+
           '<button class="row-btn" data-action="goto">🎯</button>'+
-          '<button class="row-btn" data-action="gmaps">📍</button>'+
+          '<button class="row-btn" data-action="gmaps" title="Navigate to this rock">🧭</button>'+
           '<button class="row-btn" data-action="edit">✏️</button>'+
         '</div>'+
       '</div>';
@@ -1223,6 +1224,26 @@ service cloud.firestore {
     if(!f) return;
     fieldLabelActionsFieldId = fieldId;
     document.getElementById("field-label-actions-title").textContent = f.name || "Field";
+
+    var acres = polygonAreaAcres(f.points);
+    var hStatus = harvestStatusOf(f);
+    var cropLine = f.crop ? ((CROP_ICONS[f.crop] ? CROP_ICONS[f.crop]+' ' : '') + escapeHtml(f.crop)) : "No crop set";
+    var harvestLine;
+    if(hStatus === "Partial Harvested"){
+      var done = partialAcresOf(f);
+      harvestLine = HARVEST_ICONS[hStatus]+' Partial — '+done.toFixed(1)+' of '+acres.toFixed(1)+' ac harvested ('+(acres-done).toFixed(1)+' ac left)';
+    } else if(hStatus === "Harvested"){
+      harvestLine = HARVEST_ICONS[hStatus]+' Harvested — '+acres.toFixed(1)+' ac';
+    } else {
+      harvestLine = HARVEST_ICONS[hStatus]+' Not harvested — '+acres.toFixed(1)+' ac';
+    }
+    var rockCount = rocks.filter(function(r){ return (r.field || "").trim() === (f.name || "").trim(); }).length;
+
+    document.getElementById("field-label-actions-stats").innerHTML =
+      '<div class="summary-row summary-total"><span>'+cropLine+'</span><span>'+acres.toFixed(1)+' acres</span></div>'+
+      '<div class="summary-row"><span>'+harvestLine+'</span></div>'+
+      '<div class="summary-row"><span>🪨 Rocks in this field</span><span>'+rockCount+'</span></div>';
+
     showSheet("field-label-actions-modal", "field-label-actions-backdrop");
   }
 
@@ -1478,9 +1499,11 @@ service cloud.firestore {
     }, {enableHighAccuracy:true, timeout:10000, maximumAge:5000});
   }
 
-  // ---------- Google Maps ----------
+  // ---------- Navigate ----------
+  // Directions (not just a search pin) so tapping this starts turn-by-turn
+  // navigation to the rock in whatever maps app the phone opens it with.
   function openInGoogleMaps(lat, lng){
-    var url = "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng;
+    var url = "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lng;
     window.open(url, "_blank");
   }
 
