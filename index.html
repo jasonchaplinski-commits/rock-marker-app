@@ -1315,14 +1315,12 @@ service cloud.firestore {
   // Farmyard bins are often packed close together, so their labels can land
   // right on top of each other (same issue field labels don't have, since
   // fields are spread out). This measures each label's actual on-screen box
-  // after it's placed, then sweeps top-to-bottom nudging any label sideways
-  // to the right just enough to clear the one above it whenever they'd
-  // overlap — keeps each label near its own bin (rather than stacking a
-  // tall column straight down over the map below it) and adapts
-  // automatically to zoom level and however many bins are stacked, without
-  // disturbing labels that already have room.
+  // after it's placed, then sweeps top-to-bottom nudging any label straight
+  // down just enough to clear the one above it whenever they'd overlap —
+  // adapts automatically to zoom level and however many bins are stacked,
+  // without disturbing labels that already have room.
   function declutterBinLabels(labelMarkers){
-    var GAP = 6;
+    var GAP = 4;
     var boxes = [];
     labelMarkers.forEach(function(marker){
       var el = marker.getElement();
@@ -1337,18 +1335,18 @@ service cloud.firestore {
       var b = boxes[i];
       for(var j = 0; j < i; j++){
         var a = boxes[j];
-        var overlapY = a.top < b.bottom && b.top < a.bottom;
-        if(!overlapY) continue;
-        var aRight = a.right + a.nudge;
-        var bLeft = b.left + b.nudge;
-        if(bLeft < aRight + GAP){
-          b.nudge += (aRight + GAP) - bLeft;
+        var overlapX = a.left < b.right && b.left < a.right;
+        if(!overlapX) continue;
+        var aBottom = a.bottom + a.nudge;
+        var bTop = b.top + b.nudge;
+        if(bTop < aBottom + GAP){
+          b.nudge += (aBottom + GAP) - bTop;
         }
       }
     }
     boxes.forEach(function(box){
       if(box.nudge > 0.5){
-        box.el.style.transform = "translateX(" + Math.round(box.nudge) + "px) " + box.el.style.transform;
+        box.el.style.transform = "translateY(" + Math.round(box.nudge) + "px) " + box.el.style.transform;
       }
     });
   }
