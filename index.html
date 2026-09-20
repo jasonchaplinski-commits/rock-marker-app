@@ -604,6 +604,7 @@
     <div class="log-opt-row" id="log-action-options">
       <button type="button" class="log-opt" data-action="Added">➕ Added</button>
       <button type="button" class="log-opt" data-action="Removed">➖ Removed</button>
+      <button type="button" class="log-opt" data-action="Set Level">🎯 Set Level</button>
     </div>
     <input type="hidden" id="input-log-action" value="Added">
   </div>
@@ -639,6 +640,18 @@
     </div>
     <input type="hidden" id="input-log-fraction" value="1">
     <div class="coord-readout" id="log-bushels-preview" style="margin-top:6px;margin-bottom:0;font-weight:700;"></div>
+  </div>
+
+  <div class="field-row hidden" id="log-setlevel-row">
+    <label>How full is the bin</label>
+    <div class="log-opt-row" id="log-setlevel-options">
+      <button type="button" class="log-opt" data-level="0.25">1/4</button>
+      <button type="button" class="log-opt" data-level="0.5">1/2</button>
+      <button type="button" class="log-opt" data-level="0.75">3/4</button>
+      <button type="button" class="log-opt" data-level="1">Full</button>
+    </div>
+    <input type="hidden" id="input-log-level" value="1">
+    <div class="coord-readout" id="log-level-bushels-preview" style="margin-top:6px;margin-bottom:0;font-weight:700;"></div>
   </div>
 
   <div class="field-row">
@@ -2261,9 +2274,10 @@ service cloud.firestore {
       logEl.innerHTML = sortedLog.slice(0,10).map(function(e){
         var dateStr = formatLogTimestamp(e.date);
         var truckBit = e.truckType ? escapeHtml(e.truckType + (e.fraction ? " " + fractionLabel(e.fraction) : "")) : "";
+        var levelBit = (!e.truckType && e.action === "Set Level" && e.fraction) ? (fractionLabel(e.fraction) === "full" ? "Full" : (fractionLabel(e.fraction) + " full")) : "";
         var cropBit = e.crop ? ((cropIcon(e.crop) ? cropIcon(e.crop) + " " : "") + escapeHtml(e.crop)) : "";
         var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(cropBit?" "+cropBit:"")) : "";
-        var detail = [truckBit, amt].filter(Boolean).join(" · ");
+        var detail = [truckBit, levelBit, amt].filter(Boolean).join(" · ");
         return '<div class="log-entry">'+
           '<div class="log-entry-main">'+
             '<div class="le1">'+escapeHtml(e.action||"")+(detail ? " — "+detail : "")+'</div>'+
@@ -2319,25 +2333,34 @@ service cloud.firestore {
   // shows up on the very first "Added" into an empty bin, and every load
   // after that silently reuses whatever crop is already in there. "Removed"
   // never asks, since it's just taking out whatever's already there.
+  // "Set Level" is a direct override (eyeballing the bin rather than logging
+  // a truckload), so it always asks for the crop and is never locked, and it
+  // shows its own fraction-of-capacity picker instead of the truck/load-size
+  // controls.
   function updateLogFormForAction(){
     var b = bins.find(function(x){ return x.id === binActionsBinId; });
     var action = document.getElementById("input-log-action").value;
     var binHasProduct = !!(b && b.currentCrop && b.currentBu > 0);
     var lockedNoteEl = document.getElementById("log-crop-locked-note");
     var cropSelectEl = document.getElementById("input-log-crop");
+    var isSetLevel = (action === "Set Level");
 
-    var showCropRow = (action === "Added");
+    var showCropRow = (action === "Added" || isSetLevel);
     document.getElementById("log-crop-row").classList.toggle("hidden", !showCropRow);
+    document.getElementById("log-truck-row").classList.toggle("hidden", isSetLevel);
+    document.getElementById("log-fraction-row").classList.toggle("hidden", isSetLevel);
+    document.getElementById("log-setlevel-row").classList.toggle("hidden", !isSetLevel);
 
     if(action === "Added" && binHasProduct){
       cropSelectEl.classList.add("hidden");
       lockedNoteEl.textContent = "Locked to " + b.currentCrop + " until this bin is emptied.";
     } else {
       cropSelectEl.classList.remove("hidden");
-      lockedNoteEl.textContent = "";
+      lockedNoteEl.textContent = isSetLevel ? "This replaces the bin's current crop and level." : "";
     }
 
     updateLogBushelsPreview();
+    updateLogLevelPreview();
   }
 
   // Drives the Added/Removed/truck/load-size button groups — each keeps its
@@ -2367,6 +2390,14 @@ service cloud.firestore {
     updateLogBushelsPreview();
   }
 
+  function setLogLevel(level){
+    document.getElementById("input-log-level").value = level;
+    document.querySelectorAll("#log-setlevel-options .log-opt").forEach(function(btn){
+      btn.classList.toggle("selected", btn.getAttribute("data-level") === String(level));
+    });
+    updateLogLevelPreview();
+  }
+
   function updateLogBushelsPreview(){
     var truckType = document.getElementById("input-log-truck").value;
     var fraction = parseFloat(document.getElementById("input-log-fraction").value);
@@ -2379,6 +2410,17 @@ service cloud.firestore {
     }
   }
 
+  function updateLogLevelPreview(){
+    var b = bins.find(function(x){ return x.id === binActionsBinId; });
+    var level = parseFloat(document.getElementById("input-log-level").value);
+    var previewEl = document.getElementById("log-level-bushels-preview");
+    if(!(b && typeof b.capacityBu === "number" && b.capacityBu > 0)){
+      previewEl.innerHTML = "Set this bin's capacity first (✏️ Edit bin details) so this can be calculated.";
+    } else {
+      previewEl.textContent = "≈ " + Math.round(b.capacityBu * level).toLocaleString() + " bushels";
+    }
+  }
+
   function openBinLogModal(){
     // "Added" covers both a fresh fill into an empty bin and topping off one
     // that already has product — updateLogFormForAction() decides whether
@@ -2388,6 +2430,7 @@ service cloud.firestore {
     document.getElementById("input-log-note").value = "";
     setLogTruck("Tandem");
     setLogFraction("1");
+    setLogLevel("1");
     setLogAction("Added"); // also refreshes the crop row + bushels preview
     showSheet("bin-log-modal", "bin-log-backdrop");
   }
@@ -2405,16 +2448,32 @@ service cloud.firestore {
     var note = document.getElementById("input-log-note").value.trim();
     var binHasProduct = !!(b.currentCrop && b.currentBu > 0);
 
-    var truckType = document.getElementById("input-log-truck").value;
-    var fraction = parseFloat(document.getElementById("input-log-fraction").value);
-    var computed = truckLoadBushels(truckType, fraction);
-    if(computed === null){
-      toast("Set your truck sizes first — tap 🚛 Truck sizes.");
-      return;
-    }
-    var bu = computed;
+    var bu, truckType, fraction, crop;
 
-    var crop = (action === "Added" && !binHasProduct) ? document.getElementById("input-log-crop").value : (b.currentCrop || "");
+    if(action === "Set Level"){
+      if(!(typeof b.capacityBu === "number" && b.capacityBu > 0)){
+        toast("Set this bin's capacity first — tap ✏️ Edit bin details.");
+        return;
+      }
+      crop = document.getElementById("input-log-crop").value;
+      if(!crop){
+        toast("Choose a crop for this level.");
+        return;
+      }
+      truckType = null;
+      fraction = parseFloat(document.getElementById("input-log-level").value);
+      bu = Math.round(b.capacityBu * fraction);
+    } else {
+      truckType = document.getElementById("input-log-truck").value;
+      fraction = parseFloat(document.getElementById("input-log-fraction").value);
+      var computed = truckLoadBushels(truckType, fraction);
+      if(computed === null){
+        toast("Set your truck sizes first — tap 🚛 Truck sizes.");
+        return;
+      }
+      bu = computed;
+      crop = (action === "Added" && !binHasProduct) ? document.getElementById("input-log-crop").value : (b.currentCrop || "");
+    }
 
     var entry = {
       id:"le"+Date.now()+"_"+Math.floor(Math.random()*10000), date:date, action:action,
@@ -2432,6 +2491,10 @@ service cloud.firestore {
   // numbers always match whatever entries actually remain, no matter which
   // one was touched. ("Filled"/"Emptied" are kept here only so older log
   // entries logged before that action pair was retired still replay right.)
+  // "Set Level" is a direct override (crop + bushels set from an eyeballed
+  // fraction of capacity, not a truckload) — it replaces the running totals
+  // outright rather than adding/subtracting, and leaves the load count as-is
+  // since it isn't a truckload event.
   function recomputeBinStateFromLog(log){
     var crop = "", bu = 0, loads = 0;
     var sorted = (log || []).slice().sort(function(a,z){ return (a.date||"").localeCompare(z.date||""); });
@@ -2449,6 +2512,9 @@ service cloud.firestore {
         if(bu === 0){ crop = ""; loads = 0; }
       } else if(e.action === "Emptied"){
         bu = 0; crop = ""; loads = 0;
+      } else if(e.action === "Set Level"){
+        crop = e.crop || ""; bu = e.bu || 0;
+        if(bu === 0){ crop = ""; loads = 0; }
       }
     });
     return {crop: crop, bu: bu, loads: loads};
@@ -3441,6 +3507,9 @@ service cloud.firestore {
     });
     document.querySelectorAll("#log-fraction-options .log-opt").forEach(function(btn){
       btn.addEventListener("click", function(){ setLogFraction(btn.getAttribute("data-fraction")); });
+    });
+    document.querySelectorAll("#log-setlevel-options .log-opt").forEach(function(btn){
+      btn.addEventListener("click", function(){ setLogLevel(btn.getAttribute("data-level")); });
     });
     document.getElementById("btn-truck-sizes").addEventListener("click", openTruckSizesModal);
     document.getElementById("btn-cancel-truck-sizes").addEventListener("click", closeTruckSizesModal);
