@@ -304,6 +304,11 @@
   .log-entry .le1{font-weight:700;}
   .log-entry .le2{color:var(--ink);font-size:13px;}
   .log-entry .le3{color:var(--ink);font-size:12px;margin-top:1px;}
+  /* The Bin Totals "By bin" list is read at a glance across many rows, so it
+     gets darker/larger/bolder text than the compact Recent Activity list
+     (which shares the same .log-entry/.le2/.le3 classes but stays smaller). */
+  #bin-totals-list .le2{font-size:15px;font-weight:700;color:#000;}
+  #bin-totals-list .le3{font-size:13px;font-weight:600;color:#000;margin-top:2px;}
   .log-entry-actions{display:flex;gap:2px;flex-shrink:0;}
   .log-entry-del,.log-entry-edit{border:none;background:transparent;font-size:15px;line-height:1;
     cursor:pointer;padding:4px 6px;border-radius:8px;flex-shrink:0;}
