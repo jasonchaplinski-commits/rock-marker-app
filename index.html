@@ -394,10 +394,26 @@
     display:flex;align-items:center;justify-content:space-between;gap:10px;
     padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 10px 14px;color:#fff;
   }
-  #photo-viewer-title{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #photo-viewer-title{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
   #photo-viewer-stage{flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;touch-action:none;}
   #photo-viewer-img{max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;transform-origin:center center;will-change:transform;}
-  #photo-viewer-hint{color:rgba(255,255,255,.6);font-size:12px;text-align:center;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 10px) 0;}
+  #photo-viewer-nav{display:flex;align-items:center;justify-content:center;gap:16px;padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 10px) 14px;}
+  #photo-viewer-hint{color:rgba(255,255,255,.6);font-size:12px;text-align:center;}
+  #photo-viewer-nav .icon-btn:disabled{opacity:.35;cursor:default;}
+
+  /* Equipment file attachments — form preview list and the multi-file
+     chooser sheet share the same small-thumbnail row layout. */
+  .equip-file-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);}
+  .equip-file-row:last-child{border-bottom:none;}
+  .equip-file-thumb{width:42px;height:42px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex-shrink:0;background:#eee;}
+  .equip-file-info{flex:1;min-width:0;font-size:13px;font-weight:600;color:var(--ink);}
+  .equip-file-info .efi-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .equip-file-info .efi-sub{font-size:11px;color:var(--muted);font-weight:600;}
+
+  /* One row per belt within a system, in the Add/Edit belt sheet. */
+  .belt-item-row{display:flex;align-items:center;gap:8px;padding:6px 0;}
+  .belt-item-row input{flex:1;min-width:0;}
+  .belt-item-row .row-btn{flex-shrink:0;padding:8px 10px;}
 
   #load-error{
     position:fixed;inset:0;z-index:2000;background:var(--cream);display:flex;flex-direction:column;
@@ -904,14 +920,28 @@ service cloud.firestore {
     <input type="text" id="input-equip-fuel-filter" placeholder="e.g. RE62418">
   </div>
   <div class="field-row">
-    <label>Photo (optional)</label>
-    <label class="btn btn-secondary file-input-label" id="btn-pick-equip-photo" style="text-align:center;display:block;">📷 Add a photo (label, filter chart, etc.)
-      <input type="file" accept="image/*" id="input-equip-photo">
+    <label>Air filter</label>
+    <input type="text" id="input-equip-air-filter" placeholder="e.g. RE572598">
+  </div>
+  <div class="field-row">
+    <label>Cabin filter</label>
+    <input type="text" id="input-equip-cabin-filter" placeholder="e.g. RE164825">
+  </div>
+  <div class="field-row">
+    <label>Hydraulic filter</label>
+    <input type="text" id="input-equip-hydraulic-filter" placeholder="e.g. RE204946">
+  </div>
+  <div class="field-row">
+    <label>Wiper blade size</label>
+    <input type="text" id="input-equip-wiper-blade" placeholder="e.g. 20 in">
+  </div>
+  <div class="field-row">
+    <label>Files (optional)</label>
+    <label class="btn btn-secondary file-input-label" id="btn-pick-equip-file" style="text-align:center;display:block;">📎 Add a photo or PDF (label, filter chart, manual page, etc.)
+      <input type="file" accept="image/*,application/pdf" id="input-equip-file">
     </label>
-    <div class="hidden" id="equip-photo-preview-wrap" style="margin-top:10px;">
-      <img id="equip-photo-preview" style="max-width:100%;border-radius:10px;border:1px solid var(--line);display:block;">
-      <button type="button" class="btn btn-danger" id="btn-remove-equip-photo" style="margin-top:8px;">Remove photo</button>
-    </div>
+    <div class="coord-readout" style="margin-top:6px;margin-bottom:0;">A PDF is converted to zoomable page images when you add it (up to 10 pages). Keep files small — everything attached to one piece of equipment needs to fit in a shared size budget.</div>
+    <div class="hidden" id="equip-files-preview-wrap" style="margin-top:10px;"></div>
   </div>
 
   <div class="btn-row">
@@ -923,7 +953,15 @@ service cloud.firestore {
   </div>
 </div>
 
-<!-- Full-screen zoomable photo viewer (equipment photos) -->
+<!-- Files chooser (when a piece of equipment has more than one attachment) -->
+<div class="sheet-backdrop" id="equipment-files-backdrop"></div>
+<div class="sheet" id="equipment-files-modal">
+  <div class="sheet-handle"></div>
+  <h2>📎 <span id="equipment-files-title-text">Files</span> <button class="icon-btn" id="btn-close-equipment-files" style="font-size:14px;">✕</button></h2>
+  <div id="equipment-files-list"></div>
+</div>
+
+<!-- Full-screen zoomable photo/PDF-page viewer -->
 <div id="photo-viewer" class="hidden">
   <div id="photo-viewer-header">
     <span id="photo-viewer-title"></span>
@@ -932,7 +970,11 @@ service cloud.firestore {
   <div id="photo-viewer-stage">
     <img id="photo-viewer-img" draggable="false" alt="">
   </div>
-  <div id="photo-viewer-hint">Pinch or double-tap to zoom · drag to pan</div>
+  <div id="photo-viewer-nav">
+    <button class="icon-btn hidden" id="btn-photo-prev">‹</button>
+    <span id="photo-viewer-hint">Pinch or double-tap to zoom · drag to pan</span>
+    <button class="icon-btn hidden" id="btn-photo-next">›</button>
+  </div>
 </div>
 
 <!-- Belts list -->
@@ -954,21 +996,25 @@ service cloud.firestore {
 
   <div class="field-row">
     <label>System</label>
-    <input type="text" id="input-belt-system" list="belt-system-suggestions" placeholder="e.g. Grain Leg, Bump Auger">
+    <input type="text" id="input-belt-system" list="belt-system-suggestions" placeholder="e.g. Grain Leg, Dump Auger">
     <datalist id="belt-system-suggestions">
       <option value="Grain Leg">
-      <option value="Bump Auger">
+      <option value="Dump Auger">
       <option value="Unload Auger">
       <option value="Header">
+      <option value="U-Trough">
+      <option value="Dryer">
     </datalist>
   </div>
   <div class="field-row">
-    <label>Belt size</label>
-    <input type="text" id="input-belt-size" placeholder="e.g. A64">
+    <label>Belts</label>
+    <div id="belt-items-list"></div>
+    <button type="button" class="btn btn-secondary" id="btn-add-belt-item" style="margin-top:2px;">+ Add belt</button>
+    <div class="coord-readout" style="margin-top:6px;margin-bottom:0;">Add one entry per belt this system uses — many systems run more than one size.</div>
   </div>
   <div class="field-row">
-    <label>Belt part number</label>
-    <input type="text" id="input-belt-number" placeholder="e.g. B-2050">
+    <label>Notes</label>
+    <textarea id="input-belt-notes" placeholder="e.g. location of the belt"></textarea>
   </div>
 
   <div class="btn-row">
@@ -1049,12 +1095,24 @@ service cloud.firestore {
   var belts = [];
   var editingEquipmentId = null;
   var editingBeltId = null;
-  // undefined = photo untouched this time in the form; "" = explicitly
-  // removed; a data URL = a new/replacement photo was picked.
-  var pendingEquipPhoto = undefined;
+  var pendingBeltItems = [];
+  // Working list of {id, kind:"image"|"pdf", name, pages:[dataUrl,...]}
+  // attachments for the equipment form currently open — starts as a copy of
+  // the equipment's existing files (so cancel leaves the real record
+  // untouched) and is mutated directly as the user adds/removes files.
+  var pendingEquipFiles = [];
+  var EQUIP_FILES_BUDGET = 900000; // chars, shared across all of one equipment's attached pages
+  var MAX_PDF_PAGES = 10;
   var photoViewerState = {scale:1, x:0, y:0};
+  var photoViewerPages = [];
+  var photoViewerPageIndex = 0;
+  var photoViewerBaseLabel = "";
+  var equipmentFilesChooserContext = null; // {eqName, files} while the chooser sheet is open
+  var pdfJsLoadState = "idle"; // idle | loading | ready | failed
+  var pdfJsLoadCallbacks = [];
   var map, satelliteLayer, streetLayer, usingSatellite = true;
   var rockLayerGroup, fieldLayerGroup, drawTempLayerGroup, waypointLayerGroup, binLayerGroup, youAreHereMarker;
+  var fieldSvgRenderer;
   var editingId = null;
   var pendingLatLng = null;
   var selectedSize = "medium";
@@ -1134,25 +1192,47 @@ service cloud.firestore {
 
   // ---------- Map setup ----------
   function initMap(){
-    // preferCanvas draws field/bin outlines to a single shared canvas instead
-    // of one SVG element per polygon — much less DOM work for Leaflet to
-    // reposition on every pan/zoom frame, which is what was making sliding
-    // the map around feel sluggish once there were a lot of fields/bins on
-    // screen at once.
-    map = L.map("map", {zoomControl:false, attributionControl:true, maxZoom:20, preferCanvas:true}).setView([39.5, -98.35], 4);
+    // preferCanvas draws bin outlines/rock pins to a single shared canvas
+    // instead of one SVG element per shape — much less DOM work for Leaflet
+    // to reposition on every pan/zoom frame, which is what was making
+    // sliding the map around feel sluggish once there were a lot of
+    // bins/rocks on screen at once. Field polygons opt back out of this
+    // (see fieldSvgRenderer below) since their crop-pattern fills need SVG.
+    //
+    // zoomSnap:0.25 / zoomDelta:0.5 let the map settle at quarter-zoom-level
+    // increments instead of snapping to whole integers — a pinch gesture
+    // that ends "between" zoom levels doesn't jump/snap, which is most of
+    // what reads as "buggy" pinch-zooming on a phone. wheelPxPerZoomLevel
+    // is bumped so trackpad/mouse-wheel zooming (desktop) is similarly
+    // gradual instead of jumping a whole level per notch.
+    map = L.map("map", {
+      zoomControl:false, attributionControl:true, maxZoom:20, preferCanvas:true,
+      zoomSnap:0.25, zoomDelta:0.5, wheelPxPerZoomLevel:90
+    }).setView([39.5, -98.35], 4);
     L.control.zoom({position:"bottomleft"}).addTo(map);
+
+    // Dedicated SVG renderer just for field polygons — Leaflet's Canvas
+    // renderer sets ctx.fillStyle directly from fillColor, and a Canvas 2D
+    // context can't resolve an SVG url(#pattern) reference (it silently
+    // falls back to black), which is what was turning crop-patterned
+    // fields solid black under preferCanvas. Keeping fields on SVG fixes
+    // that while bins/rocks keep the canvas performance benefit above.
+    fieldSvgRenderer = L.svg({ padding: 0.5 });
 
     // updateWhenZooming:false waits until a pinch-zoom gesture finishes
     // before fetching the new zoom level's tiles (interpolating the current
     // tiles in the meantime) instead of trying to load tiles continuously
     // mid-gesture — noticeably smoother pinch-zooming on a phone.
+    // keepBuffer:4 keeps a wider ring of already-loaded tiles around the
+    // viewport (default is 2), so fast panning is less likely to show
+    // empty/gray tiles while new ones load in.
     satelliteLayer = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      {maxZoom:20, maxNativeZoom:19, updateWhenZooming:false, attribution:"Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics"}
+      {maxZoom:20, maxNativeZoom:19, updateWhenZooming:false, keepBuffer:4, attribution:"Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics"}
     );
     streetLayer = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      {maxZoom:19, updateWhenZooming:false, attribution:"&copy; OpenStreetMap contributors"}
+      {maxZoom:19, updateWhenZooming:false, keepBuffer:4, attribution:"&copy; OpenStreetMap contributors"}
     );
     satelliteLayer.addTo(map);
 
@@ -1421,7 +1501,7 @@ service cloud.firestore {
       L.polygon(latlngs, {
         color: displayColor, weight: 3,
         fillColor: fillValue, fillOpacity: hasCropFill ? 1 : 0.14,
-        interactive: false
+        interactive: false, renderer: fieldSvgRenderer
       }).addTo(fieldLayerGroup);
 
       var center = polygonCentroid(f.points);
@@ -3141,11 +3221,16 @@ service cloud.firestore {
       var filterBits = [];
       if(e.oilFilter) filterBits.push("Oil filter: " + e.oilFilter);
       if(e.fuelFilter) filterBits.push("Fuel filter: " + e.fuelFilter);
+      if(e.airFilter) filterBits.push("Air filter: " + e.airFilter);
+      if(e.cabinFilter) filterBits.push("Cabin filter: " + e.cabinFilter);
+      if(e.hydraulicFilter) filterBits.push("Hydraulic filter: " + e.hydraulicFilter);
+      if(e.wiperBlade) filterBits.push("Wiper blade: " + e.wiperBlade);
       var line2 = [ymBits, filterBits.join(" · ")].filter(Boolean).join(" · ");
-      var camBit = e.photo ? ' <span title="Has a photo">📷</span>' : '';
+      var files = equipFilesOf(e);
+      var clipBit = files.length ? ' <span title="Has '+files.length+' file'+(files.length===1?'':'s')+'">📎</span>' : '';
       return '<div class="rock-row" data-id="'+e.id+'">'+
         '<div class="rock-info">'+
-          '<div class="r1">🚜 '+escapeHtml(e.name || "Equipment")+camBit+'</div>'+
+          '<div class="r1">🚜 '+escapeHtml(e.name || "Equipment")+clipBit+'</div>'+
           (line2 ? '<div class="r2">'+escapeHtml(line2)+'</div>' : '')+
         '</div>'+
         '<div class="rock-actions">'+
@@ -3153,6 +3238,15 @@ service cloud.firestore {
         '</div>'+
       '</div>';
     }).join("");
+  }
+
+  // Equipment saved before file attachments existed only has the old single
+  // `photo` field. Fold that into the same {kind, name, pages} shape used
+  // everywhere else so the list/viewer/chooser never need to special-case it.
+  function equipFilesOf(e){
+    if(e && Array.isArray(e.files) && e.files.length){ return e.files; }
+    if(e && e.photo){ return [{id:"legacy", kind:"image", name:"Photo", pages:[e.photo]}]; }
+    return [];
   }
 
   // Shrinks/re-compresses a picked photo before it's stored, since a raw
@@ -3186,16 +3280,116 @@ service cloud.firestore {
     reader.readAsDataURL(file);
   }
 
-  function showEquipPhotoPreview(dataUrl){
-    var wrap = document.getElementById("equip-photo-preview-wrap");
-    if(!dataUrl){ wrap.classList.add("hidden"); document.getElementById("equip-photo-preview").src = ""; return; }
-    document.getElementById("equip-photo-preview").src = dataUrl;
+  // Loads pdf.js from a CDN on first use only (not every page load) — most
+  // farms will never attach a PDF, so there's no reason to pay for the
+  // library's download until someone actually picks one.
+  function loadPdfJs(callback){
+    if(pdfJsLoadState === "ready"){ callback(true); return; }
+    if(pdfJsLoadState === "failed"){ callback(false); return; }
+    pdfJsLoadCallbacks.push(callback);
+    if(pdfJsLoadState === "loading") return;
+    pdfJsLoadState = "loading";
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    s.onload = function(){
+      try{
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        pdfJsLoadState = "ready";
+      }catch(e){ pdfJsLoadState = "failed"; }
+      pdfJsLoadCallbacks.forEach(function(cb){ cb(pdfJsLoadState === "ready"); });
+      pdfJsLoadCallbacks = [];
+    };
+    s.onerror = function(){
+      pdfJsLoadState = "failed";
+      pdfJsLoadCallbacks.forEach(function(cb){ cb(false); });
+      pdfJsLoadCallbacks = [];
+    };
+    document.head.appendChild(s);
+  }
+
+  // Renders each page of a picked PDF to a compressed JPEG, the same way a
+  // photo gets compressed — there's no real PDF storage backend here (only
+  // Firestore, capped at ~1MB per document), so a PDF becomes a set of
+  // zoomable page images instead, reusing the same viewer as a photo.
+  function renderPdfFileToPages(file, callback){
+    loadPdfJs(function(ok){
+      if(!ok){ callback(null, "Couldn't load the PDF viewer — check your connection and try again."); return; }
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        var typedArray = new Uint8Array(ev.target.result);
+        pdfjsLib.getDocument({data: typedArray}).promise.then(function(pdf){
+          var pageCount = Math.min(pdf.numPages, MAX_PDF_PAGES);
+          var pages = [];
+          function renderPage(n){
+            if(n > pageCount){
+              if(pdf.numPages > MAX_PDF_PAGES){
+                toast("Only the first " + MAX_PDF_PAGES + " pages were attached (this PDF has " + pdf.numPages + ").");
+              }
+              callback(pages, null);
+              return;
+            }
+            pdf.getPage(n).then(function(page){
+              var viewport = page.getViewport({scale:1});
+              var scale = 1300 / viewport.width;
+              var scaledViewport = page.getViewport({scale: scale});
+              var canvas = document.createElement("canvas");
+              canvas.width = Math.max(1, Math.round(scaledViewport.width));
+              canvas.height = Math.max(1, Math.round(scaledViewport.height));
+              page.render({canvasContext: canvas.getContext("2d"), viewport: scaledViewport}).promise.then(function(){
+                pages.push(canvas.toDataURL("image/jpeg", 0.68));
+                renderPage(n + 1);
+              }).catch(function(){ callback(null, "Couldn't render page " + n + " of that PDF."); });
+            }).catch(function(){ callback(null, "Couldn't read page " + n + " of that PDF."); });
+          }
+          renderPage(1);
+        }).catch(function(){ callback(null, "Couldn't open that PDF — it may be corrupted or password-protected."); });
+      };
+      reader.onerror = function(){ callback(null, "Couldn't read that file."); };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function pendingEquipFilesTotalChars(list){
+    var total = 0;
+    list.forEach(function(f){ (f.pages||[]).forEach(function(p){ total += p.length; }); });
+    return total;
+  }
+
+  function addPendingEquipFile(fileObj){
+    var projected = pendingEquipFiles.concat([fileObj]);
+    if(pendingEquipFilesTotalChars(projected) > EQUIP_FILES_BUDGET){
+      toast("That would make this equipment's attachments too large to sync — remove a file first or use a smaller/shorter one.");
+      return;
+    }
+    pendingEquipFiles = projected;
+    renderEquipFilesPreview();
+  }
+
+  function removePendingEquipFile(id){
+    pendingEquipFiles = pendingEquipFiles.filter(function(f){ return f.id !== id; });
+    renderEquipFilesPreview();
+  }
+
+  function renderEquipFilesPreview(){
+    var wrap = document.getElementById("equip-files-preview-wrap");
+    if(pendingEquipFiles.length === 0){ wrap.classList.add("hidden"); wrap.innerHTML = ""; return; }
     wrap.classList.remove("hidden");
+    wrap.innerHTML = pendingEquipFiles.map(function(f){
+      var icon = f.kind === "pdf" ? "📄" : "📷";
+      var sub = f.kind === "pdf" ? (f.pages.length + (f.pages.length === 1 ? " page" : " pages")) : "Photo";
+      return '<div class="equip-file-row" data-id="'+f.id+'">'+
+        '<img class="equip-file-thumb" src="'+(f.pages[0]||"")+'">'+
+        '<div class="equip-file-info">'+
+          '<div class="efi-name">'+icon+' '+escapeHtml(f.name || "File")+'</div>'+
+          '<div class="efi-sub">'+escapeHtml(sub)+'</div>'+
+        '</div>'+
+        '<button type="button" class="row-btn" data-remove-file="'+f.id+'">✕</button>'+
+      '</div>';
+    }).join("");
   }
 
   function openEquipmentModal(e){
-    pendingEquipPhoto = undefined;
-    document.getElementById("input-equip-photo").value = "";
+    document.getElementById("input-equip-file").value = "";
     if(e){
       editingEquipmentId = e.id;
       document.getElementById("equipment-modal-title").textContent = "Edit equipment";
@@ -3204,8 +3398,12 @@ service cloud.firestore {
       document.getElementById("input-equip-model").value = e.model || "";
       document.getElementById("input-equip-oil-filter").value = e.oilFilter || "";
       document.getElementById("input-equip-fuel-filter").value = e.fuelFilter || "";
+      document.getElementById("input-equip-air-filter").value = e.airFilter || "";
+      document.getElementById("input-equip-cabin-filter").value = e.cabinFilter || "";
+      document.getElementById("input-equip-hydraulic-filter").value = e.hydraulicFilter || "";
+      document.getElementById("input-equip-wiper-blade").value = e.wiperBlade || "";
       document.getElementById("equipment-edit-only-row").classList.remove("hidden");
-      showEquipPhotoPreview(e.photo || "");
+      pendingEquipFiles = equipFilesOf(e).slice();
     } else {
       editingEquipmentId = null;
       document.getElementById("equipment-modal-title").textContent = "Add equipment";
@@ -3214,16 +3412,21 @@ service cloud.firestore {
       document.getElementById("input-equip-model").value = "";
       document.getElementById("input-equip-oil-filter").value = "";
       document.getElementById("input-equip-fuel-filter").value = "";
+      document.getElementById("input-equip-air-filter").value = "";
+      document.getElementById("input-equip-cabin-filter").value = "";
+      document.getElementById("input-equip-hydraulic-filter").value = "";
+      document.getElementById("input-equip-wiper-blade").value = "";
       document.getElementById("equipment-edit-only-row").classList.add("hidden");
-      showEquipPhotoPreview("");
+      pendingEquipFiles = [];
     }
+    renderEquipFilesPreview();
     showSheet("equipment-modal", "equipment-backdrop");
   }
 
   function closeEquipmentModal(){
     hideSheet("equipment-modal", "equipment-backdrop");
     editingEquipmentId = null;
-    pendingEquipPhoto = undefined;
+    pendingEquipFiles = [];
   }
 
   function saveEquipmentFromForm(){
@@ -3233,26 +3436,21 @@ service cloud.firestore {
     var model = document.getElementById("input-equip-model").value.trim();
     var oilFilter = document.getElementById("input-equip-oil-filter").value.trim();
     var fuelFilter = document.getElementById("input-equip-fuel-filter").value.trim();
-
-    var photo;
-    if(pendingEquipPhoto !== undefined){
-      photo = pendingEquipPhoto;
-    } else if(editingEquipmentId){
-      var existing = equipment.find(function(x){ return x.id === editingEquipmentId; });
-      photo = existing ? (existing.photo || "") : "";
-    } else {
-      photo = "";
-    }
+    var airFilter = document.getElementById("input-equip-air-filter").value.trim();
+    var cabinFilter = document.getElementById("input-equip-cabin-filter").value.trim();
+    var hydraulicFilter = document.getElementById("input-equip-hydraulic-filter").value.trim();
+    var wiperBlade = document.getElementById("input-equip-wiper-blade").value.trim();
+    var files = pendingEquipFiles;
 
     if(editingEquipmentId){
-      var updates = {name:name, year:year, model:model, oilFilter:oilFilter, fuelFilter:fuelFilter, photo:photo};
+      var updates = {name:name, year:year, model:model, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, files:files, photo:""};
       if(sharingEnabled){
         equipmentDocRef(editingEquipmentId).update(updates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
         var ex = equipment.find(function(x){ return x.id === editingEquipmentId; });
-        if(ex){ ex.name=name; ex.year=year; ex.model=model; ex.oilFilter=oilFilter; ex.fuelFilter=fuelFilter; ex.photo=photo; }
+        if(ex){ ex.name=name; ex.year=year; ex.model=model; ex.oilFilter=oilFilter; ex.fuelFilter=fuelFilter; ex.airFilter=airFilter; ex.cabinFilter=cabinFilter; ex.hydraulicFilter=hydraulicFilter; ex.wiperBlade=wiperBlade; ex.files=files; ex.photo=""; }
         saveData();
         renderEquipmentList();
       }
@@ -3260,7 +3458,7 @@ service cloud.firestore {
     } else {
       var newEquip = {
         id: "eq"+Date.now()+"_"+Math.floor(Math.random()*10000),
-        name:name, year:year, model:model, oilFilter:oilFilter, fuelFilter:fuelFilter, photo:photo,
+        name:name, year:year, model:model, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, files:files, photo:"",
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
@@ -3277,23 +3475,67 @@ service cloud.firestore {
     closeEquipmentModal();
   }
 
-  // ---------- Full-screen photo viewer ----------
+  // ---------- Full-screen photo/PDF-page viewer ----------
   function applyPhotoTransform(){
     var img = document.getElementById("photo-viewer-img");
     if(img) img.style.transform = "translate("+photoViewerState.x+"px,"+photoViewerState.y+"px) scale("+photoViewerState.scale+")";
   }
 
-  function openPhotoViewer(dataUrl, title){
-    document.getElementById("photo-viewer-img").src = dataUrl;
-    document.getElementById("photo-viewer-title").textContent = title || "";
+  function renderPhotoViewerCurrentPage(){
+    var total = photoViewerPages.length;
+    document.getElementById("photo-viewer-img").src = photoViewerPages[photoViewerPageIndex] || "";
+    var pageBit = total > 1 ? (" (" + (photoViewerPageIndex + 1) + "/" + total + ")") : "";
+    document.getElementById("photo-viewer-title").textContent = photoViewerBaseLabel + pageBit;
     photoViewerState.scale = 1; photoViewerState.x = 0; photoViewerState.y = 0;
     applyPhotoTransform();
+    var prevBtn = document.getElementById("btn-photo-prev");
+    var nextBtn = document.getElementById("btn-photo-next");
+    if(total > 1){
+      prevBtn.classList.remove("hidden"); nextBtn.classList.remove("hidden");
+      prevBtn.disabled = photoViewerPageIndex === 0;
+      nextBtn.disabled = photoViewerPageIndex === total - 1;
+    } else {
+      prevBtn.classList.add("hidden"); nextBtn.classList.add("hidden");
+    }
+  }
+
+  function photoViewerPrevPage(){
+    if(photoViewerPageIndex > 0){ photoViewerPageIndex--; renderPhotoViewerCurrentPage(); }
+  }
+  function photoViewerNextPage(){
+    if(photoViewerPageIndex < photoViewerPages.length - 1){ photoViewerPageIndex++; renderPhotoViewerCurrentPage(); }
+  }
+
+  function openPhotoViewerForFile(file, baseLabel){
+    photoViewerPages = (file && file.pages) ? file.pages : [];
+    photoViewerPageIndex = 0;
+    photoViewerBaseLabel = baseLabel || (file && file.name) || "";
+    renderPhotoViewerCurrentPage();
     document.getElementById("photo-viewer").classList.remove("hidden");
   }
 
   function closePhotoViewer(){
     document.getElementById("photo-viewer").classList.add("hidden");
     document.getElementById("photo-viewer-img").src = "";
+    photoViewerPages = [];
+  }
+
+  // ---------- Files chooser (equipment with more than one attachment) ----------
+  function openEquipmentFilesChooser(eq, files){
+    equipmentFilesChooserContext = {eqName: eq.name || "Equipment", files: files};
+    document.getElementById("equipment-files-title-text").textContent = eq.name || "Equipment";
+    document.getElementById("equipment-files-list").innerHTML = files.map(function(f, idx){
+      var icon = f.kind === "pdf" ? "📄" : "📷";
+      var sub = f.kind === "pdf" ? (f.pages.length + (f.pages.length === 1 ? " page" : " pages")) : "Photo";
+      return '<div class="equip-file-row" data-index="'+idx+'" style="cursor:pointer;">'+
+        '<img class="equip-file-thumb" src="'+(f.pages[0]||"")+'">'+
+        '<div class="equip-file-info">'+
+          '<div class="efi-name">'+icon+' '+escapeHtml(f.name || "File")+'</div>'+
+          '<div class="efi-sub">'+escapeHtml(sub)+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+    showSheet("equipment-files-modal", "equipment-files-backdrop");
   }
 
   // Pinch-to-zoom/pan/double-tap for the photo viewer, implemented by hand
@@ -3400,6 +3642,16 @@ service cloud.firestore {
     showSheet("belts-list-modal", "belts-list-backdrop");
   }
 
+  // Belt records saved before a system could hold more than one belt only
+  // have the old single beltSize/beltNumber fields. Fold that into the
+  // same {size, number} shape the multi-belt editor uses everywhere else
+  // so the list/editor never need to special-case it.
+  function beltItemsOf(b){
+    if(b && Array.isArray(b.beltItems) && b.beltItems.length){ return b.beltItems; }
+    if(b && (b.beltSize || b.beltNumber)){ return [{size:b.beltSize||"", number:b.beltNumber||""}]; }
+    return [];
+  }
+
   function renderBeltsList(){
     var listEl = document.getElementById("belts-list");
     if(!listEl) return;
@@ -3409,13 +3661,18 @@ service cloud.firestore {
     }
     var sorted = belts.slice().sort(function(a,z){ return (a.system||"").localeCompare(z.system||""); });
     listEl.innerHTML = sorted.map(function(b){
-      var bits = [];
-      if(b.beltSize) bits.push("Size: " + b.beltSize);
-      if(b.beltNumber) bits.push("Part #: " + b.beltNumber);
+      var items = beltItemsOf(b).filter(function(it){ return it.size || it.number; });
+      var beltLine = items.map(function(it){
+        var bits = [];
+        if(it.size) bits.push(it.size);
+        if(it.number) bits.push("#" + it.number);
+        return bits.join(" ");
+      }).join(" · ");
       return '<div class="rock-row" data-id="'+b.id+'">'+
         '<div class="rock-info">'+
           '<div class="r1">⚙️ '+escapeHtml(b.system || "System")+'</div>'+
-          (bits.length ? '<div class="r2">'+escapeHtml(bits.join(" · "))+'</div>' : '')+
+          (beltLine ? '<div class="r2">'+escapeHtml(beltLine)+'</div>' : '')+
+          (b.notes ? '<div class="r2">📝 '+escapeHtml(b.notes)+'</div>' : '')+
         '</div>'+
         '<div class="rock-actions">'+
           '<button class="row-btn" data-action="edit">✏️</button>'+
@@ -3424,45 +3681,73 @@ service cloud.firestore {
     }).join("");
   }
 
+  function renderBeltItemsEditor(){
+    var wrap = document.getElementById("belt-items-list");
+    if(!wrap) return;
+    wrap.innerHTML = pendingBeltItems.map(function(item, idx){
+      return '<div class="belt-item-row" data-idx="'+idx+'">'+
+        '<input type="text" class="belt-item-size" data-idx="'+idx+'" placeholder="Size, e.g. A64" value="'+escapeHtml(item.size || "")+'">'+
+        '<input type="text" class="belt-item-number" data-idx="'+idx+'" placeholder="Part #, e.g. B-2050" value="'+escapeHtml(item.number || "")+'">'+
+        '<button type="button" class="row-btn" data-remove-belt-item="'+idx+'">✕</button>'+
+      '</div>';
+    }).join("");
+  }
+
+  function addBeltItemRow(){
+    pendingBeltItems.push({size:"", number:""});
+    renderBeltItemsEditor();
+  }
+
+  function removeBeltItemRow(idx){
+    pendingBeltItems.splice(idx, 1);
+    if(pendingBeltItems.length === 0){ pendingBeltItems.push({size:"", number:""}); }
+    renderBeltItemsEditor();
+  }
+
   function openBeltModal(b){
     if(b){
       editingBeltId = b.id;
       document.getElementById("belt-modal-title").textContent = "Edit system";
       document.getElementById("input-belt-system").value = b.system || "";
-      document.getElementById("input-belt-size").value = b.beltSize || "";
-      document.getElementById("input-belt-number").value = b.beltNumber || "";
+      document.getElementById("input-belt-notes").value = b.notes || "";
+      pendingBeltItems = beltItemsOf(b).map(function(it){ return {size:it.size||"", number:it.number||""}; });
+      if(pendingBeltItems.length === 0){ pendingBeltItems = [{size:"", number:""}]; }
       document.getElementById("belt-edit-only-row").classList.remove("hidden");
     } else {
       editingBeltId = null;
       document.getElementById("belt-modal-title").textContent = "Add system";
       document.getElementById("input-belt-system").value = "";
-      document.getElementById("input-belt-size").value = "";
-      document.getElementById("input-belt-number").value = "";
+      document.getElementById("input-belt-notes").value = "";
+      pendingBeltItems = [{size:"", number:""}];
       document.getElementById("belt-edit-only-row").classList.add("hidden");
     }
+    renderBeltItemsEditor();
     showSheet("belt-modal", "belt-backdrop");
   }
 
   function closeBeltModal(){
     hideSheet("belt-modal", "belt-backdrop");
     editingBeltId = null;
+    pendingBeltItems = [];
   }
 
   function saveBeltFromForm(){
     var system = document.getElementById("input-belt-system").value.trim();
     if(!system){ toast("Enter a system name."); return; }
-    var beltSize = document.getElementById("input-belt-size").value.trim();
-    var beltNumber = document.getElementById("input-belt-number").value.trim();
+    var notes = document.getElementById("input-belt-notes").value.trim();
+    var beltItems = pendingBeltItems
+      .map(function(it){ return {size:(it.size||"").trim(), number:(it.number||"").trim()}; })
+      .filter(function(it){ return it.size || it.number; });
 
     if(editingBeltId){
-      var updates = {system:system, beltSize:beltSize, beltNumber:beltNumber};
+      var updates = {system:system, beltItems:beltItems, beltSize:"", beltNumber:"", notes:notes};
       if(sharingEnabled){
         beltDocRef(editingBeltId).update(updates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
         var exb = belts.find(function(x){ return x.id === editingBeltId; });
-        if(exb){ exb.system=system; exb.beltSize=beltSize; exb.beltNumber=beltNumber; }
+        if(exb){ exb.system=system; exb.beltItems=beltItems; exb.beltSize=""; exb.beltNumber=""; exb.notes=notes; }
         saveData();
         renderBeltsList();
       }
@@ -3470,7 +3755,7 @@ service cloud.firestore {
     } else {
       var newBelt = {
         id: "bl"+Date.now()+"_"+Math.floor(Math.random()*10000),
-        system:system, beltSize:beltSize, beltNumber:beltNumber,
+        system:system, beltItems:beltItems, beltSize:"", beltNumber:"", notes:notes,
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
@@ -4175,7 +4460,12 @@ service cloud.firestore {
             model: e.model || "",
             oilFilter: e.oilFilter || "",
             fuelFilter: e.fuelFilter || "",
-            photo: e.photo || "",
+            airFilter: e.airFilter || "",
+            cabinFilter: e.cabinFilter || "",
+            hydraulicFilter: e.hydraulicFilter || "",
+            wiperBlade: e.wiperBlade || "",
+            files: Array.isArray(e.files) ? e.files : equipFilesOf(e),
+            photo: "",
             createdAt: e.createdAt || new Date().toISOString()
           });
           uploaded++;
@@ -4185,8 +4475,10 @@ service cloud.firestore {
         localBelts.forEach(function(b){
           beltsRef.doc(b.id).set({
             system: b.system || "System",
-            beltSize: b.beltSize || "",
-            beltNumber: b.beltNumber || "",
+            beltItems: beltItemsOf(b),
+            beltSize: "",
+            beltNumber: "",
+            notes: b.notes || "",
             createdAt: b.createdAt || new Date().toISOString()
           });
           uploaded++;
@@ -4357,31 +4649,62 @@ service cloud.firestore {
       if(!eq) return;
       var action = e.target.getAttribute("data-action");
       if(action === "edit"){ openEquipmentModal(eq); return; }
-      if(eq.photo){ openPhotoViewer(eq.photo, eq.name || "Equipment"); }
-      else { openEquipmentModal(eq); }
+      var files = equipFilesOf(eq);
+      if(files.length === 0){ openEquipmentModal(eq); }
+      else if(files.length === 1){ openPhotoViewerForFile(files[0], eq.name || "Equipment"); }
+      else { openEquipmentFilesChooser(eq, files); }
     });
     document.getElementById("btn-cancel-equipment").addEventListener("click", closeEquipmentModal);
     document.getElementById("btn-save-equipment").addEventListener("click", saveEquipmentFromForm);
     document.getElementById("btn-delete-equipment").addEventListener("click", deleteCurrentEquipment);
     document.getElementById("equipment-backdrop").addEventListener("click", closeEquipmentModal);
-    document.getElementById("input-equip-photo").addEventListener("change", function(e){
+    document.getElementById("input-equip-file").addEventListener("change", function(e){
       var file = e.target.files && e.target.files[0];
       if(!file) return;
-      toast("Processing photo…", 1500);
-      compressImageFile(file, function(dataUrl, err){
-        if(err){ toast(err); return; }
-        pendingEquipPhoto = dataUrl;
-        showEquipPhotoPreview(dataUrl);
-      });
+      var isPdf = (file.type === "application/pdf") || /\.pdf$/i.test(file.name || "");
+      var fileId = "f"+Date.now()+"_"+Math.floor(Math.random()*10000);
+      if(isPdf){
+        toast("Processing PDF…", 2500);
+        renderPdfFileToPages(file, function(pages, err){
+          if(err){ toast(err); return; }
+          addPendingEquipFile({id:fileId, kind:"pdf", name:file.name || "PDF", pages:pages});
+        });
+      } else if(file.type.indexOf("image/") === 0){
+        toast("Processing photo…", 1500);
+        compressImageFile(file, function(dataUrl, err){
+          if(err){ toast(err); return; }
+          addPendingEquipFile({id:fileId, kind:"image", name:file.name || "Photo", pages:[dataUrl]});
+        });
+      } else {
+        toast("Pick an image or a PDF file.");
+      }
+      e.target.value = "";
     });
-    document.getElementById("btn-remove-equip-photo").addEventListener("click", function(){
-      pendingEquipPhoto = "";
-      document.getElementById("input-equip-photo").value = "";
-      showEquipPhotoPreview("");
+    document.getElementById("equip-files-preview-wrap").addEventListener("click", function(e){
+      var fileId = e.target.getAttribute("data-remove-file");
+      if(fileId){ removePendingEquipFile(fileId); }
     });
 
     document.getElementById("btn-close-photo-viewer").addEventListener("click", closePhotoViewer);
+    document.getElementById("btn-photo-prev").addEventListener("click", photoViewerPrevPage);
+    document.getElementById("btn-photo-next").addEventListener("click", photoViewerNextPage);
     initPhotoViewerGestures();
+
+    document.getElementById("btn-close-equipment-files").addEventListener("click", function(){
+      hideSheet("equipment-files-modal", "equipment-files-backdrop");
+    });
+    document.getElementById("equipment-files-backdrop").addEventListener("click", function(){
+      hideSheet("equipment-files-modal", "equipment-files-backdrop");
+    });
+    document.getElementById("equipment-files-list").addEventListener("click", function(e){
+      var row = e.target.closest(".equip-file-row");
+      if(!row || !equipmentFilesChooserContext) return;
+      var idx = parseInt(row.getAttribute("data-index"), 10);
+      var file = equipmentFilesChooserContext.files[idx];
+      if(!file) return;
+      hideSheet("equipment-files-modal", "equipment-files-backdrop");
+      openPhotoViewerForFile(file, equipmentFilesChooserContext.eqName);
+    });
 
     // ---------- Belts ----------
     document.getElementById("btn-close-belts-list").addEventListener("click", function(){
@@ -4404,6 +4727,19 @@ service cloud.firestore {
     document.getElementById("btn-save-belt").addEventListener("click", saveBeltFromForm);
     document.getElementById("btn-delete-belt").addEventListener("click", deleteCurrentBelt);
     document.getElementById("belt-backdrop").addEventListener("click", closeBeltModal);
+    document.getElementById("btn-add-belt-item").addEventListener("click", addBeltItemRow);
+    document.getElementById("belt-items-list").addEventListener("input", function(e){
+      var idx = e.target.getAttribute("data-idx");
+      if(idx === null) return;
+      idx = parseInt(idx, 10);
+      if(!pendingBeltItems[idx]) return;
+      if(e.target.classList.contains("belt-item-size")){ pendingBeltItems[idx].size = e.target.value; }
+      else if(e.target.classList.contains("belt-item-number")){ pendingBeltItems[idx].number = e.target.value; }
+    });
+    document.getElementById("belt-items-list").addEventListener("click", function(e){
+      var idx = e.target.getAttribute("data-remove-belt-item");
+      if(idx !== null){ removeBeltItemRow(parseInt(idx, 10)); }
+    });
 
     document.querySelectorAll(".size-opt").forEach(function(el){
       el.addEventListener("click", function(){ selectSize(el.getAttribute("data-size")); });
