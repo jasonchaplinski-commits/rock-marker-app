@@ -4964,7 +4964,12 @@ service cloud.firestore {
     // ---------- Hamburger menu ----------
     document.getElementById("btn-menu").addEventListener("click", openSideMenu);
     document.getElementById("side-menu-backdrop").addEventListener("click", closeSideMenu);
-    document.getElementById("menu-item-home").addEventListener("click", closeSideMenu);
+    // Home just reloads the app fresh, the same as hitting refresh in the
+    // browser — closes every open sheet/modal, re-centers the map, and
+    // re-syncs everything from scratch.
+    document.getElementById("menu-item-home").addEventListener("click", function(){
+      location.reload();
+    });
     document.getElementById("menu-item-equipment").addEventListener("click", function(){
       closeSideMenu();
       openEquipmentListSheet();
