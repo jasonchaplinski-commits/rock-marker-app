@@ -377,12 +377,14 @@
   #bin-totals-list .le2{font-size:15px;font-weight:700;color:#000;}
   #bin-totals-list .le3{font-size:13px;font-weight:600;color:#000;margin-top:2px;}
   .log-entry-actions{display:flex;gap:2px;flex-shrink:0;}
-  .log-entry-del,.log-entry-edit{border:none;background:transparent;font-size:15px;line-height:1;
+  .log-entry-del,.log-entry-edit,.log-entry-restore{border:none;background:transparent;font-size:15px;line-height:1;
     cursor:pointer;padding:4px 6px;border-radius:8px;flex-shrink:0;}
   .log-entry-del{color:var(--danger);}
   .log-entry-edit{color:var(--ink);}
+  .log-entry-restore{color:var(--green-dark);}
   .log-entry-del:active{background:#fbeae7;}
   .log-entry-edit:active{background:var(--line);}
+  .log-entry-restore:active{background:#e3f0e0;}
   /* touch-action:manipulation drops the browser's built-in wait-for-a-
      second-tap delay on these markers, so a tap registers immediately
      instead of sometimes needing a second try on Android. */
@@ -789,8 +791,21 @@
   <div id="bin-actions-log"></div>
   <div class="btn-row" style="flex-direction:column;margin-top:14px;">
     <button class="btn btn-secondary" id="btn-bin-edit">✏️ Edit bin details</button>
+    <button class="btn btn-secondary" id="btn-bin-view-archive">🗄 Archived entries</button>
     <button class="btn btn-danger" id="btn-bin-clear-log">🗑️ Clear all entries</button>
     <button class="btn btn-secondary" id="btn-bin-actions-close">Close</button>
+  </div>
+</div>
+
+<!-- Bin log archive (recycle bin) sheet — admin code required to open -->
+<div class="sheet-backdrop" id="bin-log-archive-backdrop"></div>
+<div class="sheet" id="bin-log-archive-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="bin-log-archive-title">Archived entries</h2>
+  <div class="summary-subtitle">Deleted, edited, or cleared entries — restore any of these to count it toward the bin's totals again.</div>
+  <div id="bin-log-archive-list"></div>
+  <div class="btn-row" style="flex-direction:column;margin-top:14px;">
+    <button class="btn btn-secondary" id="btn-bin-log-archive-close">Close</button>
   </div>
 </div>
 
@@ -2942,13 +2957,14 @@ service cloud.firestore {
         currentBu: 0,
         currentLoads: 0,
         log: [],
+        archivedLog: [],
         points: pendingBinPoints,
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
         binDocRef(newBin.id).set({
           name:newBin.name, capacityBu:newBin.capacityBu, currentCrop:newBin.currentCrop,
-          currentBu:newBin.currentBu, currentLoads:newBin.currentLoads, log:newBin.log, points:pointsToFirestore(newBin.points), createdAt:newBin.createdAt
+          currentBu:newBin.currentBu, currentLoads:newBin.currentLoads, log:newBin.log, archivedLog:newBin.archivedLog, points:pointsToFirestore(newBin.points), createdAt:newBin.createdAt
         }).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
@@ -3281,12 +3297,18 @@ service cloud.firestore {
 
     if(editingLogEntryId){
       var editedId = editingLogEntryId;
+      var oldEntry = (b.log || []).find(function(x){ return x.id === editedId; });
       var updatedLog = (b.log || []).map(function(x){
         if(x.id !== editedId) return x;
         return {id:x.id, date:date, action:action, crop:crop, bu:bu, truckType:truckType, fraction:fraction, note:note};
       });
+      // Keep the pre-edit version in the archive rather than just losing it,
+      // same as a delete — so a mistaken or malicious edit can be undone by
+      // restoring what it looked like before.
+      var updatedArchive = (b.archivedLog || []).slice();
+      if(oldEntry){ updatedArchive.push(archiveLogEntry(oldEntry, "edited")); }
       editingLogEntryId = null;
-      applyBinLogUpdate(binId, updatedLog);
+      applyBinLogUpdate(binId, updatedLog, updatedArchive);
       closeBinLogModal();
       toast("Log entry updated");
     } else {
@@ -3338,34 +3360,125 @@ service cloud.firestore {
 
   // Writes a bin's updated log (and the totals recomputed from it) to
   // Firestore or local storage, then refreshes the sheet in place so
-  // whoever's looking at it sees the new numbers immediately.
-  function applyBinLogUpdate(binId, newLog){
+  // whoever's looking at it sees the new numbers immediately. newArchive is
+  // optional — pass it whenever the archive changed too (delete/edit/clear/
+  // restore); leave it out for a plain add, which never touches the archive.
+  function applyBinLogUpdate(binId, newLog, newArchive){
     var b = bins.find(function(x){ return x.id === binId; });
     if(!b) return;
     var state = recomputeBinStateFromLog(newLog);
+    var archivedLog = newArchive !== undefined ? newArchive : (b.archivedLog || []);
     if(sharingEnabled){
-      binDocRef(binId).update({log:newLog, currentCrop:state.crop, currentBu:state.bu, currentLoads:state.loads}).catch(function(){
+      binDocRef(binId).update({log:newLog, archivedLog:archivedLog, currentCrop:state.crop, currentBu:state.bu, currentLoads:state.loads}).catch(function(){
         toast("Couldn't save to the shared map — check your connection.");
       });
     } else {
-      b.log = newLog; b.currentCrop = state.crop; b.currentBu = state.bu; b.currentLoads = state.loads;
+      b.log = newLog; b.archivedLog = archivedLog; b.currentCrop = state.crop; b.currentBu = state.bu; b.currentLoads = state.loads;
       saveData();
       renderAll();
     }
     openBinActions(binId);
   }
 
+  // Stamps a copy of a log entry with why/when it left the active log,
+  // and gives it its own archiveId separate from the entry's original id
+  // (so the same entry can be archived more than once — edited twice, say —
+  // without the archive list getting confused about which copy is which).
+  function archiveLogEntry(entry, reason){
+    var copy = {};
+    for(var k in entry){ if(Object.prototype.hasOwnProperty.call(entry, k)){ copy[k] = entry[k]; } }
+    copy.archiveId = "ar"+Date.now()+"_"+Math.floor(Math.random()*10000);
+    copy.archiveReason = reason; // "deleted" | "edited" | "cleared"
+    copy.archivedAt = new Date().toISOString();
+    return copy;
+  }
+
+  // Deleting, editing, or clearing entries never actually erases them —
+  // they move to archivedLog instead, which only opens with the admin code
+  // (see openBinLogArchive), and an admin can restore any of them back into
+  // the live log. This is what protects the bin totals from someone
+  // deleting or "correcting" entries they shouldn't have.
   function deleteBinLogEntry(binId, entryId){
     var b = bins.find(function(x){ return x.id === binId; });
     if(!b) return;
+    var entry = (b.log || []).find(function(e){ return e.id === entryId; });
     var newLog = (b.log || []).filter(function(e){ return e.id !== entryId; });
-    applyBinLogUpdate(binId, newLog);
-    toast("Log entry deleted");
+    var newArchive = (b.archivedLog || []).slice();
+    if(entry){ newArchive.push(archiveLogEntry(entry, "deleted")); }
+    applyBinLogUpdate(binId, newLog, newArchive);
+    toast("Log entry moved to the archive");
   }
 
   function clearBinLog(binId){
-    applyBinLogUpdate(binId, []);
-    toast("Log cleared");
+    var b = bins.find(function(x){ return x.id === binId; });
+    if(!b) return;
+    var newArchive = (b.archivedLog || []).concat((b.log || []).map(function(e){ return archiveLogEntry(e, "cleared"); }));
+    applyBinLogUpdate(binId, [], newArchive);
+    toast("Entries moved to the archive");
+  }
+
+  // Puts an archived entry back into the live log (dropping the
+  // archive-only bookkeeping fields) and out of the archive, then recomputes
+  // the bin's totals as if it had never left.
+  function restoreBinLogEntry(binId, archiveId){
+    var b = bins.find(function(x){ return x.id === binId; });
+    if(!b) return;
+    var archived = (b.archivedLog || []).find(function(x){ return x.archiveId === archiveId; });
+    if(!archived) return;
+    var restored = {id:archived.id, date:archived.date, action:archived.action, crop:archived.crop, bu:archived.bu, truckType:archived.truckType, fraction:archived.fraction, note:archived.note};
+    var newLog = (b.log || []).concat([restored]);
+    var newArchive = (b.archivedLog || []).filter(function(x){ return x.archiveId !== archiveId; });
+    applyBinLogUpdate(binId, newLog, newArchive);
+    // applyBinLogUpdate always reopens the bin actions sheet as part of
+    // refreshing it — hide that again so the archive sheet (not the bin
+    // actions sheet underneath it) is what the admin actually sees.
+    hideSheet("bin-actions-modal", "bin-actions-backdrop");
+    openBinLogArchive(binId);
+    toast("Entry restored");
+  }
+
+  // Shows everything that's been deleted, edited away from, or cleared for
+  // this bin. Only reachable via the admin code (checked by the button that
+  // opens this), so an admin can see what a disgruntled employee tried to
+  // erase, and restore any entry back into the live log/totals if needed.
+  function openBinLogArchive(binId){
+    var b = bins.find(function(x){ return x.id === binId; });
+    if(!b) return;
+    binActionsBinId = binId;
+    document.getElementById("bin-log-archive-title").textContent = "🗄 Archived — " + (b.name || "Bin");
+
+    var archivedLog = (b.archivedLog || []).slice().sort(function(a,z){ return (z.archivedAt||"").localeCompare(a.archivedAt||""); });
+    var listEl = document.getElementById("bin-log-archive-list");
+    if(archivedLog.length === 0){
+      listEl.innerHTML = '<div id="empty-list" style="padding:14px 0;">No archived entries.</div>';
+    } else {
+      listEl.innerHTML = archivedLog.map(function(e){
+        var dateStr = formatLogTimestamp(e.date);
+        var truckBit = e.truckType ? escapeHtml(e.truckType + (e.fraction ? " " + fractionLabel(e.fraction) : "")) : "";
+        var levelBit = (!e.truckType && e.action === "Set Level" && e.fraction) ? (fractionLabel(e.fraction) === "full" ? "Full" : (fractionLabel(e.fraction) + " full")) : "";
+        var cropBit = e.crop ? ((cropIcon(e.crop) ? cropIcon(e.crop) + " " : "") + escapeHtml(e.crop)) : "";
+        var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(cropBit?" "+cropBit:"")) : "";
+        var detail = [truckBit, levelBit, amt].filter(Boolean).join(" · ");
+        var reasonLabel = e.archiveReason === "edited" ? "Replaced by an edit" : (e.archiveReason === "cleared" ? "Cleared" : "Deleted");
+        var archivedWhen = formatLogTimestamp(e.archivedAt);
+        return '<div class="log-entry">'+
+          '<div class="log-entry-main">'+
+            '<div class="le1">'+escapeHtml(e.action||"")+(detail ? " — "+detail : "")+'</div>'+
+            '<div class="le2">'+escapeHtml(dateStr)+(e.note ? " · "+escapeHtml(e.note) : "")+'</div>'+
+            '<div class="le3">'+escapeHtml(reasonLabel)+(archivedWhen ? " · "+escapeHtml(archivedWhen) : "")+'</div>'+
+          '</div>'+
+          '<div class="log-entry-actions">'+
+            '<button class="log-entry-restore" data-archive-id="'+escapeHtml(e.archiveId)+'" title="Restore this entry">↩️</button>'+
+          '</div>'+
+        '</div>';
+      }).join("");
+    }
+
+    showSheet("bin-log-archive-modal", "bin-log-archive-backdrop");
+  }
+
+  function closeBinLogArchive(){
+    hideSheet("bin-log-archive-modal", "bin-log-archive-backdrop");
   }
 
   function renderBinList(){
@@ -3686,6 +3799,11 @@ service cloud.firestore {
   }
 
   function removePendingEquipFile(id){
+    // No admin-code check here — removing a file only changes the pending,
+    // unsaved working copy shown in the modal. Nothing is actually deleted
+    // until Save is clicked, and Save itself asks for the admin code
+    // whenever it's saving changes to EXISTING equipment (see
+    // saveEquipmentFromForm), so gating here too would just ask twice.
     pendingEquipFiles = pendingEquipFiles.filter(function(f){ return f.id !== id; });
     renderEquipFilesPreview();
   }
@@ -3781,6 +3899,11 @@ service cloud.firestore {
     var files = pendingEquipFiles;
 
     if(editingEquipmentId){
+      // Editing any detail of EXISTING equipment (name, serial, any filter
+      // part number, attachments) needs the admin code — adding a brand
+      // new piece of equipment doesn't (that's already gated separately,
+      // at the "Add equipment" button, before this modal even opens).
+      if(!checkAdminCode()) return;
       var updates = {name:name, year:year, model:model, serial:serial, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, files:files, photo:""};
       if(sharingEnabled){
         equipmentDocRef(editingEquipmentId).update(updates).catch(function(){
@@ -4184,6 +4307,10 @@ service cloud.firestore {
       .map(function(it){ return {qty:(it.qty||"1"), number:(it.number||"").trim(), notes:(it.notes||"").trim()}; });
 
     if(editingBeltId){
+      // Editing any detail of an EXISTING belt system (system name, sizes,
+      // part numbers, notes) needs the admin code — adding a brand new
+      // belt system doesn't.
+      if(!checkAdminCode()) return;
       var updates = {system:system, beltItems:beltItems, beltSize:"", beltNumber:"", notes:""};
       if(sharingEnabled){
         beltDocRef(editingBeltId).update(updates).catch(function(){
@@ -4218,6 +4345,7 @@ service cloud.firestore {
 
   function deleteCurrentBelt(){
     if(!editingBeltId) return;
+    if(!checkAdminCode()) return;
     var delBl = belts.find(function(x){ return x.id === editingBeltId; });
     if(!confirm('Delete "' + (delBl && delBl.system ? delBl.system : "this system") + '"? This can\'t be undone.')) return;
     if(sharingEnabled){
@@ -4617,6 +4745,7 @@ service cloud.firestore {
                 currentCrop:b.currentCrop||"", currentBu:(typeof b.currentBu === "number" ? b.currentBu : 0),
                 currentLoads:(typeof b.currentLoads === "number" ? b.currentLoads : 0),
                 log:Array.isArray(b.log) ? b.log : [],
+                archivedLog:Array.isArray(b.archivedLog) ? b.archivedLog : [],
                 points:pointsToFirestore(b.points), createdAt:b.createdAt||new Date().toISOString()
               });
             } else {
@@ -4893,6 +5022,7 @@ service cloud.firestore {
             currentBu: (typeof b.currentBu === "number" ? b.currentBu : 0),
             currentLoads: (typeof b.currentLoads === "number" ? b.currentLoads : 0),
             log: Array.isArray(b.log) ? b.log : [],
+            archivedLog: Array.isArray(b.archivedLog) ? b.archivedLog : [],
             points: pointsToFirestore(b.points),
             createdAt: b.createdAt || new Date().toISOString()
           });
@@ -5377,17 +5507,37 @@ service cloud.firestore {
       var delBtn = e.target.closest(".log-entry-del");
       if(!delBtn) return;
       var entryId = delBtn.getAttribute("data-log-id");
-      if(!confirm("Delete this log entry? This can't be undone.")) return;
+      if(!confirm("Delete this log entry? It'll move to the archive, where an admin can restore it later.")) return;
       deleteBinLogEntry(binActionsBinId, entryId);
     });
     document.getElementById("btn-bin-clear-log").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
       var binId = binActionsBinId;
       var b = bins.find(function(x){ return x.id === binId; });
       if(!b || !b.log || b.log.length === 0){ toast("No entries to clear."); return; }
       var count = b.log.length;
       if(!confirm("Clear all " + count + " log " + (count === 1 ? "entry" : "entries") + " for " + (b.name || "this bin") +
-        "? This resets it to empty and can't be undone. Tip: use Export bin activity (CSV) on the list drawer first if you want a copy.")) return;
+        "? They'll move to the archive (Archived entries), where an admin can restore any of them later. Tip: use Export bin activity (CSV) on the list drawer first if you want a copy.")) return;
       clearBinLog(binId);
+    });
+    document.getElementById("btn-bin-view-archive").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
+      var binId = binActionsBinId;
+      hideSheet("bin-actions-modal", "bin-actions-backdrop");
+      openBinLogArchive(binId);
+    });
+    document.getElementById("btn-bin-log-archive-close").addEventListener("click", function(){
+      closeBinLogArchive();
+      if(binActionsBinId){ openBinActions(binActionsBinId); }
+    });
+    document.getElementById("bin-log-archive-backdrop").addEventListener("click", function(){
+      closeBinLogArchive();
+      if(binActionsBinId){ openBinActions(binActionsBinId); }
+    });
+    document.getElementById("bin-log-archive-list").addEventListener("click", function(e){
+      var restoreBtn = e.target.closest(".log-entry-restore");
+      if(!restoreBtn) return;
+      restoreBinLogEntry(binActionsBinId, restoreBtn.getAttribute("data-archive-id"));
     });
 
     document.querySelectorAll("#log-action-options .log-opt").forEach(function(btn){
@@ -5417,7 +5567,7 @@ service cloud.firestore {
     document.getElementById("btn-delete-log-from-edit").addEventListener("click", function(){
       var entryId = editingLogEntryId;
       if(!entryId) return;
-      if(!confirm("Delete this log entry? This can't be undone.")) return;
+      if(!confirm("Delete this log entry? It'll move to the archive, where an admin can restore it later.")) return;
       editingLogEntryId = null;
       closeBinLogModal();
       deleteBinLogEntry(binActionsBinId, entryId);
