@@ -153,6 +153,9 @@
     padding:14px 18px calc(env(safe-area-inset-bottom,0px) + 18px) 18px;
   }
   .sheet.show{transform:translateY(0);}
+  /* Bin Totals is a "view everything" page rather than a quick-glance sheet,
+     so it gets noticeably more vertical room than the standard bottom sheets. */
+  #bin-totals-modal{max-height:94vh;}
   .sheet-handle{width:40px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 12px auto;}
   .sheet h2{margin:0 0 14px 0;font-size:18px;}
   .field-row{margin-bottom:14px;}
@@ -243,7 +246,7 @@
     box-shadow:0 2px 6px rgba(0,0,0,.22);backdrop-filter:blur(1px);
   }
   .field-label .emoji{font-size:20px;margin-right:4px;vertical-align:middle;}
-  .field-label span{display:block;font-weight:700;color:var(--muted);font-size:11px;margin-top:1px;}
+  .field-label span{display:block;font-weight:700;color:var(--ink);font-size:11px;margin-top:1px;}
   .field-label .harvest-badge{
     display:inline-block;margin-top:3px;padding:1px 8px;border-radius:20px;
     font-size:10px;font-weight:800;color:#fff;
@@ -281,11 +284,11 @@
     font-size:11px;font-weight:800;color:var(--ink);white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);text-align:center;
   }
   .bin-marker .bin-chip .bin-chip-sub{display:block;font-weight:800;color:var(--ink);font-size:10.5px;text-shadow:0 1px 1px rgba(255,255,255,.5);}
-  .log-entry{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:10px 0;font-size:14px;}
+  .log-entry{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:8px 0;font-size:13px;}
   .log-entry:last-child{border-bottom:none;}
   .log-entry-main{flex:1;min-width:0;}
   .log-entry .le1{font-weight:700;}
-  .log-entry .le2{color:var(--ink);font-weight:700;font-size:13.5px;margin-top:2px;}
+  .log-entry .le2{color:var(--ink);font-size:12px;}
   .log-entry-del{border:none;background:transparent;color:var(--danger);font-size:15px;line-height:1;
     cursor:pointer;padding:4px 6px;border-radius:8px;flex-shrink:0;}
   .log-entry-del:active{background:#fbeae7;}
@@ -440,6 +443,9 @@
     <div class="btn-row" style="margin-bottom:10px;">
       <button class="btn btn-secondary" id="btn-draw-bin">📐 Outline a new bin</button>
       <button class="btn btn-secondary" id="btn-truck-sizes">🚛 Truck sizes</button>
+    </div>
+    <div class="btn-row" style="margin-bottom:10px;">
+      <button class="btn btn-secondary" id="btn-view-all-bins">📊 View all bin data</button>
     </div>
     <div id="bin-list"></div>
   </div>
@@ -668,7 +674,7 @@
   </div>
 </div>
 
-<!-- Bin totals sheet (opened via the BINS tab on the right edge) -->
+<!-- Bin totals sheet (opened via "View all bin data" in the Bins tab of the list drawer) -->
 <div class="sheet-backdrop" id="bin-totals-backdrop"></div>
 <div class="sheet" id="bin-totals-modal">
   <div class="sheet-handle"></div>
@@ -1184,6 +1190,26 @@ service cloud.firestore {
     return cropBit + "≈" + bu.toLocaleString() + " bu" + (pct !== null ? " (" + pct + "%)" : "");
   }
 
+  // CROP_ICONS values are either a plain emoji or (for Canola) a trusted
+  // inline <svg> string — never user input — so this is safe to insert
+  // straight into innerHTML without escaping.
+  function cropIcon(crop){
+    return (crop && CROP_ICONS[crop]) ? CROP_ICONS[crop] : "";
+  }
+
+  // Same info as binHoldingText(), but as ready-to-insert HTML with the
+  // crop icon in front of the crop name. binHoldingText() stays a plain
+  // string for anywhere that still needs one (CSV export, etc.) — this is
+  // for the three places that show it directly in the UI.
+  function binHoldingHtml(b){
+    var bu = (typeof b.currentBu === "number" && b.currentBu > 0) ? b.currentBu : 0;
+    if(bu <= 0) return "Empty";
+    var pct = (typeof b.capacityBu === "number" && b.capacityBu > 0) ? Math.round((bu / b.capacityBu) * 100) : null;
+    var icon = cropIcon(b.currentCrop);
+    var cropBit = b.currentCrop ? ((icon ? icon + " " : "") + escapeHtml(b.currentCrop) + " · ") : "";
+    return cropBit + "≈" + bu.toLocaleString() + " bu" + (pct !== null ? " (" + pct + "%)" : "");
+  }
+
   function renderBins(){
     binLayerGroup.clearLayers();
     var labelScale = fieldLabelScale();
@@ -1197,7 +1223,7 @@ service cloud.firestore {
       }).addTo(binLayerGroup);
 
       var center = polygonCentroid(b.points);
-      var holdingText = binHoldingText(b);
+      var holdingHtml = binHoldingHtml(b);
       var loadsText = (typeof b.currentLoads === "number" && b.currentLoads > 0)
         ? (b.currentLoads + (b.currentLoads === 1 ? " load" : " loads")) : "";
       var labelMarker = L.marker(center, {
@@ -1208,7 +1234,7 @@ service cloud.firestore {
           html:'<div class="bin-marker" style="transform:translate(-50%,-50%) scale('+labelScale.toFixed(2)+');">'+
             '<div class="bin-pin">🛢️</div>'+
             '<div class="bin-chip">'+escapeHtml(b.name || "Bin")+
-              '<span class="bin-chip-sub">'+escapeHtml(holdingText)+'</span>'+
+              '<span class="bin-chip-sub">'+holdingHtml+'</span>'+
               (loadsText ? '<span class="bin-chip-sub">'+escapeHtml(loadsText)+'</span>' : '')+
             '</div>'+
           '</div>',
@@ -1589,12 +1615,12 @@ service cloud.firestore {
       listEl.innerHTML = '<div id="empty-list" style="padding:14px 0;">No bins outlined yet.</div>';
     } else {
       listEl.innerHTML = totals.byBin.map(function(bb){
-        var cropBit = bb.crop ? (bb.crop + " · ") : "";
+        var cropBit = bb.crop ? ((cropIcon(bb.crop) ? cropIcon(bb.crop) + " " : "") + escapeHtml(bb.crop) + " · ") : "";
         var capBit = bb.capacityBu ? (" / "+bb.capacityBu.toLocaleString()+" bu") : "";
         var loadsBit = bb.loads > 0 ? (bb.loads + (bb.loads===1?" load":" loads")) : "No loads yet";
         return '<div class="log-entry">'+
           '<div class="le1">🛢 '+escapeHtml(bb.name)+'</div>'+
-          '<div class="le2">'+escapeHtml(cropBit)+'≈'+bb.bu.toLocaleString()+' bu'+capBit+' · '+escapeHtml(loadsBit)+'</div>'+
+          '<div class="le2">'+cropBit+'≈'+bb.bu.toLocaleString()+' bu'+capBit+' · '+escapeHtml(loadsBit)+'</div>'+
         '</div>';
       }).join("");
     }
@@ -2218,12 +2244,12 @@ service cloud.firestore {
 
     var capLine = (typeof b.capacityBu === "number" && b.capacityBu > 0)
       ? (b.capacityBu.toLocaleString() + " bu capacity") : "No capacity set";
-    var holdingText = binHoldingText(b);
+    var holdingHtml = binHoldingHtml(b);
     var loadsLine = (typeof b.currentLoads === "number" && b.currentLoads > 0)
       ? (b.currentLoads + (b.currentLoads === 1 ? " load in" : " loads in")) : null;
 
     document.getElementById("bin-actions-stats").innerHTML =
-      '<div class="summary-row summary-total"><span>Currently holding</span><span>'+escapeHtml(holdingText)+'</span></div>'+
+      '<div class="summary-row summary-total"><span>Currently holding</span><span>'+holdingHtml+'</span></div>'+
       (loadsLine ? '<div class="summary-row"><span>'+escapeHtml(loadsLine)+'</span></div>' : '')+
       '<div class="summary-row"><span>'+escapeHtml(capLine)+'</span></div>';
 
@@ -2234,12 +2260,13 @@ service cloud.firestore {
     } else {
       logEl.innerHTML = sortedLog.slice(0,10).map(function(e){
         var dateStr = formatLogTimestamp(e.date);
-        var truckBit = e.truckType ? (e.truckType + (e.fraction ? " " + fractionLabel(e.fraction) : "")) : "";
-        var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(e.crop?" "+e.crop:"")) : "";
+        var truckBit = e.truckType ? escapeHtml(e.truckType + (e.fraction ? " " + fractionLabel(e.fraction) : "")) : "";
+        var cropBit = e.crop ? ((cropIcon(e.crop) ? cropIcon(e.crop) + " " : "") + escapeHtml(e.crop)) : "";
+        var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(cropBit?" "+cropBit:"")) : "";
         var detail = [truckBit, amt].filter(Boolean).join(" · ");
         return '<div class="log-entry">'+
           '<div class="log-entry-main">'+
-            '<div class="le1">'+escapeHtml(e.action||"")+(detail ? " — "+escapeHtml(detail) : "")+'</div>'+
+            '<div class="le1">'+escapeHtml(e.action||"")+(detail ? " — "+detail : "")+'</div>'+
             '<div class="le2">'+escapeHtml(dateStr)+(e.note ? " · "+escapeHtml(e.note) : "")+'</div>'+
           '</div>'+
           '<button class="log-entry-del" data-log-id="'+escapeHtml(e.id)+'" title="Delete this entry">🗑️</button>'+
@@ -2467,14 +2494,14 @@ service cloud.firestore {
     }
     var sorted = bins.slice().sort(function(a,z){ return (a.name||"").localeCompare(z.name||"", undefined, {numeric:true}); });
     listEl.innerHTML = sorted.map(function(b){
-      var holdingText = binHoldingText(b);
+      var holdingHtml = binHoldingHtml(b);
       var capLine = (typeof b.capacityBu === "number" && b.capacityBu > 0) ? (b.capacityBu.toLocaleString()+" bu cap") : "no cap set";
       var loadsBit = (typeof b.currentLoads === "number" && b.currentLoads > 0) ? (" · "+b.currentLoads+(b.currentLoads===1?" load":" loads")) : "";
       return '<div class="rock-row" data-id="'+b.id+'">'+
         '<div class="rock-dot" style="background:'+BIN_COLOR+'"></div>'+
         '<div class="rock-info">'+
           '<div class="r1">🛢 '+escapeHtml(b.name)+'</div>'+
-          '<div class="r2">'+escapeHtml(holdingText)+loadsBit+' · '+escapeHtml(capLine)+'</div>'+
+          '<div class="r2">'+holdingHtml+loadsBit+' · '+escapeHtml(capLine)+'</div>'+
         '</div>'+
         '<div class="rock-actions">'+
           '<button class="row-btn" data-action="goto">🎯</button>'+
@@ -3433,6 +3460,7 @@ service cloud.firestore {
       if(bins.length === 0) return;
       zoomToAllBins();
     });
+    document.getElementById("btn-view-all-bins").addEventListener("click", openBinTotalsSheet);
     document.getElementById("btn-bin-totals-close").addEventListener("click", function(){
       hideSheet("bin-totals-modal", "bin-totals-backdrop");
     });
