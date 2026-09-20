@@ -303,7 +303,7 @@
   .log-entry-main{flex:1;min-width:0;}
   .log-entry .le1{font-weight:700;}
   .log-entry .le2{color:var(--ink);font-size:13px;}
-  .log-entry .le3{color:var(--muted);font-size:11px;margin-top:1px;}
+  .log-entry .le3{color:var(--ink);font-size:12px;margin-top:1px;}
   .log-entry-actions{display:flex;gap:2px;flex-shrink:0;}
   .log-entry-del,.log-entry-edit{border:none;background:transparent;font-size:15px;line-height:1;
     cursor:pointer;padding:4px 6px;border-radius:8px;flex-shrink:0;}
@@ -1315,12 +1315,14 @@ service cloud.firestore {
   // Farmyard bins are often packed close together, so their labels can land
   // right on top of each other (same issue field labels don't have, since
   // fields are spread out). This measures each label's actual on-screen box
-  // after it's placed, then sweeps top-to-bottom nudging any label straight
-  // down just enough to clear the one above it whenever they'd overlap —
-  // adapts automatically to zoom level and however many bins are stacked,
-  // without disturbing labels that already have room.
+  // after it's placed, then sweeps top-to-bottom nudging any label sideways
+  // to the right just enough to clear the one above it whenever they'd
+  // overlap — keeps each label near its own bin (rather than stacking a
+  // tall column straight down over the map below it) and adapts
+  // automatically to zoom level and however many bins are stacked, without
+  // disturbing labels that already have room.
   function declutterBinLabels(labelMarkers){
-    var GAP = 4;
+    var GAP = 6;
     var boxes = [];
     labelMarkers.forEach(function(marker){
       var el = marker.getElement();
@@ -1335,18 +1337,18 @@ service cloud.firestore {
       var b = boxes[i];
       for(var j = 0; j < i; j++){
         var a = boxes[j];
-        var overlapX = a.left < b.right && b.left < a.right;
-        if(!overlapX) continue;
-        var aBottom = a.bottom + a.nudge;
-        var bTop = b.top + b.nudge;
-        if(bTop < aBottom + GAP){
-          b.nudge += (aBottom + GAP) - bTop;
+        var overlapY = a.top < b.bottom && b.top < a.bottom;
+        if(!overlapY) continue;
+        var aRight = a.right + a.nudge;
+        var bLeft = b.left + b.nudge;
+        if(bLeft < aRight + GAP){
+          b.nudge += (aRight + GAP) - bLeft;
         }
       }
     }
     boxes.forEach(function(box){
       if(box.nudge > 0.5){
-        box.el.style.transform = "translateY(" + Math.round(box.nudge) + "px) " + box.el.style.transform;
+        box.el.style.transform = "translateX(" + Math.round(box.nudge) + "px) " + box.el.style.transform;
       }
     });
   }
@@ -1773,7 +1775,7 @@ service cloud.firestore {
       cropTotalsSubtitleEl.classList.remove("hidden");
       cropTotalsEl.innerHTML = totals.cropTotals.map(function(ct){
         var icon = cropIcon(ct.crop);
-        return '<div class="summary-row"><span>'+(icon ? icon + " " : "")+escapeHtml(ct.crop)+'</span><span>≈'+ct.bu.toLocaleString()+' bu</span></div>';
+        return '<div class="summary-row" style="font-weight:700;color:var(--ink);"><span>'+(icon ? icon + " " : "")+escapeHtml(ct.crop)+'</span><span>≈'+ct.bu.toLocaleString()+' bu</span></div>';
       }).join("");
     }
 
@@ -1783,7 +1785,8 @@ service cloud.firestore {
     } else {
       listEl.innerHTML = totals.byBin.map(function(bb){
         var cropBit = bb.crop ? ((cropIcon(bb.crop) ? cropIcon(bb.crop) + " " : "") + escapeHtml(bb.crop) + " · ") : "";
-        var capBit = bb.capacityBu ? (" / "+bb.capacityBu.toLocaleString()+" bu") : "";
+        var pct = bb.capacityBu ? Math.round((bb.bu / bb.capacityBu) * 100) : null;
+        var capBit = bb.capacityBu ? (" / "+bb.capacityBu.toLocaleString()+" bu"+(pct !== null ? " ("+pct+"%)" : "")) : "";
         var loadsBit = bb.loads > 0 ? (bb.loads + (bb.loads===1?" load":" loads")) : "No loads yet";
         return '<div class="log-entry">'+
           '<div class="le1">🛢 '+escapeHtml(bb.name)+'</div>'+
