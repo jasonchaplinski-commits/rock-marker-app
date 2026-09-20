@@ -93,15 +93,18 @@
 
   #farm-badge{
     position:absolute;top:64px;right:10px;z-index:498;max-width:64vw;
-    background:rgba(255,255,255,.96);border-radius:16px;padding:14px 18px;color:var(--ink);
-    box-shadow:0 3px 10px rgba(0,0,0,.3);line-height:1.4;max-height:60vh;overflow-y:auto;
+    background:rgba(255,255,255,.92);border-radius:14px;padding:8px 12px;color:var(--ink);
+    box-shadow:0 3px 10px rgba(0,0,0,.25);line-height:1.4;max-height:60vh;overflow-y:auto;
   }
   #farm-badge.hidden{display:none;}
-  #farm-badge .fb-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:5px;}
-  #farm-badge .fb-total{font-size:21px;font-weight:800;margin-bottom:8px;}
-  #farm-badge .fb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;font-weight:600;padding:3px 0;}
-  #farm-badge .fb-row .fb-muted{color:var(--muted);font-weight:500;font-size:12px;}
-  #farm-badge .fb-sub{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:8px 0 3px;}
+  #farm-badge .fb-header{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none;}
+  #farm-badge .fb-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+  #farm-badge .fb-chevron{font-size:10px;color:var(--muted);flex-shrink:0;}
+  #farm-badge .fb-total{font-size:16px;font-weight:800;margin-top:2px;margin-bottom:6px;}
+  #farm-badge.collapsed .fb-total{margin-bottom:0;}
+  #farm-badge .fb-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;font-weight:600;padding:2px 0;}
+  #farm-badge .fb-row .fb-muted{color:var(--muted);font-weight:500;font-size:11px;}
+  #farm-badge .fb-sub{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:7px 0 2px;}
 
   /* Bottom sheets */
   .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:800;opacity:0;pointer-events:none;transition:opacity .2s;}
@@ -191,15 +194,15 @@
   .field-label{
     display:inline-block;width:max-content;
     cursor:pointer;transform:translate(-50%,-50%);white-space:nowrap;
-    background:#ffffff;border:3px solid #888;border-radius:12px;padding:8px 16px;
-    font-size:22px;font-weight:800;color:var(--ink);text-align:center;line-height:1.3;
-    box-shadow:0 3px 10px rgba(0,0,0,.3);
+    background:rgba(255,255,255,.8);border:2px solid #888;border-radius:9px;padding:4px 9px;
+    font-size:13px;font-weight:800;color:var(--ink);text-align:center;line-height:1.25;
+    box-shadow:0 2px 6px rgba(0,0,0,.22);backdrop-filter:blur(1px);
   }
-  .field-label .emoji{font-size:38px;margin-right:6px;vertical-align:middle;}
-  .field-label span{display:block;font-weight:700;color:var(--muted);font-size:15px;margin-top:3px;}
+  .field-label .emoji{font-size:17px;margin-right:3px;vertical-align:middle;}
+  .field-label span{display:block;font-weight:700;color:var(--muted);font-size:10px;margin-top:1px;}
   .field-label .harvest-badge{
-    display:inline-block;margin-top:5px;padding:2px 10px;border-radius:20px;
-    font-size:13px;font-weight:800;color:#fff;
+    display:inline-block;margin-top:2px;padding:1px 7px;border-radius:20px;
+    font-size:9px;font-weight:800;color:#fff;
   }
   .field-label .harvest-badge.harvest-not-harvested{background:#8a8f98;}
   .field-label .harvest-badge.harvest-partial-harvested{background:#e6a817;}
@@ -957,6 +960,8 @@ service cloud.firestore {
     };
   }
 
+  var farmBadgeCollapsed = true; // starts collapsed so it doesn't cover the map
+
   function updateFarmBadge(){
     var el = document.getElementById("farm-badge");
     if(!el) return;
@@ -966,24 +971,42 @@ service cloud.firestore {
       return;
     }
     var totals = computeFarmTotals();
-    var cropRows = totals.cropOrder.map(function(crop){
-      var info = totals.byCrop[crop];
-      var icon = CROP_ICONS[crop] ? CROP_ICONS[crop]+' ' : '';
-      return '<div class="fb-row">'+
-        '<span>'+icon+escapeHtml(crop)+' <span class="fb-muted">('+info.count+')</span></span>'+
-        '<span>'+info.acres.toFixed(1)+' ac</span>'+
-      '</div>';
-    }).join("");
+    var header = '<div class="fb-header" id="fb-toggle">'+
+        '<span class="fb-title">Farm totals</span>'+
+        '<span class="fb-chevron">'+(farmBadgeCollapsed ? "▸ tap for more" : "▾ tap to collapse")+'</span>'+
+      '</div>'+
+      '<div class="fb-total">'+totals.totalAcres.toFixed(1)+' ac total</div>';
 
-    el.innerHTML =
-      '<div class="fb-title">Farm totals</div>'+
-      '<div class="fb-total">'+totals.totalAcres.toFixed(1)+' ac total</div>'+
-      cropRows+
-      '<div class="fb-sub">Harvest</div>'+
-      '<div class="fb-row"><span>✅ Harvested</span><span>'+totals.harvestedAcres.toFixed(1)+' ac</span></div>'+
-      '<div class="fb-row"><span>🌗 Partial (so far)</span><span>'+totals.partialAcres.toFixed(1)+' ac</span></div>'+
-      '<div class="fb-row"><span>⬜ Not harvested</span><span>'+totals.notHarvestedAcres.toFixed(1)+' ac</span></div>';
+    if(farmBadgeCollapsed){
+      el.classList.add("collapsed");
+      el.innerHTML = header;
+    } else {
+      el.classList.remove("collapsed");
+      var cropRows = totals.cropOrder.map(function(crop){
+        var info = totals.byCrop[crop];
+        var icon = CROP_ICONS[crop] ? CROP_ICONS[crop]+' ' : '';
+        return '<div class="fb-row">'+
+          '<span>'+icon+escapeHtml(crop)+' <span class="fb-muted">('+info.count+')</span></span>'+
+          '<span>'+info.acres.toFixed(1)+' ac</span>'+
+        '</div>';
+      }).join("");
+
+      el.innerHTML = header+
+        cropRows+
+        '<div class="fb-sub">Harvest</div>'+
+        '<div class="fb-row"><span>✅ Harvested</span><span>'+totals.harvestedAcres.toFixed(1)+' ac</span></div>'+
+        '<div class="fb-row"><span>🌗 Partial (so far)</span><span>'+totals.partialAcres.toFixed(1)+' ac</span></div>'+
+        '<div class="fb-row"><span>⬜ Not harvested</span><span>'+totals.notHarvestedAcres.toFixed(1)+' ac</span></div>';
+    }
     el.classList.remove("hidden");
+
+    var toggleEl = document.getElementById("fb-toggle");
+    if(toggleEl){
+      toggleEl.onclick = function(){
+        farmBadgeCollapsed = !farmBadgeCollapsed;
+        updateFarmBadge();
+      };
+    }
   }
 
   // ---------- Field geometry ----------
