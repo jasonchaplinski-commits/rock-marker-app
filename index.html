@@ -87,7 +87,7 @@
   }
 
   #count-badge{
-    position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 335px);z-index:500;max-width:66vw;
+    position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 220px);z-index:500;max-width:66vw;
     background:rgba(255,255,255,.96);border-radius:16px;padding:12px 18px;font-size:16px;font-weight:700;color:var(--ink);
     box-shadow:0 3px 10px rgba(0,0,0,.3);line-height:1.3;text-align:right;
     max-height:36vh;overflow-y:auto;
@@ -133,15 +133,8 @@
   #bin-badge .fb-row .fb-muted{color:var(--muted);font-weight:500;font-size:11px;}
   #bin-badge .fb-sub{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:7px 0 2px;}
 
-  #bin-tab{
-    position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:499;
-    background:#546e7a;color:#fff;border:none;border-radius:12px 0 0 12px;
-    padding:12px 8px 12px 12px;font-size:11px;font-weight:800;letter-spacing:.02em;
-    box-shadow:-2px 2px 8px rgba(0,0,0,.3);cursor:pointer;
-    display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.1;
-  }
-  #bin-tab.hidden{display:none;}
-  #bin-tab .bt-icon{font-size:18px;}
+  /* #bin-tab is now just another .fab-small button living in #fabs, right
+     next to the locate pin, so it needs no styling of its own. */
 
   /* Bottom sheets */
   .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:800;opacity:0;pointer-events:none;transition:opacity .2s;}
@@ -356,7 +349,6 @@
 <div id="count-badge">0 rocks</div>
 <div id="farm-badge" class="hidden"></div>
 <div id="bin-badge" class="hidden"></div>
-<button id="bin-tab" class="hidden"><span class="bt-icon">🛢</span>BINS</button>
 <div id="app-credit">Created by Jason Chaplinski</div>
 
 <div id="drop-pin-banner" class="hidden">
@@ -367,6 +359,7 @@
   <button class="fab fab-small" id="btn-drop-pin" title="Drop a pin to navigate">🚩</button>
   <button class="fab fab-small" id="btn-draw-field" title="Outline a field">📐</button>
   <button class="fab fab-small" id="btn-list" title="Rock &amp; field list">📋</button>
+  <button class="fab fab-small hidden" id="bin-tab" title="Zoom to all bins">🛢</button>
   <button class="fab fab-small" id="btn-locate" title="Find my location">📍</button>
   <button class="fab fab-main" id="btn-mark-here">＋ Mark rock at my location</button>
 </div>
@@ -1003,6 +996,7 @@ service cloud.firestore {
       m.addTo(rockLayerGroup);
     });
     updateCountBadge(filtered);
+    positionCountBadge();
     renderList();
     renderFields();
     renderFieldList();
@@ -1074,6 +1068,18 @@ service cloud.firestore {
         '<div class="cb-total">'+rocks.length+(rocks.length===1 ? " rock" : " rocks")+'</div>'+
         rowsHtml;
     }
+  }
+
+  // Keeps the rock-count badge sitting directly above the FAB button column
+  // (which the BINS button and locate pin live in) instead of a fixed pixel
+  // offset — the column's height changes depending on which buttons are
+  // showing, so this measures its actual current top edge.
+  function positionCountBadge(){
+    var badge = document.getElementById("count-badge");
+    var fabs = document.getElementById("fabs");
+    if(!badge || !fabs) return;
+    var gap = 14;
+    badge.style.bottom = (window.innerHeight - fabs.getBoundingClientRect().top + gap) + "px";
   }
 
   function fieldLabelScale(){
@@ -1433,9 +1439,11 @@ service cloud.firestore {
       el.classList.add("hidden");
       el.innerHTML = "";
       if(tabEl) tabEl.classList.add("hidden");
+      positionCountBadge();
       return;
     }
     if(tabEl) tabEl.classList.remove("hidden");
+    positionCountBadge();
 
     var totals = computeBinTotals();
     var header = '<div class="fb-header" id="bb-toggle">'+
@@ -1493,7 +1501,6 @@ service cloud.firestore {
 
     var obstacles = [
       document.getElementById("count-badge"),
-      document.getElementById("bin-tab"),
       document.getElementById("fabs")
     ];
     var obstacleTop = window.innerHeight - 12;
@@ -3284,7 +3291,6 @@ service cloud.firestore {
     document.getElementById("bin-tab").addEventListener("click", function(){
       if(bins.length === 0) return;
       zoomToAllBins();
-      openBinTotalsSheet();
     });
     document.getElementById("btn-bin-totals-close").addEventListener("click", function(){
       hideSheet("bin-totals-modal", "bin-totals-backdrop");
@@ -3292,7 +3298,7 @@ service cloud.firestore {
     document.getElementById("bin-totals-backdrop").addEventListener("click", function(){
       hideSheet("bin-totals-modal", "bin-totals-backdrop");
     });
-    window.addEventListener("resize", function(){ positionBinBadge(); });
+    window.addEventListener("resize", function(){ positionBinBadge(); positionCountBadge(); });
 
     document.getElementById("btn-draw-field").addEventListener("click", function(){
       editingFieldId = null;
