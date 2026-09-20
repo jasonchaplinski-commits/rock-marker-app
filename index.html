@@ -2702,6 +2702,12 @@ service cloud.firestore {
   function saveFieldFromForm(){
     var name = document.getElementById("input-field-name").value.trim();
     if(!name){ toast("Enter a field name."); return; }
+
+    var existingField = editingFieldId ? fields.find(function(x){ return x.id === editingFieldId; }) : null;
+    var oldName = existingField ? (existingField.name || "").trim() : "";
+    var nameChanged = !!(existingField && oldName && oldName !== name.trim());
+    if(nameChanged && !checkAdminCode()) return;
+
     var crop = document.getElementById("input-field-crop").value;
     var harvestStatus = document.getElementById("input-field-harvest").value || "Not Harvested";
     var color = selectedFieldColor || FIELD_COLORS[0];
@@ -2716,10 +2722,6 @@ service cloud.firestore {
     }
 
     if(editingFieldId){
-      var existingField = fields.find(function(x){ return x.id === editingFieldId; });
-      var oldName = existingField ? (existingField.name || "").trim() : "";
-      var nameChanged = oldName && oldName !== name.trim();
-
       var updates = {name:name, crop:crop, harvestStatus:harvestStatus, partialAcresHarvested:partialAcresHarvested, color:color};
       if(pendingFieldPoints){ updates.points = pendingFieldPoints; }
       if(sharingEnabled){
@@ -2900,6 +2902,11 @@ service cloud.firestore {
   function saveBinFromForm(){
     var name = document.getElementById("input-bin-name").value.trim();
     if(!name){ toast("Enter a bin name."); return; }
+
+    // Editing any detail of an EXISTING bin (name, capacity, etc.) needs the
+    // admin code — adding a brand new bin doesn't.
+    if(editingBinId && !checkAdminCode()) return;
+
     var rawCap = parseFloat(document.getElementById("input-bin-capacity").value);
     var capacityBu = (!isNaN(rawCap) && rawCap >= 0) ? rawCap : null;
 
@@ -2957,6 +2964,7 @@ service cloud.firestore {
 
   function deleteCurrentBin(){
     if(!editingBinId) return;
+    if(!checkAdminCode()) return;
     var delB = bins.find(function(x){ return x.id === editingBinId; });
     if(!confirm('Delete "' + (delB && delB.name ? delB.name : "this bin") + '"? This can\'t be undone.')) return;
     if(sharingEnabled){
@@ -5341,6 +5349,7 @@ service cloud.firestore {
     document.getElementById("btn-save-bin").addEventListener("click", saveBinFromForm);
     document.getElementById("btn-delete-bin").addEventListener("click", deleteCurrentBin);
     document.getElementById("btn-redraw-bin").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
       hideSheet("bin-modal", "bin-backdrop");
       startDrawingBin();
     });
