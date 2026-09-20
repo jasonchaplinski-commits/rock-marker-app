@@ -299,13 +299,17 @@
   /* Bins sit tightly packed in a farmyard, so their marker is a compact
      icon + tiny chip (like a pin) rather than the big field-label card —
      full details (capacity, current holding, log) live in the tap sheet. */
-  .bin-marker{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);cursor:pointer;}
-  .bin-marker .bin-pin{font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+  /* The pin sits fixed at (0,0), the true bin location — decluttering must
+     never move it, only the chip, or the label stops pointing at its bin. */
+  .bin-marker{position:relative;width:0;height:0;cursor:pointer;}
+  .bin-marker .bin-pin{position:absolute;left:0;top:0;transform:translate(-50%,-50%);font-size:26px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
   .bin-marker .bin-chip{
-    margin-top:-4px;background:rgba(255,255,255,.72);backdrop-filter:blur(1.5px);border:1px solid rgba(84,110,122,.85);border-radius:8px;padding:2px 8px;
+    position:absolute;left:0;top:0;transform:translate(-50%,12px);
+    background:rgba(255,255,255,.72);backdrop-filter:blur(1.5px);border:1px solid rgba(84,110,122,.85);border-radius:8px;padding:2px 8px;
     font-size:11px;font-weight:800;color:var(--ink);white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);text-align:center;
   }
   .bin-marker .bin-chip .bin-chip-sub{display:block;font-weight:800;color:var(--ink);font-size:10.5px;text-shadow:0 1px 1px rgba(255,255,255,.5);}
+  .bin-marker .bin-leader{position:absolute;left:0;top:0;height:1px;background:rgba(50,60,65,.6);transform-origin:0 0;pointer-events:none;}
   .log-entry{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:8px 0;font-size:13px;}
   .log-entry:last-child{border-bottom:none;}
   .log-entry-main{flex:1;min-width:0;}
@@ -1282,9 +1286,16 @@ service cloud.firestore {
     return cropBit + "≈" + bu.toLocaleString() + " bu" + (pct !== null ? " (" + pct + "%)" : "");
   }
 
+  // Below this label scale, name+crop chips are too small to read anyway
+  // (farm-wide zoom levels), so bins show as plain pins with no text —
+  // decluttering only has to deal with chips once you've zoomed in enough
+  // for them to matter.
+  var BIN_CHIP_MIN_SCALE = 0.5;
+
   function renderBins(){
     binLayerGroup.clearLayers();
     var labelScale = fieldLabelScale();
+    var showChips = labelScale >= BIN_CHIP_MIN_SCALE;
     var labelMarkers = [];
     bins.forEach(function(b){
       if(!b.points || b.points.length < 3) return;
@@ -1297,6 +1308,11 @@ service cloud.firestore {
 
       var center = polygonCentroid(b.points);
       var holdingHtml = binHoldingHtml(b);
+      var chipHtml = showChips ?
+        '<div class="bin-leader" style="display:none;"></div>'+
+        '<div class="bin-chip">'+escapeHtml(b.name || "Bin")+
+          '<span class="bin-chip-sub">'+holdingHtml+'</span>'+
+        '</div>' : '';
       var labelMarker = L.marker(center, {
         interactive:true,
         pane: "fieldLabelPane",
@@ -1304,9 +1320,7 @@ service cloud.firestore {
           className:"",
           html:'<div class="bin-marker" style="transform:translate(-50%,-50%) scale('+labelScale.toFixed(2)+');">'+
             '<div class="bin-pin">🛢️</div>'+
-            '<div class="bin-chip">'+escapeHtml(b.name || "Bin")+
-              '<span class="bin-chip-sub">'+holdingHtml+'</span>'+
-            '</div>'+
+            chipHtml+
           '</div>',
           iconSize:[0,0]
         })
@@ -1319,44 +1333,84 @@ service cloud.firestore {
       labelMarker.addTo(binLayerGroup);
       labelMarkers.push(labelMarker);
     });
-    declutterBinLabels(labelMarkers);
+    if(showChips){ declutterBinLabels(labelMarkers, labelScale); }
   }
 
   // Farmyard bins are often packed close together, so their labels can land
   // right on top of each other (same issue field labels don't have, since
-  // fields are spread out). This measures each label's actual on-screen box
-  // after it's placed, then sweeps top-to-bottom nudging any label straight
-  // down just enough to clear the one above it whenever they'd overlap —
-  // adapts automatically to zoom level and however many bins are stacked,
-  // without disturbing labels that already have room.
-  function declutterBinLabels(labelMarkers){
+  // fields are spread out). The pin itself always stays exactly on the bin's
+  // real location; only the text chip is free to move. This measures each
+  // chip's natural on-screen box, then runs a few passes of simple 2D
+  // collision resolution — pushing overlapping chips apart along whichever
+  // axis (horizontal or vertical) clears the overlap with the least
+  // movement — until nothing overlaps or a pass limit is hit. Whenever a
+  // chip ends up moved more than a few pixels from its default spot, a thin
+  // leader line is drawn from the pin back to the chip so it's still clear
+  // which label belongs to which bin.
+  function declutterBinLabels(labelMarkers, labelScale){
+    var scale = labelScale || 1;
     var GAP = 4;
-    var boxes = [];
+    var BASE_Y = 12; // chip's default local offset below the pin, pre-scale
+    var MAX_ITER = 40;
+    var items = [];
     labelMarkers.forEach(function(marker){
       var el = marker.getElement();
-      var inner = el && el.querySelector(".bin-marker");
-      if(!inner) return;
-      var r = inner.getBoundingClientRect();
+      var wrapper = el && el.querySelector(".bin-marker");
+      if(!wrapper) return;
+      var chipEl = wrapper.querySelector(".bin-chip");
+      if(!chipEl) return;
+      var r = chipEl.getBoundingClientRect();
       if(r.width === 0 && r.height === 0) return;
-      boxes.push({el: inner, top: r.top, bottom: r.bottom, left: r.left, right: r.right, nudge: 0});
+      items.push({
+        wrapper: wrapper, chipEl: chipEl,
+        cx: r.left + r.width/2, cy: r.top + r.height/2,
+        hw: r.width/2 + GAP/2, hh: r.height/2 + GAP/2,
+        dx: 0, dy: 0
+      });
     });
-    boxes.sort(function(a, z){ return a.top - z.top; });
-    for(var i = 1; i < boxes.length; i++){
-      var b = boxes[i];
-      for(var j = 0; j < i; j++){
-        var a = boxes[j];
-        var overlapX = a.left < b.right && b.left < a.right;
-        if(!overlapX) continue;
-        var aBottom = a.bottom + a.nudge;
-        var bTop = b.top + b.nudge;
-        if(bTop < aBottom + GAP){
-          b.nudge += (aBottom + GAP) - bTop;
+
+    for(var iter = 0; iter < MAX_ITER; iter++){
+      var moved = false;
+      for(var i = 0; i < items.length; i++){
+        for(var j = i+1; j < items.length; j++){
+          var a = items[i], b = items[j];
+          var dx = (b.cx + b.dx) - (a.cx + a.dx);
+          var dy = (b.cy + b.dy) - (a.cy + a.dy);
+          var overlapX = (a.hw + b.hw) - Math.abs(dx);
+          var overlapY = (a.hh + b.hh) - Math.abs(dy);
+          if(overlapX > 0 && overlapY > 0){
+            moved = true;
+            if(overlapX < overlapY){
+              var pushX = overlapX/2 + 0.5;
+              var signX = dx !== 0 ? (dx > 0 ? 1 : -1) : (i % 2 === 0 ? 1 : -1);
+              a.dx -= signX*pushX; b.dx += signX*pushX;
+            } else {
+              var pushY = overlapY/2 + 0.5;
+              var signY = dy !== 0 ? (dy > 0 ? 1 : -1) : 1;
+              a.dy -= signY*pushY; b.dy += signY*pushY;
+            }
+          }
         }
       }
+      if(!moved) break;
     }
-    boxes.forEach(function(box){
-      if(box.nudge > 0.5){
-        box.el.style.transform = "translateY(" + Math.round(box.nudge) + "px) " + box.el.style.transform;
+
+    items.forEach(function(it){
+      var localDx = it.dx / scale;
+      var localDy = it.dy / scale;
+      it.chipEl.style.transform = "translate(calc(-50% + "+localDx.toFixed(1)+"px), calc("+BASE_Y+"px + "+localDy.toFixed(1)+"px))";
+
+      var leaderEl = it.wrapper.querySelector(".bin-leader");
+      if(!leaderEl) return;
+      if(Math.abs(it.dx) > 10 || Math.abs(it.dy) > 10){
+        var anchorX = localDx, anchorY = BASE_Y + localDy;
+        var len = Math.sqrt(anchorX*anchorX + anchorY*anchorY);
+        var angle = Math.atan2(anchorY, anchorX) * 180 / Math.PI;
+        leaderEl.style.width = len.toFixed(1) + "px";
+        leaderEl.style.transform = "rotate(" + angle.toFixed(1) + "deg)";
+        leaderEl.style.display = "block";
+      } else {
+        leaderEl.style.display = "none";
       }
     });
   }
