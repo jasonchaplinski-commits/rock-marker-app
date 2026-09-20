@@ -101,6 +101,11 @@
   }
   #count-badge .cb-row .cb-field-name{overflow:hidden;text-overflow:ellipsis;max-width:40vw;}
   #count-badge .cb-row .cb-count{color:var(--ink);font-weight:800;flex-shrink:0;}
+  #count-badge .fb-header{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none;}
+  #count-badge .fb-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+  #count-badge .fb-chevron{font-size:10px;color:var(--muted);flex-shrink:0;}
+  #count-badge .fb-total{font-size:19px;font-weight:800;margin-top:2px;margin-bottom:4px;white-space:nowrap;}
+  #count-badge.collapsed .fb-total{margin-bottom:0;}
 
   #farm-badge{
     position:absolute;top:64px;right:10px;z-index:498;max-width:64vw;
@@ -1040,8 +1045,11 @@ service cloud.firestore {
     }
   }
 
+  var rockBadgeCollapsed = true; // starts collapsed, same as the other totals badges
+
   function updateCountBadge(filtered){
     var badge = document.getElementById("count-badge");
+    badge.classList.remove("collapsed");
     if(currentFieldFilter !== "all"){
       var matchedField = fields.find(function(fd){ return fd.name === currentFieldFilter; });
       var statsBits = [];
@@ -1052,23 +1060,44 @@ service cloud.firestore {
       statsBits.push(filtered.length + (filtered.length===1 ? " rock" : " rocks"));
       badge.innerHTML = '<div class="field-name-line">'+escapeHtml(currentFieldFilter)+'</div>'+
         '<div class="field-stats-line">'+escapeHtml(statsBits.join(" · "))+'</div>';
+      return;
+    }
+
+    var byField = {}; // field name -> rock count
+    rocks.forEach(function(r){
+      var key = (r.field && r.field.trim()) ? r.field.trim() : "(no field)";
+      byField[key] = (byField[key] || 0) + 1;
+    });
+    var fieldNames = Object.keys(byField).sort(function(a,b){
+      if(a === "(no field)") return 1;
+      if(b === "(no field)") return -1;
+      return byField[b] - byField[a];
+    });
+
+    var header = '<div class="fb-header" id="cb-toggle">'+
+        '<span class="fb-title">Rock totals</span>'+
+        '<span class="fb-chevron">'+(rockBadgeCollapsed ? "▸ tap for more" : "▾ tap to collapse")+'</span>'+
+      '</div>'+
+      '<div class="fb-total">'+rocks.length+(rocks.length===1 ? " rock" : " rocks")+'</div>';
+
+    if(rockBadgeCollapsed || fieldNames.length === 0){
+      badge.classList.add("collapsed");
+      badge.innerHTML = header;
     } else {
-      var byField = {}; // field name -> rock count
-      rocks.forEach(function(r){
-        var key = (r.field && r.field.trim()) ? r.field.trim() : "(no field)";
-        byField[key] = (byField[key] || 0) + 1;
-      });
-      var fieldNames = Object.keys(byField).sort(function(a,b){
-        if(a === "(no field)") return 1;
-        if(b === "(no field)") return -1;
-        return byField[b] - byField[a];
-      });
       var rowsHtml = fieldNames.map(function(name){
         return '<div class="cb-row"><span class="cb-field-name">'+escapeHtml(name)+'</span><span class="cb-count">'+byField[name]+'</span></div>';
       }).join("");
-      badge.innerHTML =
-        '<div class="cb-total">'+rocks.length+(rocks.length===1 ? " rock" : " rocks")+'</div>'+
-        rowsHtml;
+      badge.innerHTML = header + rowsHtml;
+    }
+
+    var toggleEl = document.getElementById("cb-toggle");
+    if(toggleEl){
+      toggleEl.onclick = function(){
+        rockBadgeCollapsed = !rockBadgeCollapsed;
+        updateCountBadge(filtered);
+        positionCountBadge();
+        positionBinBadge();
+      };
     }
   }
 
