@@ -616,6 +616,8 @@
   <div class="side-menu-item" id="menu-item-equipment"><span class="smi-icon">🚜</span> Equipment</div>
   <div class="side-menu-item" id="menu-item-belts"><span class="smi-icon">⚙️</span> Belts</div>
   <div class="side-menu-item" id="menu-item-reports"><span class="smi-icon">📊</span> Reports</div>
+  <div class="side-menu-sep"></div>
+  <div class="side-menu-item" id="menu-item-employees"><span class="smi-icon">🪪</span> Employee Info</div>
 </div>
 
 <div id="install-banner" class="hidden">
@@ -1273,6 +1275,54 @@ service cloud.firestore {
   </div>
 </div>
 
+<!-- Employee Info list -->
+<div class="sheet-backdrop" id="employees-list-backdrop"></div>
+<div class="sheet" id="employees-list-modal">
+  <div class="sheet-handle"></div>
+  <h2>🪪 Employee Info <button class="icon-btn" id="btn-close-employees-list" style="font-size:14px;">✕</button></h2>
+  <div class="coord-readout" style="margin-top:0;">Optional — only add someone here if you need their contact info on file. This is separate from the name someone enters when they first open the app.</div>
+  <div class="btn-row" style="margin-bottom:10px;">
+    <button class="btn btn-primary" id="btn-add-employee">+ Add person</button>
+  </div>
+  <div id="employees-list"></div>
+</div>
+
+<!-- Add/Edit employee -->
+<div class="sheet-backdrop" id="employee-backdrop"></div>
+<div class="sheet" id="employee-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="employee-modal-title">Add person</h2>
+
+  <div class="field-row">
+    <label>First name</label>
+    <input type="text" id="input-employee-first" placeholder="First name">
+  </div>
+  <div class="field-row">
+    <label>Last name</label>
+    <input type="text" id="input-employee-last" placeholder="Last name">
+  </div>
+  <div class="field-row">
+    <label>Phone number</label>
+    <input type="tel" id="input-employee-phone" placeholder="e.g. 701-555-0123">
+  </div>
+  <div class="field-row">
+    <label>Address (optional)</label>
+    <input type="text" id="input-employee-address" placeholder="Street, city, state">
+  </div>
+  <div class="field-row">
+    <label>Email (optional)</label>
+    <input type="email" id="input-employee-email" placeholder="name@example.com">
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-cancel-employee">Cancel</button>
+    <button class="btn btn-primary" id="btn-save-employee">Save</button>
+  </div>
+  <div class="btn-row hidden" id="employee-edit-only-row">
+    <button class="btn btn-danger" id="btn-delete-employee">Delete</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <div id="bin-zoom-cta">
@@ -1436,6 +1486,8 @@ service cloud.firestore {
   var bins = [];
   var equipment = [];
   var belts = [];
+  var employees = [];
+  var editingEmployeeId = null;
   // Rocks are hard-deleted from the map, but a record of who removed one and
   // when is kept here (in one small config doc, like truckSizes — not its
   // own collection, since these are only ever read, never edited) so the
@@ -1514,14 +1566,15 @@ service cloud.firestore {
         bins = Array.isArray(parsed.bins) ? parsed.bins : [];
         equipment = Array.isArray(parsed.equipment) ? parsed.equipment : [];
         belts = Array.isArray(parsed.belts) ? parsed.belts : [];
+        employees = Array.isArray(parsed.employees) ? parsed.employees : [];
         removedRocks = Array.isArray(parsed.removedRocks) ? parsed.removedRocks : [];
         if(parsed.truckSizes && typeof parsed.truckSizes === "object"){ truckSizes = parsed.truckSizes; }
       }
-    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; equipment = []; belts = []; removedRocks = []; }
+    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; equipment = []; belts = []; employees = []; removedRocks = []; }
   }
   function saveData(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, equipment: equipment, belts: belts, truckSizes: truckSizes, removedRocks: removedRocks}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, equipment: equipment, belts: belts, employees: employees, truckSizes: truckSizes, removedRocks: removedRocks}));
     }catch(e){
       toast("Couldn't save — your browser storage may be full or blocked.");
     }
@@ -4940,6 +4993,138 @@ service cloud.firestore {
     toast("Belt deleted");
   }
 
+  // ---------- Employee Info ----------
+  // Entirely optional — nobody has to be in here to use the app. Opening
+  // this list at all requires the admin code (checked once, at the menu
+  // click, in wireUI()), since it's the one place in the app holding
+  // people's personal contact info rather than farm records.
+  function employeeDocRef(id){
+    return firestoreDb.collection("farms").doc(farmCode).collection("employees").doc(id);
+  }
+
+  function openEmployeesListSheet(){
+    renderEmployeesList();
+    showSheet("employees-list-modal", "employees-list-backdrop");
+  }
+
+  function renderEmployeesList(){
+    var listEl = document.getElementById("employees-list");
+    if(!listEl) return;
+    if(employees.length === 0){
+      listEl.innerHTML = '<div id="empty-list">No one added yet. Tap "+ Add person" above.</div>';
+      return;
+    }
+    var sorted = employees.slice().sort(function(a,z){
+      return ((a.lastName||"")+(a.firstName||"")).localeCompare((z.lastName||"")+(z.firstName||""));
+    });
+    listEl.innerHTML = sorted.map(function(p){
+      var fullName = ((p.firstName||"") + " " + (p.lastName||"")).trim() || "Unnamed";
+      return '<div class="rock-row" data-id="'+p.id+'">'+
+        '<div class="rock-info">'+
+          '<div class="r1">🪪 '+escapeHtml(fullName)+'</div>'+
+          (p.phone ? '<div class="r2 r2-lg">📞 '+escapeHtml(p.phone)+'</div>' : '')+
+          (p.email ? '<div class="r2 r2-lg">✉️ '+escapeHtml(p.email)+'</div>' : '')+
+          (p.address ? '<div class="r2 r2-lg">📍 '+escapeHtml(p.address)+'</div>' : '')+
+        '</div>'+
+        '<div class="rock-actions">'+
+          '<button class="row-btn" data-action="edit">✏️</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+  }
+
+  function openEmployeeModal(p){
+    if(p){
+      editingEmployeeId = p.id;
+      document.getElementById("employee-modal-title").textContent = "Edit person";
+      document.getElementById("input-employee-first").value = p.firstName || "";
+      document.getElementById("input-employee-last").value = p.lastName || "";
+      document.getElementById("input-employee-phone").value = p.phone || "";
+      document.getElementById("input-employee-address").value = p.address || "";
+      document.getElementById("input-employee-email").value = p.email || "";
+      document.getElementById("employee-edit-only-row").classList.remove("hidden");
+    } else {
+      editingEmployeeId = null;
+      document.getElementById("employee-modal-title").textContent = "Add person";
+      document.getElementById("input-employee-first").value = "";
+      document.getElementById("input-employee-last").value = "";
+      document.getElementById("input-employee-phone").value = "";
+      document.getElementById("input-employee-address").value = "";
+      document.getElementById("input-employee-email").value = "";
+      document.getElementById("employee-edit-only-row").classList.add("hidden");
+    }
+    showSheet("employee-modal", "employee-backdrop");
+  }
+
+  function closeEmployeeModal(){
+    hideSheet("employee-modal", "employee-backdrop");
+    editingEmployeeId = null;
+  }
+
+  function saveEmployeeFromForm(){
+    var first = document.getElementById("input-employee-first").value.trim();
+    var last = document.getElementById("input-employee-last").value.trim();
+    var phone = document.getElementById("input-employee-phone").value.trim();
+    var address = document.getElementById("input-employee-address").value.trim();
+    var email = document.getElementById("input-employee-email").value.trim();
+    if(!first || !last){ toast("Enter a first and last name."); return; }
+    if(!phone){ toast("Enter a phone number."); return; }
+    if(containsProfanity(first) || containsProfanity(last)){
+      toast("Please enter an appropriate name.");
+      return;
+    }
+
+    if(editingEmployeeId){
+      var updates = {firstName:first, lastName:last, phone:phone, address:address, email:email};
+      if(sharingEnabled){
+        employeeDocRef(editingEmployeeId).update(updates).catch(function(){
+          toast("Couldn't save to the shared map — check your connection.");
+        });
+      } else {
+        var exp = employees.find(function(x){ return x.id === editingEmployeeId; });
+        if(exp){ exp.firstName=first; exp.lastName=last; exp.phone=phone; exp.address=address; exp.email=email; }
+        saveData();
+        renderEmployeesList();
+      }
+      toast("Saved");
+    } else {
+      var newEmployee = {
+        id: "emp"+Date.now()+"_"+Math.floor(Math.random()*10000),
+        firstName:first, lastName:last, phone:phone, address:address, email:email,
+        createdAt: new Date().toISOString()
+      };
+      if(sharingEnabled){
+        employeeDocRef(newEmployee.id).set(newEmployee).catch(function(){
+          toast("Couldn't save to the shared map — check your connection.");
+        });
+      } else {
+        employees.push(newEmployee);
+        saveData();
+        renderEmployeesList();
+      }
+      toast("Saved");
+    }
+    closeEmployeeModal();
+  }
+
+  function deleteCurrentEmployee(){
+    if(!editingEmployeeId) return;
+    var delP = employees.find(function(x){ return x.id === editingEmployeeId; });
+    var delName = delP ? ((delP.firstName||"")+" "+(delP.lastName||"")).trim() : "this person";
+    if(!confirm('Delete "' + (delName || "this person") + '"? This can\'t be undone.')) return;
+    if(sharingEnabled){
+      employeeDocRef(editingEmployeeId).delete().catch(function(){
+        toast("Couldn't delete from the shared map — check your connection.");
+      });
+    } else {
+      employees = employees.filter(function(x){ return x.id !== editingEmployeeId; });
+      saveData();
+      renderEmployeesList();
+    }
+    closeEmployeeModal();
+    toast("Deleted");
+  }
+
   function saveRockFromForm(){
     var field = document.getElementById("input-field").value.trim();
     var note = document.getElementById("input-note").value.trim();
@@ -5462,7 +5647,7 @@ service cloud.firestore {
   }
 
   function cacheSharedData(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins, equipment:equipment, belts:belts, truckSizes:truckSizes, removedRocks:removedRocks})); }catch(e){}
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins, equipment:equipment, belts:belts, employees:employees, truckSizes:truckSizes, removedRocks:removedRocks})); }catch(e){}
   }
 
   // Rocks are hard-deleted (no per-rock archive), so this is the only place
@@ -5585,6 +5770,20 @@ service cloud.firestore {
     );
 
     unsubscribeFns.push(
+      firestoreDb.collection("farms").doc(farmCode).collection("employees").onSnapshot(function(snapshot){
+        employees = snapshot.docs.map(function(d){
+          var data = d.data();
+          data.id = d.id;
+          return data;
+        });
+        cacheSharedData();
+        renderEmployeesList();
+      }, function(err){
+        toast("Sync error loading employee info.");
+      })
+    );
+
+    unsubscribeFns.push(
       firestoreDb.collection("farms").doc(farmCode).collection("config").doc("truckSizes").onSnapshot(function(doc){
         if(doc.exists){
           var data = doc.data();
@@ -5631,6 +5830,7 @@ service cloud.firestore {
       var localBinsSnapshot = bins.slice();
       var localEquipmentSnapshot = equipment.slice();
       var localBeltsSnapshot = belts.slice();
+      var localEmployeesSnapshot = employees.slice();
       var localTruckSizesSnapshot = {tandem: truckSizes.tandem, semi: truckSizes.semi};
       var localRemovedRocksSnapshot = removedRocks.slice();
 
@@ -5638,7 +5838,7 @@ service cloud.firestore {
       setShareStatusUI();
       try{ localStorage.setItem(SHARE_KEY, JSON.stringify({config:config, farmCode:code})); }catch(e){}
       if(!isAutoReconnect){
-        seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot, localWaypointsSnapshot, localBinsSnapshot, localEquipmentSnapshot, localBeltsSnapshot);
+        seedFarmIfEmpty(localFieldsSnapshot, localRocksSnapshot, localWaypointsSnapshot, localBinsSnapshot, localEquipmentSnapshot, localBeltsSnapshot, localEmployeesSnapshot);
         // Truck sizes and the removed-rocks history each live in a single
         // config doc, not a collection, so seed them separately: only push
         // this device's copy up if the shared farm doesn't have that doc
@@ -5668,25 +5868,28 @@ service cloud.firestore {
   // starts from your existing work instead of empty. If the farm code already
   // has data (someone else set it up, or you've connected before), this does
   // nothing and the shared data simply takes over, as usual.
-  function seedFarmIfEmpty(localFields, localRocks, localWaypoints, localBins, localEquipment, localBelts){
+  function seedFarmIfEmpty(localFields, localRocks, localWaypoints, localBins, localEquipment, localBelts, localEmployees){
     localWaypoints = localWaypoints || [];
     localBins = localBins || [];
     localEquipment = localEquipment || [];
     localBelts = localBelts || [];
-    if(!localFields.length && !localRocks.length && !localWaypoints.length && !localBins.length && !localEquipment.length && !localBelts.length){ return; }
+    localEmployees = localEmployees || [];
+    if(!localFields.length && !localRocks.length && !localWaypoints.length && !localBins.length && !localEquipment.length && !localBelts.length && !localEmployees.length){ return; }
     var fieldsRef = firestoreDb.collection("farms").doc(farmCode).collection("fields");
     var rocksRef = firestoreDb.collection("farms").doc(farmCode).collection("rocks");
     var waypointsRef = firestoreDb.collection("farms").doc(farmCode).collection("waypoints");
     var binsRef = firestoreDb.collection("farms").doc(farmCode).collection("bins");
     var equipmentRef = firestoreDb.collection("farms").doc(farmCode).collection("equipment");
     var beltsRef = firestoreDb.collection("farms").doc(farmCode).collection("belts");
-    Promise.all([fieldsRef.limit(1).get(), rocksRef.limit(1).get(), waypointsRef.limit(1).get(), binsRef.limit(1).get(), equipmentRef.limit(1).get(), beltsRef.limit(1).get()]).then(function(results){
+    var employeesRef = firestoreDb.collection("farms").doc(farmCode).collection("employees");
+    Promise.all([fieldsRef.limit(1).get(), rocksRef.limit(1).get(), waypointsRef.limit(1).get(), binsRef.limit(1).get(), equipmentRef.limit(1).get(), beltsRef.limit(1).get(), employeesRef.limit(1).get()]).then(function(results){
       var fieldsEmpty = results[0].empty;
       var rocksEmpty = results[1].empty;
       var waypointsEmpty = results[2].empty;
       var binsEmpty = results[3].empty;
       var equipmentEmpty = results[4].empty;
       var beltsEmpty = results[5].empty;
+      var employeesEmpty = results[6].empty;
       var uploaded = 0;
       if(fieldsEmpty && localFields.length){
         localFields.forEach(function(f){
@@ -5768,6 +5971,19 @@ service cloud.firestore {
             beltNumber: "",
             notes: b.notes || "",
             createdAt: b.createdAt || new Date().toISOString()
+          });
+          uploaded++;
+        });
+      }
+      if(employeesEmpty && localEmployees.length){
+        localEmployees.forEach(function(p){
+          employeesRef.doc(p.id).set({
+            firstName: p.firstName || "",
+            lastName: p.lastName || "",
+            phone: p.phone || "",
+            address: p.address || "",
+            email: p.email || "",
+            createdAt: p.createdAt || new Date().toISOString()
           });
           uploaded++;
         });
@@ -5929,6 +6145,11 @@ service cloud.firestore {
       closeSideMenu();
       openReportsSheet();
     });
+    document.getElementById("menu-item-employees").addEventListener("click", function(){
+      closeSideMenu();
+      if(!checkAdminCode()) return;
+      openEmployeesListSheet();
+    });
     document.getElementById("input-report-type").addEventListener("change", renderReportsBody);
     document.getElementById("btn-print-report").addEventListener("click", function(){ window.print(); });
     document.getElementById("btn-clear-rock-report").addEventListener("click", clearRemovedRocksHistory);
@@ -6066,6 +6287,27 @@ service cloud.firestore {
     document.getElementById("btn-cancel-belt").addEventListener("click", closeBeltModal);
     document.getElementById("btn-save-belt").addEventListener("click", saveBeltFromForm);
     document.getElementById("btn-delete-belt").addEventListener("click", deleteCurrentBelt);
+
+    // ---------- Employee Info ----------
+    document.getElementById("btn-close-employees-list").addEventListener("click", function(){
+      hideSheet("employees-list-modal", "employees-list-backdrop");
+    });
+    document.getElementById("employees-list-backdrop").addEventListener("click", function(){
+      hideSheet("employees-list-modal", "employees-list-backdrop");
+    });
+    document.getElementById("btn-add-employee").addEventListener("click", function(){ openEmployeeModal(null); });
+    document.getElementById("employees-list").addEventListener("click", function(e){
+      var row = e.target.closest(".rock-row");
+      if(!row) return;
+      var id = row.getAttribute("data-id");
+      var p = employees.find(function(x){ return x.id === id; });
+      if(!p) return;
+      openEmployeeModal(p);
+    });
+    document.getElementById("btn-cancel-employee").addEventListener("click", closeEmployeeModal);
+    document.getElementById("btn-save-employee").addEventListener("click", saveEmployeeFromForm);
+    document.getElementById("btn-delete-employee").addEventListener("click", deleteCurrentEmployee);
+    document.getElementById("employee-backdrop").addEventListener("click", closeEmployeeModal);
     document.getElementById("belt-backdrop").addEventListener("click", closeBeltModal);
     document.getElementById("btn-add-belt-item").addEventListener("click", addBeltItemRow);
     document.getElementById("belt-items-list").addEventListener("input", function(e){
