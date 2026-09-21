@@ -781,6 +781,15 @@
     </select>
   </div>
 
+  <div class="field-row">
+    <label>Farmed by <span style="font-weight:400;color:var(--muted);">(admin to change)</span></label>
+    <select id="input-field-farmer">
+      <option value="">— Unassigned —</option>
+      <option value="Brenda">Brenda</option>
+      <option value="Joe">Joe</option>
+    </select>
+  </div>
+
   <div class="field-row hidden" id="field-partial-acres-row">
     <label>Acres harvested so far</label>
     <input type="number" id="input-field-partial-acres" min="0" step="0.1" placeholder="e.g. 12.5">
@@ -1019,6 +1028,7 @@
       <option value="all">All reports</option>
       <option value="crop-summary">Crop totals</option>
       <option value="crop-detail">Crop report (by field)</option>
+      <option value="farmed-by">Farmed by</option>
       <option value="bins">Bin report</option>
       <option value="bin-loads">Bin load report (who/when)</option>
       <option value="rocks">Rock report</option>
@@ -3071,6 +3081,7 @@ service cloud.firestore {
       document.getElementById("field-modal-title").textContent = "Edit field";
       document.getElementById("input-field-name").value = field.name || "";
       document.getElementById("input-field-crop").value = field.crop || "";
+      document.getElementById("input-field-farmer").value = field.farmer || "";
       document.getElementById("input-field-harvest").value = harvestStatusOf(field);
       document.getElementById("input-field-partial-acres").value =
         (typeof field.partialAcresHarvested === "number" && !isNaN(field.partialAcresHarvested)) ? field.partialAcresHarvested : "";
@@ -3082,6 +3093,7 @@ service cloud.firestore {
       document.getElementById("field-modal-title").textContent = "Name this field";
       document.getElementById("input-field-name").value = "";
       document.getElementById("input-field-crop").value = "";
+      document.getElementById("input-field-farmer").value = "";
       document.getElementById("input-field-harvest").value = "Not Harvested";
       document.getElementById("input-field-partial-acres").value = "";
       selectFieldColor(FIELD_COLORS[fields.length % FIELD_COLORS.length]);
@@ -3121,7 +3133,10 @@ service cloud.firestore {
     var existingField = editingFieldId ? fields.find(function(x){ return x.id === editingFieldId; }) : null;
     var oldName = existingField ? (existingField.name || "").trim() : "";
     var nameChanged = !!(existingField && oldName && oldName !== name.trim());
-    if(nameChanged && !checkAdminCode()) return;
+    var oldFarmer = existingField ? (existingField.farmer || "") : "";
+    var farmer = document.getElementById("input-field-farmer").value || "";
+    var farmerChanged = !!(existingField && oldFarmer && oldFarmer !== farmer);
+    if((nameChanged || farmerChanged) && !checkAdminCode()) return;
 
     var crop = document.getElementById("input-field-crop").value;
     var harvestStatus = document.getElementById("input-field-harvest").value || "Not Harvested";
@@ -3137,10 +3152,10 @@ service cloud.firestore {
     }
 
     if(editingFieldId){
-      var updates = {name:name, crop:crop, harvestStatus:harvestStatus, partialAcresHarvested:partialAcresHarvested, color:color};
+      var updates = {name:name, crop:crop, farmer:farmer, harvestStatus:harvestStatus, partialAcresHarvested:partialAcresHarvested, color:color};
       if(pendingFieldPoints){ updates.points = pendingFieldPoints; }
       if(sharingEnabled){
-        var fsUpdates = {name:updates.name, crop:updates.crop, harvestStatus:updates.harvestStatus, partialAcresHarvested:updates.partialAcresHarvested, color:updates.color};
+        var fsUpdates = {name:updates.name, crop:updates.crop, farmer:updates.farmer, harvestStatus:updates.harvestStatus, partialAcresHarvested:updates.partialAcresHarvested, color:updates.color};
         if(updates.points){ fsUpdates.points = pointsToFirestore(updates.points); }
         fieldDocRef(editingFieldId).update(fsUpdates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
@@ -3153,7 +3168,7 @@ service cloud.firestore {
       } else {
         var f = fields.find(function(x){ return x.id === editingFieldId; });
         if(f){
-          f.name = updates.name; f.crop = updates.crop; f.harvestStatus = updates.harvestStatus;
+          f.name = updates.name; f.crop = updates.crop; f.farmer = updates.farmer; f.harvestStatus = updates.harvestStatus;
           f.partialAcresHarvested = updates.partialAcresHarvested; f.color = updates.color;
           if(updates.points){ f.points = updates.points; }
         }
@@ -3176,6 +3191,7 @@ service cloud.firestore {
         id: "f"+Date.now()+"_"+Math.floor(Math.random()*10000),
         name: name,
         crop: crop,
+        farmer: farmer,
         harvestStatus: harvestStatus,
         partialAcresHarvested: partialAcresHarvested,
         color: color,
@@ -3183,7 +3199,7 @@ service cloud.firestore {
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
-        fieldDocRef(newField.id).set({name:newField.name, crop:newField.crop, harvestStatus:newField.harvestStatus, partialAcresHarvested:newField.partialAcresHarvested, color:newField.color, points:pointsToFirestore(newField.points), createdAt:newField.createdAt}).catch(function(){
+        fieldDocRef(newField.id).set({name:newField.name, crop:newField.crop, farmer:newField.farmer, harvestStatus:newField.harvestStatus, partialAcresHarvested:newField.partialAcresHarvested, color:newField.color, points:pointsToFirestore(newField.points), createdAt:newField.createdAt}).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
@@ -3370,6 +3386,50 @@ service cloud.firestore {
     '</div>';
   }
 
+  // The two people fields get assigned to. Add a name here (and a matching
+  // <option> in the "Farmed by" dropdown in the field edit sheet) to add a
+  // third person later — everything else below adapts automatically.
+  var FARMER_NAMES = ["Brenda", "Joe"];
+
+  function buildFarmedByReportHtml(){
+    if(fields.length === 0){
+      return '<div class="report-section"><h3>🧑‍🌾 Farmed By</h3><div class="report-empty">No fields have been mapped yet.</div></div>';
+    }
+    var totalAcres = 0;
+    var groups = {};
+    var order = FARMER_NAMES.slice();
+    fields.forEach(function(f){
+      var acres = (f.points && f.points.length >= 3) ? polygonAreaAcres(f.points) : 0;
+      totalAcres += acres;
+      var key = (f.farmer && f.farmer.trim()) ? f.farmer.trim() : "Unassigned";
+      if(order.indexOf(key) === -1){ order.push(key); }
+      if(!groups[key]){ groups[key] = {acres:0, fields:[]}; }
+      groups[key].acres += acres;
+      groups[key].fields.push({name:f.name||"Field", acres:acres, crop:f.crop});
+    });
+    var sections = order.filter(function(k){ return groups[k]; }).map(function(key){
+      var g = groups[key];
+      var pct = totalAcres > 0 ? Math.round((g.acres/totalAcres)*100) : 0;
+      var rows = g.fields.slice().sort(function(a,z){ return a.name.localeCompare(z.name); }).map(function(f){
+        var cropKey = f.crop && CROP_COLORS[f.crop] ? f.crop : "No Crop";
+        var icon = CROP_ICONS[cropKey] ? CROP_ICONS[cropKey]+' ' : '';
+        return '<tr><td>'+escapeHtml(f.name)+'</td><td>'+f.acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td></tr>';
+      }).join("");
+      var label = key === "Unassigned" ? "🚫 Unassigned" : "🧑‍🌾 "+escapeHtml(key);
+      return '<div class="report-section">'+
+        '<h3>'+label+' — '+g.acres.toFixed(1)+' ac ('+pct+'%)</h3>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th></tr></thead><tbody>'+
+        rows+
+        '</tbody></table>'+
+      '</div>';
+    }).join("");
+    return '<div class="report-section" style="margin-bottom:4px;">'+
+      '<h3>🧑‍🌾 Farmed By</h3>'+
+      '<div class="report-meta">'+totalAcres.toFixed(1)+' acres total across '+fields.length+' '+(fields.length === 1 ? "field" : "fields")+'</div>'+
+    '</div>'+
+    sections;
+  }
+
   function buildBinReportHtml(){
     if(bins.length === 0){
       return '<div class="report-section"><h3>🛢 Bin Report</h3><div class="report-empty">No bins have been mapped yet.</div></div>';
@@ -3493,17 +3553,20 @@ service cloud.firestore {
       "all": "All reports",
       "crop-summary": "Crop totals",
       "crop-detail": "Crop report (by field)",
+      "farmed-by": "Farmed by",
       "bins": "Bin report",
       "bin-loads": "Bin load report (who/when)",
       "rocks": "Rock report"
     };
     var html = reportPrintHeaderHtml(subtitleByType[type] || "Report");
     if(type === "all"){
-      html += buildCropSummaryReportHtml() + buildCropDetailReportHtml() + buildBinReportHtml() + buildBinLoadReportHtml() + buildRockReportHtml();
+      html += buildCropSummaryReportHtml() + buildCropDetailReportHtml() + buildFarmedByReportHtml() + buildBinReportHtml() + buildBinLoadReportHtml() + buildRockReportHtml();
     } else if(type === "crop-summary"){
       html += buildCropSummaryReportHtml();
     } else if(type === "crop-detail"){
       html += buildCropDetailReportHtml();
+    } else if(type === "farmed-by"){
+      html += buildFarmedByReportHtml();
     } else if(type === "bins"){
       html += buildBinReportHtml();
     } else if(type === "bin-loads"){
