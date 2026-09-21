@@ -3157,10 +3157,15 @@ service cloud.firestore {
       return '<div class="report-section"><h3>🗺️ Crop Report (by field)</h3><div class="report-empty">No fields have been mapped yet.</div></div>';
     }
     var harvestSortRank = {"Not Harvested": 0, "Partial Harvested": 1, "Harvested": 2};
+    var cropKeyOf = function(f){ return (f.crop && CROP_COLORS[f.crop]) ? f.crop : "No Crop"; };
     var sorted = fields.slice().sort(function(a,z){
       var ra = harvestSortRank[harvestStatusOf(a)];
       var rz = harvestSortRank[harvestStatusOf(z)];
       if(ra !== rz) return ra - rz;
+      // Within the same harvest status, group fields planted in the same
+      // crop together, rather than scattering them alphabetically by name.
+      var ca = cropKeyOf(a).localeCompare(cropKeyOf(z));
+      if(ca !== 0) return ca;
       return (a.name||"").localeCompare(z.name||"");
     });
     var rows = sorted.map(function(f){
