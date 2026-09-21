@@ -622,6 +622,7 @@
   <div class="side-menu-item" id="menu-item-belts"><span class="smi-icon">⚙️</span> Belts</div>
   <div class="side-menu-item" id="menu-item-reports"><span class="smi-icon">📊</span> Reports</div>
   <div class="side-menu-item" id="menu-item-downloads"><span class="smi-icon">📂</span> Downloads</div>
+  <div class="side-menu-item" id="menu-item-crop-plan"><span class="smi-icon">📄</span> Crop Planning</div>
   <div class="side-menu-sep"></div>
   <div class="side-menu-item" id="menu-item-my-info"><span class="smi-icon">📝</span> My Info</div>
   <div class="side-menu-item" id="menu-item-employees"><span class="smi-icon">🪪</span> Employee Info (admin)</div>
@@ -5311,6 +5312,34 @@ service cloud.firestore {
     });
   }
 
+  // "Crop Planning" menu shortcut — jumps straight to that one file from the
+  // shared Downloads library instead of making people open Downloads and
+  // find it themselves. Matches by name so it keeps working even if the
+  // file gets replaced with a newer version later (same name, new upload).
+  var CROP_PLAN_FILE_NAME_HINT = "crop planning";
+  function openCropPlanningFile(){
+    if(!sharingEnabled){
+      toast("Connect sharing first.");
+      return;
+    }
+    var match = files.find(function(f){
+      return (f.name || "").toLowerCase().indexOf(CROP_PLAN_FILE_NAME_HINT) !== -1;
+    });
+    if(!match){
+      toast("Crop Planning file hasn't been added yet — add it from Downloads.");
+      openDownloadsSheet();
+      return;
+    }
+    var a = document.createElement("a");
+    a.href = match.url;
+    a.download = match.name || "2027 Crop Planning.dotm";
+    a.target = "_blank";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
   function openEmployeeModal(p){
     if(p){
       editingEmployeeId = p.id;
@@ -6462,6 +6491,10 @@ service cloud.firestore {
     document.getElementById("menu-item-downloads").addEventListener("click", function(){
       closeSideMenu();
       openDownloadsSheet();
+    });
+    document.getElementById("menu-item-crop-plan").addEventListener("click", function(){
+      closeSideMenu();
+      openCropPlanningFile();
     });
     document.getElementById("menu-item-employees").addEventListener("click", function(){
       closeSideMenu();
