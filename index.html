@@ -26,7 +26,7 @@
     --small:#8a8f86;
     --medium:#c9822a;
     --large:#c03b2b;
-    --boulder:#6a2b6f;
+    --boulder:#e8b000;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{height:100%;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--cream);overflow:hidden;}
@@ -427,7 +427,8 @@
   .rock-pin.size-small{width:26px;height:26px;font-size:13px;border-color:var(--small);}
   .rock-pin.size-medium{width:32px;height:32px;font-size:16px;border-color:var(--medium);}
   .rock-pin.size-large{width:38px;height:38px;font-size:19px;border-color:var(--large);}
-  .rock-pin.size-boulder{width:46px;height:46px;font-size:23px;border-color:var(--boulder);}
+  .rock-pin.size-boulder{width:46px;height:46px;font-size:23px;border-color:var(--boulder);padding:2px;}
+  .rock-pin.size-boulder img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
   .rock-pin.ghost{
     opacity:.5;background:rgba(255,255,255,.55);box-shadow:none;
   }
@@ -668,8 +669,9 @@
       <div class="size-opt" data-size="small"><div class="dot"></div>Small</div>
       <div class="size-opt" data-size="medium"><div class="dot"></div>Medium</div>
       <div class="size-opt" data-size="large"><div class="dot"></div>Large</div>
-      <div class="size-opt" data-size="boulder"><div class="dot"></div>Boulder</div>
+      <div class="size-opt" data-size="boulder"><div class="dot"></div>FOD</div>
     </div>
+    <div class="coord-readout hidden" id="size-fod-hint" style="margin-top:6px;margin-bottom:0;">FOD = Foreign Object Debris — metal, broken equipment parts, or other debris laying in the field.</div>
   </div>
 
   <div class="field-row">
@@ -1661,11 +1663,18 @@ service cloud.firestore {
   }
 
   // ---------- Rock icons ----------
+  // "Boulder" is repurposed as the FOD (Foreign Object Debris) marker —
+  // metal, broken equipment parts, or other debris laying in a field —
+  // since this farm has no actual boulders to mark. It keeps the same slot,
+  // size, and data shape as the old boulder size (still stored as
+  // size:"boulder" under the hood) so nothing else about rocks needed to
+  // change; only the icon and label are swapped.
   function rockIcon(size){
     var s = size || "medium";
+    var inner = (s === "boulder") ? '<img src="fod-icon.png" alt="FOD">' : '🪨';
     return L.divIcon({
       className:"",
-      html:'<div class="rock-pin size-'+s+'">🪨</div>',
+      html:'<div class="rock-pin size-'+s+'">'+inner+'</div>',
       iconSize: sizeToPx(s),
       iconAnchor: [sizeToPx(s)[0]/2, sizeToPx(s)[1]/2]
     });
@@ -1679,10 +1688,11 @@ service cloud.firestore {
   function sizeColor(s){
     if(s==="small") return "#8a8f86";
     if(s==="large") return "#c03b2b";
-    if(s==="boulder") return "#6a2b6f";
+    if(s==="boulder") return "#e8b000";
     return "#c9822a";
   }
   function sizeLabel(s){
+    if(s === "boulder") return "FOD";
     return s.charAt(0).toUpperCase()+s.slice(1);
   }
 
@@ -2646,6 +2656,8 @@ service cloud.firestore {
     document.querySelectorAll(".size-opt").forEach(function(el){
       el.classList.toggle("selected", el.getAttribute("data-size") === s);
     });
+    var fodHint = document.getElementById("size-fod-hint");
+    if(fodHint) fodHint.classList.toggle("hidden", s !== "boulder");
   }
 
   function openAddModal(latlng){
@@ -3101,6 +3113,7 @@ service cloud.firestore {
   // ---------- Reports ----------
   function rockSizeLabel(s){
     var v = (s || "medium").toLowerCase();
+    if(v === "boulder") return "FOD";
     return v.charAt(0).toUpperCase() + v.slice(1);
   }
 
@@ -5153,7 +5166,7 @@ service cloud.firestore {
 
   function exportKML(){
     var placemarks = rocks.map(function(r){
-      var name = sizeLabel(r.size) + " rock" + (r.field ? " — " + r.field : "");
+      var name = (r.size === "boulder" ? "FOD marker" : sizeLabel(r.size) + " rock") + (r.field ? " — " + r.field : "");
       var desc = (r.note || "") + " (marked " + new Date(r.createdAt).toLocaleDateString() + ")";
       return "<Placemark><name>" + xmlEscape(name) + "</name><description>" + xmlEscape(desc) + "</description>" +
         "<Point><coordinates>" + r.lng + "," + r.lat + ",0</coordinates></Point></Placemark>";
