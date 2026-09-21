@@ -3160,11 +3160,10 @@ service cloud.firestore {
       var entryRows = entries.map(function(e){
         var dateStr = formatLogTimestamp(e.date);
         var byBit = e.editedBy ? ("Edited by "+escapeHtml(e.editedBy)) : (e.enteredBy ? ("Entered by "+escapeHtml(e.enteredBy)) : "—");
-        var deviceBit = e.editedBy ? (e.editedOnDevice || "—") : (e.enteredOnDevice || "—");
-        return '<tr><td>'+escapeHtml(dateStr)+'</td><td>'+logEntrySummaryLine(e)+'</td><td>'+escapeHtml(e.note||"")+'</td><td>'+byBit+'</td><td>'+escapeHtml(deviceBit)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(dateStr)+'</td><td>'+logEntrySummaryLine(e)+'</td><td>'+escapeHtml(e.note||"")+'</td><td>'+byBit+'</td></tr>';
       }).join("");
       return '<div class="summary-subtitle" style="margin-top:14px;">'+escapeHtml(b.name||"Bin")+'</div>'+
-        '<table class="report-table"><thead><tr><th>Date/time</th><th>Entry</th><th>Note</th><th>Entered/edited by</th><th>Device</th></tr></thead><tbody>'+
+        '<table class="report-table"><thead><tr><th>Date/time</th><th>Entry</th><th>Note</th><th>Entered/edited by</th></tr></thead><tbody>'+
         entryRows+
         '</tbody></table>';
     }).join("");
@@ -3197,13 +3196,12 @@ service cloud.firestore {
       var e = x.entry;
       var dateStr = formatLogTimestamp(e.date);
       var byBit = e.editedBy ? ("Edited by "+escapeHtml(e.editedBy)) : (e.enteredBy ? ("Entered by "+escapeHtml(e.enteredBy)) : "—");
-      var deviceBit = e.editedBy ? (e.editedOnDevice || "—") : (e.enteredOnDevice || "—");
-      return '<tr><td>'+escapeHtml(x.bin)+'</td><td>'+escapeHtml(dateStr)+'</td><td>'+logEntrySummaryLine(e)+'</td><td>'+escapeHtml(e.note||"")+'</td><td>'+byBit+'</td><td>'+escapeHtml(deviceBit)+'</td></tr>';
+      return '<tr><td>'+escapeHtml(x.bin)+'</td><td>'+escapeHtml(dateStr)+'</td><td>'+logEntrySummaryLine(e)+'</td><td>'+escapeHtml(e.note||"")+'</td><td>'+byBit+'</td></tr>';
     }).join("");
     return '<div class="report-section">'+
       '<h3>🚛 Bin Load Report</h3>'+
       '<div class="report-meta">'+allEntries.length+' logged '+(allEntries.length === 1 ? "entry" : "entries")+' across all bins</div>'+
-      '<table class="report-table"><thead><tr><th>Bin</th><th>Date/time</th><th>Entry</th><th>Note</th><th>Entered/edited by</th><th>Device</th></tr></thead><tbody>'+
+      '<table class="report-table"><thead><tr><th>Bin</th><th>Date/time</th><th>Entry</th><th>Note</th><th>Entered/edited by</th></tr></thead><tbody>'+
       rows+
       '</tbody></table>'+
     '</div>';
@@ -3223,14 +3221,14 @@ service cloud.firestore {
       var rows = sorted.map(function(r){
         bySize[r.size||"medium"] = (bySize[r.size||"medium"] || 0) + 1;
         var dateStr = r.createdAt ? formatLogTimestamp(r.createdAt) : "—";
-        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(r.enteredOnDevice || "—")+'</td><td>'+escapeHtml(dateStr)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(dateStr)+'</td></tr>';
       }).join("");
       var sizeOrder = ["boulder","large","medium","small"];
       var sizeSummary = sizeOrder.filter(function(s){ return bySize[s]; }).map(function(s){
         return rockSizeLabel(s) + ": " + bySize[s];
       }).join(" · ");
       html += '<div class="report-meta">'+rocks.length+' '+(rocks.length === 1 ? "rock" : "rocks")+' currently marked'+(sizeSummary ? (' · '+escapeHtml(sizeSummary)) : '')+'</div>'+
-        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Device</th><th>Date marked</th></tr></thead><tbody>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Date marked</th></tr></thead><tbody>'+
         rows+
         '</tbody></table>';
     }
@@ -3238,10 +3236,10 @@ service cloud.firestore {
       var sortedRemoved = removedRocks.slice().sort(function(a,z){ return (z.removedAt||"").localeCompare(a.removedAt||""); });
       var removedRows = sortedRemoved.map(function(r){
         var removedWhen = r.removedAt ? formatLogTimestamp(r.removedAt) : "—";
-        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(r.removedBy || "—")+'</td><td>'+escapeHtml(r.removedOnDevice || "—")+'</td><td>'+escapeHtml(removedWhen)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(r.removedBy || "—")+'</td><td>'+escapeHtml(removedWhen)+'</td></tr>';
       }).join("");
       html += '<div class="summary-subtitle" style="margin-top:14px;">Removed rocks</div>'+
-        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Removed by</th><th>Device</th><th>Date removed</th></tr></thead><tbody>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Removed by</th><th>Date removed</th></tr></thead><tbody>'+
         removedRows+
         '</tbody></table>';
     }
@@ -3832,9 +3830,13 @@ service cloud.firestore {
   function openLogReasonModal(kind, onConfirm, onCancel){
     var reasons = kind === "delete" ? LOG_DELETE_REASONS : LOG_EDIT_REASONS;
     document.getElementById("log-reason-title").textContent = kind === "delete" ? "Reason for deleting" : "Reason for editing";
-    document.getElementById("input-log-reason").innerHTML = reasons.map(function(r){
-      return '<option value="'+escapeHtml(r)+'">'+escapeHtml(r)+'</option>';
-    }).join("");
+    // No reason is pre-selected — the placeholder is disabled so the person
+    // has to actively pick one (or "Other") before Confirm will do anything.
+    document.getElementById("input-log-reason").innerHTML =
+      '<option value="" disabled selected>Select a reason…</option>' +
+      reasons.map(function(r){
+        return '<option value="'+escapeHtml(r)+'">'+escapeHtml(r)+'</option>';
+      }).join("");
     document.getElementById("log-reason-other-row").classList.add("hidden");
     document.getElementById("input-log-reason-other").value = "";
     logReasonOnConfirm = onConfirm;
@@ -6165,6 +6167,7 @@ service cloud.firestore {
     document.getElementById("btn-log-reason-confirm").addEventListener("click", function(){
       var sel = document.getElementById("input-log-reason").value;
       var other = document.getElementById("input-log-reason-other").value.trim();
+      if(!sel){ toast("Select a reason."); return; }
       if(sel === "Other" && !other){ toast("Type a reason."); return; }
       var reasonText = (sel === "Other") ? other : sel;
       var cb = logReasonOnConfirm;
