@@ -191,6 +191,7 @@
      all of that on #reports-modal lets #reports-body flow as a plain
      block and paginate normally across as many printed pages as it needs. */
   @media print{
+    html,body{height:auto !important;overflow:visible !important;}
     body *{visibility:hidden;}
     #reports-modal, #reports-body, #reports-body *{visibility:visible;}
     #reports-modal{
