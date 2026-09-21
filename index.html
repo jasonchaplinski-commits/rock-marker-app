@@ -1343,6 +1343,28 @@ service cloud.firestore {
       return "";
     }catch(e){ return ""; }
   }
+
+  // A lightweight guard for the one-time name/device gate, so a joker can't
+  // type a curse word or slur into the "who did this" field that then
+  // follows them into every bin log entry and rock they touch. It isn't
+  // meant to be bulletproof (spaced-out or misspelled tricks can slip
+  // through) — just enough to block an obvious attempt, matched on whole
+  // words so it doesn't false-positive on ordinary names that happen to
+  // contain one of these as a substring (e.g. "Cassidy", "Class").
+  var PROFANITY_WORDS = [
+    "fuck","fucker","fucking","shit","bullshit","bitch","bastard",
+    "asshole","jackass","dumbass","dumbfuck","cunt","dick","dickhead",
+    "piss","pussy","slut","whore","cock","fag","faggot","nigger","nigga",
+    "retard","twat","douche","douchebag","cum","tits"
+  ];
+  function containsProfanity(text){
+    var lower = (text || "").toLowerCase();
+    for(var i = 0; i < PROFANITY_WORDS.length; i++){
+      if(new RegExp("\\b" + PROFANITY_WORDS[i] + "\\b", "i").test(lower)) return true;
+    }
+    return false;
+  }
+
   var FIELD_COLORS = ["#2e7d32","#1565c0","#ef6c00","#6a1b9a","#ad1457","#00838f","#9e9d24","#5d4037"];
   var CROP_COLORS = {
     "Corn": "#f6c90e",
@@ -4304,11 +4326,10 @@ service cloud.firestore {
   }
 
   function removePendingEquipFile(id){
-    // No admin-code check here — removing a file only changes the pending,
-    // unsaved working copy shown in the modal. Nothing is actually deleted
-    // until Save is clicked, and Save itself asks for the admin code
-    // whenever it's saving changes to EXISTING equipment (see
-    // saveEquipmentFromForm), so gating here too would just ask twice.
+    // Removing a file attached to EXISTING equipment needs the admin code —
+    // adding a brand new piece of equipment doesn't, since that's already
+    // gated at the "+ Add equipment" button before this modal ever opens.
+    if(editingEquipmentId && !checkAdminCode()) return;
     pendingEquipFiles = pendingEquipFiles.filter(function(f){ return f.id !== id; });
     renderEquipFilesPreview();
   }
@@ -4335,7 +4356,7 @@ service cloud.firestore {
     wrap.innerHTML = pendingEquipFiles.map(function(f){
       var icon = f.kind === "pdf" ? "📄" : "📷";
       var sub = f.kind === "pdf" ? (f.pages.length + (f.pages.length === 1 ? " page" : " pages")) : "Photo";
-      return '<div class="equip-file-row" data-id="'+f.id+'">'+
+      return '<div class="equip-file-row" data-id="'+f.id+'" data-view-file="'+f.id+'" style="cursor:pointer;">'+
         '<img class="equip-file-thumb" src="'+(f.pages[0]||"")+'">'+
         '<div class="equip-file-info">'+
           '<div class="efi-name">'+icon+' '+escapeHtml(f.name || "File")+'</div>'+
@@ -4816,6 +4837,7 @@ service cloud.firestore {
       // part numbers, notes) needs the admin code — adding a brand new
       // belt system doesn't.
       if(!checkAdminCode()) return;
+      if(!confirm("Save changes to \"" + system + "\"?")) return;
       var updates = {system:system, beltItems:beltItems, beltSize:"", beltNumber:"", notes:""};
       if(sharingEnabled){
         beltDocRef(editingBeltId).update(updates).catch(function(){
@@ -5808,6 +5830,10 @@ service cloud.firestore {
       var files = e.target.files ? Array.prototype.slice.call(e.target.files) : [];
       e.target.value = "";
       if(!files.length) return;
+      // Adding a file to EXISTING equipment needs the admin code — adding
+      // one while creating a brand new piece of equipment doesn't, since
+      // that's already gated at the "+ Add equipment" button.
+      if(editingEquipmentId && !checkAdminCode()) return;
       var total = files.length;
       // Processed one at a time (not in parallel) even when several files
       // were picked at once, since each one needs to check the running
@@ -5844,8 +5870,16 @@ service cloud.firestore {
       processNext(0);
     });
     document.getElementById("equip-files-preview-wrap").addEventListener("click", function(e){
-      var fileId = e.target.getAttribute("data-remove-file");
-      if(fileId){ removePendingEquipFile(fileId); }
+      var removeId = e.target.getAttribute("data-remove-file");
+      if(removeId){ removePendingEquipFile(removeId); return; }
+      // Tapping the row itself (not the ✕) opens it right here in the photo
+      // viewer, on top of this sheet — no need to save/cancel out first.
+      var row = e.target.closest("[data-view-file]");
+      if(!row) return;
+      var fileId = row.getAttribute("data-view-file");
+      var idx = pendingEquipFiles.findIndex(function(f){ return f.id === fileId; });
+      if(idx === -1) return;
+      openPhotoViewerForFiles(pendingEquipFiles, document.getElementById("input-equip-name").value.trim() || "Equipment", idx);
     });
 
     document.getElementById("btn-close-photo-viewer").addEventListener("click", closePhotoViewer);
@@ -6423,6 +6457,10 @@ service cloud.firestore {
     var label = (labelInput.value || "").trim();
     if(!name){
       toast("Enter your name to continue.");
+      return;
+    }
+    if(containsProfanity(name) || containsProfanity(label)){
+      toast("Please enter an appropriate name.");
       return;
     }
     try{ localStorage.setItem(DEVICE_NAME_KEY, name); }catch(e){}
