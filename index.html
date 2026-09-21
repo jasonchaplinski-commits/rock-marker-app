@@ -212,9 +212,14 @@
   .sheet h2{margin:0 0 14px 0;font-size:18px;}
   .field-row{margin-bottom:14px;}
   .field-row label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:6px;}
-  .field-row input[type=text], .field-row textarea, .field-row select{
+  .field-row input[type=text], .field-row input[type=tel], .field-row input[type=email], .field-row textarea, .field-row select{
     width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink);
   }
+  .address-row{display:flex;gap:8px;margin-top:8px;}
+  .address-row input, .address-row select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink);}
+  .address-row .addr-city{flex:2;}
+  .address-row .addr-state{flex:1.3;}
+  .address-row .addr-zip{flex:1;}
   .field-row textarea{resize:vertical;min-height:60px;}
   .size-options{display:flex;gap:8px;align-items:flex-start;}
   .size-opt{
@@ -1307,7 +1312,65 @@ service cloud.firestore {
   </div>
   <div class="field-row">
     <label>Address (optional)</label>
-    <input type="text" id="input-employee-address" placeholder="Street, city, state">
+    <input type="text" id="input-employee-address" placeholder="Street address">
+    <div class="address-row">
+      <input type="text" id="input-employee-city" class="addr-city" placeholder="City">
+      <select id="input-employee-state" class="addr-state">
+        <option value="">State</option>
+        <option value="AL">Alabama</option>
+        <option value="AK">Alaska</option>
+        <option value="AZ">Arizona</option>
+        <option value="AR">Arkansas</option>
+        <option value="CA">California</option>
+        <option value="CO">Colorado</option>
+        <option value="CT">Connecticut</option>
+        <option value="DE">Delaware</option>
+        <option value="DC">District of Columbia</option>
+        <option value="FL">Florida</option>
+        <option value="GA">Georgia</option>
+        <option value="HI">Hawaii</option>
+        <option value="ID">Idaho</option>
+        <option value="IL">Illinois</option>
+        <option value="IN">Indiana</option>
+        <option value="IA">Iowa</option>
+        <option value="KS">Kansas</option>
+        <option value="KY">Kentucky</option>
+        <option value="LA">Louisiana</option>
+        <option value="ME">Maine</option>
+        <option value="MD">Maryland</option>
+        <option value="MA">Massachusetts</option>
+        <option value="MI">Michigan</option>
+        <option value="MN">Minnesota</option>
+        <option value="MS">Mississippi</option>
+        <option value="MO">Missouri</option>
+        <option value="MT">Montana</option>
+        <option value="NE">Nebraska</option>
+        <option value="NV">Nevada</option>
+        <option value="NH">New Hampshire</option>
+        <option value="NJ">New Jersey</option>
+        <option value="NM">New Mexico</option>
+        <option value="NY">New York</option>
+        <option value="NC">North Carolina</option>
+        <option value="ND">North Dakota</option>
+        <option value="OH">Ohio</option>
+        <option value="OK">Oklahoma</option>
+        <option value="OR">Oregon</option>
+        <option value="PA">Pennsylvania</option>
+        <option value="RI">Rhode Island</option>
+        <option value="SC">South Carolina</option>
+        <option value="SD">South Dakota</option>
+        <option value="TN">Tennessee</option>
+        <option value="TX">Texas</option>
+        <option value="UT">Utah</option>
+        <option value="VT">Vermont</option>
+        <option value="VA">Virginia</option>
+        <option value="WA">Washington</option>
+        <option value="WV">West Virginia</option>
+        <option value="WI">Wisconsin</option>
+        <option value="WY">Wyoming</option>
+      </select>
+      <input type="text" id="input-employee-zip" class="addr-zip" placeholder="Zip" inputmode="numeric" maxlength="10">
+    </div>
   </div>
   <div class="field-row">
     <label>Email (optional)</label>
@@ -5007,6 +5070,24 @@ service cloud.firestore {
     showSheet("employees-list-modal", "employees-list-backdrop");
   }
 
+  // tel: links need digits (and a leading +) only; the display text keeps
+  // whatever formatting the person typed.
+  function telHref(phone){
+    return "tel:" + (phone || "").replace(/[^0-9+]/g, "");
+  }
+  // Envelope-style: street address on one line, "City, ST Zip" on the next.
+  function employeeAddressLines(p){
+    var line2Bits = [p.city, [p.state, p.zip].filter(Boolean).join(" ")].filter(Boolean);
+    return {
+      street: p.address || "",
+      cityStateZip: line2Bits.join(", ")
+    };
+  }
+  function employeeFullAddress(p){
+    var lines = employeeAddressLines(p);
+    return [lines.street, lines.cityStateZip].filter(Boolean).join(", ");
+  }
+
   function renderEmployeesList(){
     var listEl = document.getElementById("employees-list");
     if(!listEl) return;
@@ -5019,12 +5100,18 @@ service cloud.firestore {
     });
     listEl.innerHTML = sorted.map(function(p){
       var fullName = ((p.firstName||"") + " " + (p.lastName||"")).trim() || "Unnamed";
+      var addrLines = employeeAddressLines(p);
+      var fullAddress = employeeFullAddress(p);
+      var mapsUrl = fullAddress ? ("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(fullAddress)) : "";
       return '<div class="rock-row" data-id="'+p.id+'">'+
         '<div class="rock-info">'+
           '<div class="r1">🪪 '+escapeHtml(fullName)+'</div>'+
-          (p.phone ? '<div class="r2 r2-lg">📞 '+escapeHtml(p.phone)+'</div>' : '')+
-          (p.email ? '<div class="r2 r2-lg">✉️ '+escapeHtml(p.email)+'</div>' : '')+
-          (p.address ? '<div class="r2 r2-lg">📍 '+escapeHtml(p.address)+'</div>' : '')+
+          (p.phone ? '<div class="r2 r2-lg">📞 <a href="'+telHref(p.phone)+'">'+escapeHtml(p.phone)+'</a></div>' : '')+
+          (p.email ? '<div class="r2 r2-lg">✉️ <a href="mailto:'+escapeHtml(p.email)+'">'+escapeHtml(p.email)+'</a></div>' : '')+
+          (addrLines.street ? '<div class="r2 r2-lg">📍 <a href="'+mapsUrl+'" target="_blank" rel="noopener">'+
+            escapeHtml(addrLines.street)+
+            (addrLines.cityStateZip ? '<br>'+escapeHtml(addrLines.cityStateZip) : '')+
+          '</a></div>' : '')+
         '</div>'+
         '<div class="rock-actions">'+
           '<button class="row-btn" data-action="edit">✏️</button>'+
@@ -5041,6 +5128,9 @@ service cloud.firestore {
       document.getElementById("input-employee-last").value = p.lastName || "";
       document.getElementById("input-employee-phone").value = p.phone || "";
       document.getElementById("input-employee-address").value = p.address || "";
+      document.getElementById("input-employee-city").value = p.city || "";
+      document.getElementById("input-employee-state").value = p.state || "";
+      document.getElementById("input-employee-zip").value = p.zip || "";
       document.getElementById("input-employee-email").value = p.email || "";
       document.getElementById("employee-edit-only-row").classList.remove("hidden");
     } else {
@@ -5050,6 +5140,9 @@ service cloud.firestore {
       document.getElementById("input-employee-last").value = "";
       document.getElementById("input-employee-phone").value = "";
       document.getElementById("input-employee-address").value = "";
+      document.getElementById("input-employee-city").value = "";
+      document.getElementById("input-employee-state").value = "";
+      document.getElementById("input-employee-zip").value = "";
       document.getElementById("input-employee-email").value = "";
       document.getElementById("employee-edit-only-row").classList.add("hidden");
     }
@@ -5066,6 +5159,9 @@ service cloud.firestore {
     var last = document.getElementById("input-employee-last").value.trim();
     var phone = document.getElementById("input-employee-phone").value.trim();
     var address = document.getElementById("input-employee-address").value.trim();
+    var city = document.getElementById("input-employee-city").value.trim();
+    var state = document.getElementById("input-employee-state").value;
+    var zip = document.getElementById("input-employee-zip").value.trim();
     var email = document.getElementById("input-employee-email").value.trim();
     if(!first || !last){ toast("Enter a first and last name."); return; }
     if(!phone){ toast("Enter a phone number."); return; }
@@ -5075,14 +5171,14 @@ service cloud.firestore {
     }
 
     if(editingEmployeeId){
-      var updates = {firstName:first, lastName:last, phone:phone, address:address, email:email};
+      var updates = {firstName:first, lastName:last, phone:phone, address:address, city:city, state:state, zip:zip, email:email};
       if(sharingEnabled){
         employeeDocRef(editingEmployeeId).update(updates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
         var exp = employees.find(function(x){ return x.id === editingEmployeeId; });
-        if(exp){ exp.firstName=first; exp.lastName=last; exp.phone=phone; exp.address=address; exp.email=email; }
+        if(exp){ exp.firstName=first; exp.lastName=last; exp.phone=phone; exp.address=address; exp.city=city; exp.state=state; exp.zip=zip; exp.email=email; }
         saveData();
         renderEmployeesList();
       }
@@ -5090,7 +5186,7 @@ service cloud.firestore {
     } else {
       var newEmployee = {
         id: "emp"+Date.now()+"_"+Math.floor(Math.random()*10000),
-        firstName:first, lastName:last, phone:phone, address:address, email:email,
+        firstName:first, lastName:last, phone:phone, address:address, city:city, state:state, zip:zip, email:email,
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
@@ -5982,6 +6078,9 @@ service cloud.firestore {
             lastName: p.lastName || "",
             phone: p.phone || "",
             address: p.address || "",
+            city: p.city || "",
+            state: p.state || "",
+            zip: p.zip || "",
             email: p.email || "",
             createdAt: p.createdAt || new Date().toISOString()
           });
@@ -6297,6 +6396,9 @@ service cloud.firestore {
     });
     document.getElementById("btn-add-employee").addEventListener("click", function(){ openEmployeeModal(null); });
     document.getElementById("employees-list").addEventListener("click", function(e){
+      // Let a tap on the phone/email/address link do its own thing (call,
+      // email, or open Maps) instead of opening the edit sheet underneath it.
+      if(e.target.closest("a")) return;
       var row = e.target.closest(".rock-row");
       if(!row) return;
       var id = row.getAttribute("data-id");
