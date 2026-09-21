@@ -981,6 +981,18 @@
   </div>
 </div>
 
+<!-- Generic Yes/No confirm — used for plain yes-or-no questions (like
+     "export a copy before clearing?") where "OK/Cancel" reads awkwardly. -->
+<div class="sheet-backdrop" id="yesno-backdrop"></div>
+<div class="sheet" id="yesno-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="yesno-title">Are you sure?</h2>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-yesno-no">No</button>
+    <button class="btn btn-primary" id="btn-yesno-yes">Yes</button>
+  </div>
+</div>
+
 <!-- Reports -->
 <div class="sheet-backdrop" id="reports-backdrop"></div>
 <div class="sheet" id="reports-modal">
@@ -2319,7 +2331,9 @@ service cloud.firestore {
     if(n === "holding bin") return 0;
     if(n === "largest bin") return 1;
     if(n === "2ndlarge bin") return 2;
-    var m = /^bin(\d+)$/i.exec((name || "").trim());
+    // "Newbin1" sorts the same as "Bin1" would — right alongside Bin2,
+    // Bin3, etc. in numeric order — instead of falling to the bottom.
+    var m = /^(?:new)?bin(\d+)$/i.exec((name || "").trim());
     if(m) return 10 + parseInt(m[1], 10);
     return 1000;
   }
@@ -3842,6 +3856,18 @@ service cloud.firestore {
     openBinActions(binId);
   }
 
+  // A plain yes-or-no question, with buttons that actually say Yes/No
+  // instead of a native confirm()'s OK/Cancel. onYes()/onNo() run once,
+  // based on which button was tapped (backdrop tap counts as No).
+  var yesNoOnYes = null;
+  var yesNoOnNo = null;
+  function showYesNo(message, onYes, onNo){
+    document.getElementById("yesno-title").textContent = message;
+    yesNoOnYes = onYes || null;
+    yesNoOnNo = onNo || null;
+    showSheet("yesno-modal", "yesno-backdrop");
+  }
+
   // Options offered in the reason dropdown shown before a truck-load entry
   // is actually deleted or edited. "Other" reveals a free-text box.
   var LOG_DELETE_REASONS = ["Duplicate entry", "Entered by mistake", "Wrong bin selected", "Test entry", "Other"];
@@ -5225,13 +5251,17 @@ service cloud.firestore {
       toast("No entries to export yet.");
       return false;
     }
-    var rows = [["date","time","action","crop","truck","load_size","bushels","note","entered_by","edited_by"]];
+    // Bin and crop are repeated on every row (not just in the filename or a
+    // header line) so the file is self-describing if it's ever opened on
+    // its own, forwarded, or combined with other exports.
+    var binName = b.name || "Bin";
+    var rows = [["bin","date","time","action","crop","truck","load_size","bushels","note","entered_by","edited_by"]];
     sorted.forEach(function(e){
       var hasTime = (e.date || "").indexOf("T") !== -1;
       var datePart = hasTime ? e.date.split("T")[0] : (e.date || "");
       var timePart = hasTime ? e.date.split("T")[1] : "";
       rows.push([
-        datePart, timePart, e.action || "", e.crop || "",
+        binName, datePart, timePart, e.action || "", e.crop || "",
         e.truckType || "", e.fraction ? fractionLabel(e.fraction) : "",
         (typeof e.bu === "number") ? e.bu : "", (e.note || "").replace(/\n/g," "),
         e.enteredBy || "", e.editedBy || ""
@@ -5274,20 +5304,23 @@ service cloud.firestore {
     if(!checkAdminCode()) return;
     if(removedRocks.length === 0){ toast("No removed-rock history to clear."); return; }
     var count = removedRocks.length;
-    if(confirm("Export the removed-rock history to a CSV file before clearing it?")){
+    function proceedToClearRemovedRocks(){
+      if(!confirm("Clear all " + count + " removed-rock " + (count === 1 ? "record" : "records") + "? This can't be undone.")) return;
+      if(sharingEnabled){
+        removedRocksDocRef().set({items: []}, {merge:true}).catch(function(){
+          toast("Couldn't clear on the shared map — check your connection.");
+        });
+      } else {
+        removedRocks = [];
+        saveData();
+      }
+      renderReportsBody();
+      toast("Removed-rock history cleared");
+    }
+    showYesNo("Export the removed-rock history to a CSV file before clearing it?", function(){
       exportRemovedRocksCSV();
-    }
-    if(!confirm("Clear all " + count + " removed-rock " + (count === 1 ? "record" : "records") + "? This can't be undone.")) return;
-    if(sharingEnabled){
-      removedRocksDocRef().set({items: []}, {merge:true}).catch(function(){
-        toast("Couldn't clear on the shared map — check your connection.");
-      });
-    } else {
-      removedRocks = [];
-      saveData();
-    }
-    renderReportsBody();
-    toast("Removed-rock history cleared");
+      proceedToClearRemovedRocks();
+    }, proceedToClearRemovedRocks);
   }
 
   function exportJSON(){
@@ -6204,12 +6237,15 @@ service cloud.firestore {
       var b = bins.find(function(x){ return x.id === binId; });
       if(!b || !b.log || b.log.length === 0){ toast("No entries to clear."); return; }
       var count = b.log.length;
-      if(confirm("Export this bin's activity to a CSV file before clearing it?")){
-        exportSingleBinLogCSV(binId);
+      function proceedToClearBinLog(){
+        if(!confirm("Clear all " + count + " log " + (count === 1 ? "entry" : "entries") + " for " + (b.name || "this bin") +
+          "? They'll move to the archive (Archived entries), where an admin can restore any of them later.")) return;
+        clearBinLog(binId);
       }
-      if(!confirm("Clear all " + count + " log " + (count === 1 ? "entry" : "entries") + " for " + (b.name || "this bin") +
-        "? They'll move to the archive (Archived entries), where an admin can restore any of them later.")) return;
-      clearBinLog(binId);
+      showYesNo("Export this bin's activity to a CSV file before clearing it?", function(){
+        exportSingleBinLogCSV(binId);
+        proceedToClearBinLog();
+      }, proceedToClearBinLog);
     });
     document.getElementById("btn-bin-view-archive").addEventListener("click", function(){
       if(!checkAdminCode()) return;
@@ -6305,6 +6341,22 @@ service cloud.firestore {
     });
     document.getElementById("log-reason-backdrop").addEventListener("click", function(){
       document.getElementById("btn-log-reason-cancel").click();
+    });
+
+    document.getElementById("btn-yesno-yes").addEventListener("click", function(){
+      var cb = yesNoOnYes;
+      yesNoOnYes = null; yesNoOnNo = null;
+      hideSheet("yesno-modal", "yesno-backdrop");
+      if(cb) cb();
+    });
+    document.getElementById("btn-yesno-no").addEventListener("click", function(){
+      var cb = yesNoOnNo;
+      yesNoOnYes = null; yesNoOnNo = null;
+      hideSheet("yesno-modal", "yesno-backdrop");
+      if(cb) cb();
+    });
+    document.getElementById("yesno-backdrop").addEventListener("click", function(){
+      document.getElementById("btn-yesno-no").click();
     });
 
     document.getElementById("bin-tab").addEventListener("click", function(){
