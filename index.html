@@ -621,6 +621,7 @@
   <div class="side-menu-item" id="menu-item-equipment"><span class="smi-icon">🚜</span> Equipment</div>
   <div class="side-menu-item" id="menu-item-belts"><span class="smi-icon">⚙️</span> Belts</div>
   <div class="side-menu-item" id="menu-item-reports"><span class="smi-icon">📊</span> Reports</div>
+  <div class="side-menu-item" id="menu-item-downloads"><span class="smi-icon">📂</span> Downloads</div>
   <div class="side-menu-sep"></div>
   <div class="side-menu-item" id="menu-item-my-info"><span class="smi-icon">📝</span> My Info</div>
   <div class="side-menu-item" id="menu-item-employees"><span class="smi-icon">🪪</span> Employee Info (admin)</div>
@@ -1388,6 +1389,22 @@ service cloud.firestore {
   </div>
 </div>
 
+<!-- Downloads -->
+<div class="sheet-backdrop" id="downloads-backdrop"></div>
+<div class="sheet" id="downloads-modal">
+  <div class="sheet-handle"></div>
+  <h2>📂 Downloads <button class="icon-btn" id="btn-close-downloads" style="font-size:14px;">✕</button></h2>
+  <div class="coord-readout" style="margin-top:0;">Files for the farm to view and download. Anyone can download — adding, replacing, or removing a file needs the admin code.</div>
+  <div class="btn-row" style="margin-bottom:10px;">
+    <button class="btn btn-primary" id="btn-add-file">+ Add file (admin)</button>
+  </div>
+  <input type="file" id="input-file-upload" class="hidden">
+  <div id="downloads-list"></div>
+  <div class="coord-readout" style="margin-top:14px;margin-bottom:0;">
+    <b>Opening a downloaded Word file:</b> Windows blocks macros in files downloaded from the internet by default — that's a Windows/Word security setting, not something this site controls. Before opening it, right-click the downloaded file → Properties → check "Unblock" → OK. Then open it in Word and macros will work normally. (If there's no "Unblock" checkbox, it's already fine to open.)
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <div id="bin-zoom-cta">
@@ -1399,6 +1416,7 @@ service cloud.firestore {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script>
 (function(){
   "use strict";
@@ -1570,6 +1588,11 @@ service cloud.firestore {
   var equipment = [];
   var belts = [];
   var employees = [];
+  // Shared file library ("Downloads"): metadata lives in Firestore, the
+  // actual bytes live in Firebase Storage. Everyone can view/download;
+  // adding, replacing, or removing a file requires the admin code.
+  var files = [];
+  var firebaseStorageInst = null;
   var editingEmployeeId = null;
   // Which mode the employee add/edit sheet is currently open in: true when
   // opened from "My Info" (no admin code, scoped to this device's own
@@ -5191,6 +5214,103 @@ service cloud.firestore {
     }).join("");
   }
 
+  // Shared file library ("Downloads"). Metadata (name, size, download URL)
+  // lives in Firestore so every device can list files instantly; the bytes
+  // themselves live in Firebase Storage. Viewing/downloading is open to
+  // everyone; adding, replacing, or removing a file requires the admin code.
+  function fileDocRef(id){
+    return firestoreDb.collection("farms").doc(farmCode).collection("files").doc(id);
+  }
+
+  function formatFileSize(bytes){
+    if(!bytes && bytes !== 0) return "";
+    if(bytes < 1024) return bytes + " B";
+    if(bytes < 1024*1024) return Math.round(bytes/1024) + " KB";
+    return (bytes/(1024*1024)).toFixed(1) + " MB";
+  }
+
+  function openDownloadsSheet(){
+    renderDownloadsList();
+    showSheet("downloads-modal", "downloads-backdrop");
+  }
+
+  function renderDownloadsList(){
+    var listEl = document.getElementById("downloads-list");
+    if(!listEl) return;
+    if(!sharingEnabled){
+      listEl.innerHTML = '<div id="empty-list">Connect sharing to view and add files.</div>';
+      return;
+    }
+    if(files.length === 0){
+      listEl.innerHTML = '<div id="empty-list">No files yet. Tap "+ Add file" above (admin code required).</div>';
+      return;
+    }
+    listEl.innerHTML = files.map(function(f){
+      var meta = [formatFileSize(f.size), f.uploadedByName ? ("added by " + f.uploadedByName) : ""].filter(Boolean).join(" · ");
+      return '<div class="rock-row" data-id="'+f.id+'">'+
+        '<div class="rock-info">'+
+          '<div class="r1">📄 '+escapeHtml(f.name||"file")+'</div>'+
+          (meta ? '<div class="r2">'+escapeHtml(meta)+'</div>' : '')+
+        '</div>'+
+        '<div class="rock-actions">'+
+          '<a class="btn btn-primary" href="'+escapeHtml(f.url||"#")+'" download="'+escapeHtml(f.name||"file")+'" target="_blank" rel="noopener" style="text-decoration:none;">⬇</a>'+
+          '<button class="row-btn" data-action="delete-file">🗑️</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+  }
+
+  function triggerFileUpload(){
+    if(!sharingEnabled){ toast("Connect sharing first."); return; }
+    if(!checkAdminCode()) return;
+    var input = document.getElementById("input-file-upload");
+    if(input) input.click();
+  }
+
+  function handleFileSelected(e){
+    var f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if(!f) return;
+    if(!firebaseStorageInst){
+      toast("File storage isn't set up for this farm yet.");
+      return;
+    }
+    var id = "f_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
+    var storagePath = "farms/" + farmCode + "/files/" + id + "-" + f.name;
+    var ref = firebaseStorageInst.ref(storagePath);
+    toast("Uploading " + f.name + "…");
+    ref.put(f).then(function(snap){
+      return snap.ref.getDownloadURL();
+    }).then(function(url){
+      return fileDocRef(id).set({
+        name: f.name,
+        storagePath: storagePath,
+        size: f.size || 0,
+        url: url,
+        uploadedByName: getDeviceName() || "",
+        uploadedAt: Date.now()
+      });
+    }).then(function(){
+      toast("Uploaded " + f.name);
+    }).catch(function(err){
+      toast("Upload failed — file storage may not be set up yet.");
+    });
+  }
+
+  function deleteFileById(id){
+    if(!checkAdminCode()) return;
+    var f = files.find(function(x){ return x.id === id; });
+    if(!f) return;
+    if(firebaseStorageInst && f.storagePath){
+      firebaseStorageInst.ref(f.storagePath).delete().catch(function(){ /* best-effort */ });
+    }
+    fileDocRef(id).delete().then(function(){
+      toast("Removed " + (f.name || "file"));
+    }).catch(function(){
+      toast("Couldn't remove that file.");
+    });
+  }
+
   function openEmployeeModal(p){
     if(p){
       editingEmployeeId = p.id;
@@ -5954,6 +6074,19 @@ service cloud.firestore {
     );
 
     unsubscribeFns.push(
+      firestoreDb.collection("farms").doc(farmCode).collection("files").orderBy("uploadedAt", "desc").onSnapshot(function(snapshot){
+        files = snapshot.docs.map(function(d){
+          var data = d.data();
+          data.id = d.id;
+          return data;
+        });
+        renderDownloadsList();
+      }, function(err){
+        toast("Sync error loading downloads.");
+      })
+    );
+
+    unsubscribeFns.push(
       firestoreDb.collection("farms").doc(farmCode).collection("config").doc("truckSizes").onSnapshot(function(doc){
         if(doc.exists){
           var data = doc.data();
@@ -5988,6 +6121,7 @@ service cloud.firestore {
       }
       firestoreDb = firebase.firestore();
       try{ firestoreDb.enablePersistence({synchronizeTabs:true}); }catch(e){ /* offline cache best-effort */ }
+      try{ firebaseStorageInst = firebase.storage(); }catch(e){ firebaseStorageInst = null; }
       farmCode = code;
       sharingEnabled = true;
 
@@ -6171,6 +6305,7 @@ service cloud.firestore {
     sharingEnabled = false;
     farmCode = null;
     firestoreDb = null;
+    firebaseStorageInst = null;
     try{ localStorage.removeItem(SHARE_KEY); }catch(e){}
     setShareStatusUI();
     loadData();
@@ -6323,6 +6458,10 @@ service cloud.firestore {
     document.getElementById("menu-item-reports").addEventListener("click", function(){
       closeSideMenu();
       openReportsSheet();
+    });
+    document.getElementById("menu-item-downloads").addEventListener("click", function(){
+      closeSideMenu();
+      openDownloadsSheet();
     });
     document.getElementById("menu-item-employees").addEventListener("click", function(){
       closeSideMenu();
@@ -6503,6 +6642,24 @@ service cloud.firestore {
     document.getElementById("btn-save-employee").addEventListener("click", saveEmployeeFromForm);
     document.getElementById("btn-delete-employee").addEventListener("click", deleteCurrentEmployee);
     document.getElementById("employee-backdrop").addEventListener("click", closeEmployeeModal);
+
+    // ---------- Downloads ----------
+    document.getElementById("btn-close-downloads").addEventListener("click", function(){
+      hideSheet("downloads-modal", "downloads-backdrop");
+    });
+    document.getElementById("downloads-backdrop").addEventListener("click", function(){
+      hideSheet("downloads-modal", "downloads-backdrop");
+    });
+    document.getElementById("btn-add-file").addEventListener("click", triggerFileUpload);
+    document.getElementById("input-file-upload").addEventListener("change", handleFileSelected);
+    document.getElementById("downloads-list").addEventListener("click", function(e){
+      var actionBtn = e.target.closest("[data-action='delete-file']");
+      if(!actionBtn) return;
+      var row = e.target.closest(".rock-row");
+      if(!row) return;
+      deleteFileById(row.getAttribute("data-id"));
+    });
+
     document.getElementById("belt-backdrop").addEventListener("click", closeBeltModal);
     document.getElementById("btn-add-belt-item").addEventListener("click", addBeltItemRow);
     document.getElementById("belt-items-list").addEventListener("input", function(e){
