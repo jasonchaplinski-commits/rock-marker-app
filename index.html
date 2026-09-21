@@ -853,6 +853,7 @@
   <div class="btn-row" style="flex-direction:column;margin-top:14px;">
     <button class="btn btn-secondary" id="btn-bin-edit">✏️ Edit bin details</button>
     <button class="btn btn-secondary" id="btn-bin-view-archive">🗄 Archived entries</button>
+    <button class="btn btn-secondary" id="btn-bin-export-csv">📄 Export CSV</button>
     <button class="btn btn-danger" id="btn-bin-clear-log">🗑️ Clear all entries</button>
     <button class="btn btn-secondary" id="btn-bin-actions-close">Close</button>
   </div>
@@ -1000,6 +1001,9 @@
     <button class="btn btn-primary" id="btn-print-report">🖨️ Print this report</button>
   </div>
   <div id="reports-body" style="margin-top:16px;"></div>
+  <div class="btn-row hidden" id="rock-report-clear-row" style="margin-top:0;">
+    <button class="btn btn-danger" id="btn-clear-rock-report">🗑️ Clear removed-rocks history</button>
+  </div>
   <div class="btn-row" style="flex-direction:column;margin-top:14px;">
     <button class="btn btn-secondary" id="btn-close-reports">Close</button>
   </div>
@@ -3295,6 +3299,7 @@ service cloud.firestore {
       html += buildRockReportHtml();
     }
     bodyEl.innerHTML = html;
+    document.getElementById("rock-report-clear-row").classList.toggle("hidden", type !== "rocks");
   }
 
   function openReportsSheet(){
@@ -5209,6 +5214,82 @@ service cloud.firestore {
     toast("Bin activity CSV downloaded");
   }
 
+  // Exports just one bin's log — offered right from that bin's menu (and
+  // right before "Clear all entries" wipes it) so there's a one-tap way to
+  // keep a record without hunting for the all-bins export in the side menu.
+  function exportSingleBinLogCSV(binId){
+    var b = bins.find(function(x){ return x.id === binId; });
+    if(!b){ toast("Couldn't find that bin."); return; }
+    var sorted = (b.log || []).slice().sort(function(a,z){ return (a.date||"").localeCompare(z.date||""); });
+    if(sorted.length === 0){
+      toast("No entries to export yet.");
+      return false;
+    }
+    var rows = [["date","time","action","crop","truck","load_size","bushels","note","entered_by","edited_by"]];
+    sorted.forEach(function(e){
+      var hasTime = (e.date || "").indexOf("T") !== -1;
+      var datePart = hasTime ? e.date.split("T")[0] : (e.date || "");
+      var timePart = hasTime ? e.date.split("T")[1] : "";
+      rows.push([
+        datePart, timePart, e.action || "", e.crop || "",
+        e.truckType || "", e.fraction ? fractionLabel(e.fraction) : "",
+        (typeof e.bu === "number") ? e.bu : "", (e.note || "").replace(/\n/g," "),
+        e.enteredBy || "", e.editedBy || ""
+      ]);
+    });
+    var safeName = (b.name || "bin").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+    downloadBlob(safeName + "-activity.csv", csvRowsToString(rows), "text/csv");
+    toast("Bin activity CSV downloaded");
+    return true;
+  }
+
+  // Exports the "Removed rocks" history shown at the bottom of the Rock
+  // Report — the record of every rock hard-deleted from the map, offered
+  // right before that history is cleared out.
+  function exportRemovedRocksCSV(){
+    if(removedRocks.length === 0){
+      toast("No removed-rock history to export.");
+      return false;
+    }
+    var sorted = removedRocks.slice().sort(function(a,z){ return (a.removedAt||"").localeCompare(z.removedAt||""); });
+    var rows = [["field","size","note","entered_by","removed_by","date_marked","date_removed"]];
+    sorted.forEach(function(r){
+      rows.push([
+        r.field || "", rockSizeLabel(r.size), (r.note||"").replace(/\n/g," "),
+        r.enteredBy || "", r.removedBy || "",
+        r.createdAt ? new Date(r.createdAt).toISOString() : "",
+        r.removedAt ? new Date(r.removedAt).toISOString() : ""
+      ]);
+    });
+    downloadBlob("removed-rocks-history.csv", csvRowsToString(rows), "text/csv");
+    toast("Removed-rock history CSV downloaded");
+    return true;
+  }
+
+  // Clears the "Removed rocks" history from the Rock Report. Rocks
+  // themselves have no per-item archive the way bins do (see
+  // recordRemovedRock above) — this list of past removals IS that record,
+  // so clearing it is permanent, same as clearing a bin's archive would be.
+  function clearRemovedRocksHistory(){
+    if(!checkAdminCode()) return;
+    if(removedRocks.length === 0){ toast("No removed-rock history to clear."); return; }
+    var count = removedRocks.length;
+    if(confirm("Export the removed-rock history to a CSV file before clearing it?")){
+      exportRemovedRocksCSV();
+    }
+    if(!confirm("Clear all " + count + " removed-rock " + (count === 1 ? "record" : "records") + "? This can't be undone.")) return;
+    if(sharingEnabled){
+      removedRocksDocRef().set({items: []}, {merge:true}).catch(function(){
+        toast("Couldn't clear on the shared map — check your connection.");
+      });
+    } else {
+      removedRocks = [];
+      saveData();
+    }
+    renderReportsBody();
+    toast("Removed-rock history cleared");
+  }
+
   function exportJSON(){
     downloadBlob("rock-marker-backup.json", JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins}, null, 2), "application/json");
     toast("Backup downloaded");
@@ -5796,6 +5877,7 @@ service cloud.firestore {
     });
     document.getElementById("input-report-type").addEventListener("change", renderReportsBody);
     document.getElementById("btn-print-report").addEventListener("click", function(){ window.print(); });
+    document.getElementById("btn-clear-rock-report").addEventListener("click", clearRemovedRocksHistory);
     document.getElementById("btn-close-reports").addEventListener("click", closeReportsSheet);
     document.getElementById("reports-backdrop").addEventListener("click", closeReportsSheet);
 
@@ -6113,14 +6195,20 @@ service cloud.firestore {
         openBinActions(binId);
       });
     });
+    document.getElementById("btn-bin-export-csv").addEventListener("click", function(){
+      if(binActionsBinId) exportSingleBinLogCSV(binActionsBinId);
+    });
     document.getElementById("btn-bin-clear-log").addEventListener("click", function(){
       if(!checkAdminCode()) return;
       var binId = binActionsBinId;
       var b = bins.find(function(x){ return x.id === binId; });
       if(!b || !b.log || b.log.length === 0){ toast("No entries to clear."); return; }
       var count = b.log.length;
+      if(confirm("Export this bin's activity to a CSV file before clearing it?")){
+        exportSingleBinLogCSV(binId);
+      }
       if(!confirm("Clear all " + count + " log " + (count === 1 ? "entry" : "entries") + " for " + (b.name || "this bin") +
-        "? They'll move to the archive (Archived entries), where an admin can restore any of them later. Tip: use Export bin activity (CSV) on the list drawer first if you want a copy.")) return;
+        "? They'll move to the archive (Archived entries), where an admin can restore any of them later.")) return;
       clearBinLog(binId);
     });
     document.getElementById("btn-bin-view-archive").addEventListener("click", function(){
