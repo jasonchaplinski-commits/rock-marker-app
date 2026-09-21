@@ -586,7 +586,6 @@
     <h2>What's your name?</h2>
     <p>Asked once on this device — it'll be attached to bin loads and rocks you add, edit, or remove.</p>
     <input type="text" id="input-device-name" autocomplete="off" placeholder="Your name">
-    <input type="text" id="input-device-label" autocomplete="off" placeholder="This device (e.g. Jason's S24)" style="margin-top:2px;">
     <button class="btn btn-primary" id="btn-name-gate-submit" style="width:100%;">Continue</button>
   </div>
 </div>
@@ -6601,10 +6600,6 @@ service cloud.firestore {
   function showNameGate(){
     var gate = document.getElementById("name-gate");
     if(!gate) return;
-    var labelInput = document.getElementById("input-device-label");
-    if(labelInput && !labelInput.value){
-      labelInput.value = getDeviceLabel() || guessDeviceLabel();
-    }
     gate.classList.remove("hidden");
     setTimeout(function(){
       var input = document.getElementById("input-device-name");
@@ -6614,19 +6609,17 @@ service cloud.firestore {
 
   function submitDeviceName(){
     var input = document.getElementById("input-device-name");
-    var labelInput = document.getElementById("input-device-label");
     var name = (input.value || "").trim();
-    var label = (labelInput.value || "").trim();
     if(!name){
       toast("Enter your name to continue.");
       return;
     }
-    if(containsProfanity(name) || containsProfanity(label)){
+    if(containsProfanity(name)){
       toast("Please enter an appropriate name.");
       return;
     }
     try{ localStorage.setItem(DEVICE_NAME_KEY, name); }catch(e){}
-    try{ localStorage.setItem(DEVICE_LABEL_KEY, label || guessDeviceLabel()); }catch(e){}
+    try{ localStorage.setItem(DEVICE_LABEL_KEY, getDeviceLabel() || guessDeviceLabel()); }catch(e){}
     document.getElementById("name-gate").classList.add("hidden");
     if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
   }
@@ -6634,9 +6627,6 @@ service cloud.firestore {
   function wireNameGate(){
     document.getElementById("btn-name-gate-submit").addEventListener("click", submitDeviceName);
     document.getElementById("input-device-name").addEventListener("keydown", function(e){
-      if(e.key === "Enter"){ submitDeviceName(); }
-    });
-    document.getElementById("input-device-label").addEventListener("keydown", function(e){
       if(e.key === "Enter"){ submitDeviceName(); }
     });
   }
