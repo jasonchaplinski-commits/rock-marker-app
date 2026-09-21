@@ -498,10 +498,11 @@
     display:flex;align-items:center;justify-content:center;padding:24px;
   }
   #name-gate.hidden{display:none;}
-  #input-device-name{
+  #input-device-name, #input-device-label{
     width:100%;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:18px;font-family:inherit;
     text-align:center;background:#fff;color:var(--ink);margin-bottom:10px;box-sizing:border-box;
   }
+  #input-device-label{font-size:15px;}
 
   /* Full-screen equipment photo viewer — custom pinch/pan/double-tap zoom,
      since the app's own viewport meta disables native pinch-to-zoom
@@ -581,6 +582,7 @@
     <h2>What's your name?</h2>
     <p>Asked once on this device — it'll be attached to bin loads and rocks you add, edit, or remove.</p>
     <input type="text" id="input-device-name" autocomplete="off" placeholder="Your name">
+    <input type="text" id="input-device-label" autocomplete="off" placeholder="This device (e.g. Jason's S24)" style="margin-top:2px;">
     <button class="btn btn-primary" id="btn-name-gate-submit" style="width:100%;">Continue</button>
   </div>
 </div>
@@ -657,6 +659,7 @@
   <div class="sheet-handle"></div>
   <h2 id="modal-title">Mark a rock</h2>
   <div class="coord-readout" id="modal-coords"></div>
+  <div class="coord-readout hidden" id="rock-entered-info" style="margin-top:2px;"></div>
 
   <div class="field-row">
     <label>Size</label>
@@ -1311,6 +1314,33 @@ service cloud.firestore {
   }
   function hasDeviceName(){
     return !!getDeviceName();
+  }
+
+  // A short label for the physical device itself (e.g. "Jason's S24"),
+  // asked for alongside the name so activity can be traced to a device as
+  // well as a person — useful when two people share a name, or when it
+  // matters which phone/tablet something was logged from. Pre-filled with
+  // a guess made from the browser's user-agent string, which the person can
+  // just accept or rename to whatever's meaningful to them.
+  var DEVICE_LABEL_KEY = "rockMarkerDeviceLabel_v1";
+  function getDeviceLabel(){
+    try{ return (localStorage.getItem(DEVICE_LABEL_KEY) || "").trim(); }catch(e){ return ""; }
+  }
+  function guessDeviceLabel(){
+    try{
+      var ua = navigator.userAgent || "";
+      if(/Android/i.test(ua)){
+        var m = /Android\s*[\d.]*;\s*([^;)]+)/i.exec(ua);
+        var model = m ? m[1].replace(/Build\/.*/i, "").trim() : "";
+        return (model || "Android phone");
+      }
+      if(/iPad/i.test(ua)) return "iPad";
+      if(/iPhone/i.test(ua)) return "iPhone";
+      if(/Macintosh/i.test(ua)) return "Mac";
+      if(/Windows/i.test(ua)) return "Windows PC";
+      if(/Linux/i.test(ua)) return "Linux PC";
+      return "";
+    }catch(e){ return ""; }
   }
   var FIELD_COLORS = ["#2e7d32","#1565c0","#ef6c00","#6a1b9a","#ad1457","#00838f","#9e9d24","#5d4037"];
   var CROP_COLORS = {
@@ -2586,6 +2616,7 @@ service cloud.firestore {
     document.getElementById("input-note").value = "";
     selectSize("medium");
     document.getElementById("edit-only-row").classList.add("hidden");
+    document.getElementById("rock-entered-info").classList.add("hidden");
     updateFieldInfoHint();
     showSheet("rock-modal", "modal-backdrop");
   }
@@ -2599,6 +2630,18 @@ service cloud.firestore {
     document.getElementById("input-note").value = rock.note || "";
     selectSize(rock.size || "medium");
     document.getElementById("edit-only-row").classList.remove("hidden");
+
+    var infoEl = document.getElementById("rock-entered-info");
+    if(rock.enteredBy || rock.createdAt){
+      var bits = [];
+      if(rock.enteredBy) bits.push("Entered by " + rock.enteredBy + (rock.enteredOnDevice ? " (" + rock.enteredOnDevice + ")" : ""));
+      if(rock.createdAt) bits.push(formatLogTimestamp(rock.createdAt));
+      infoEl.textContent = bits.join(" · ");
+      infoEl.classList.remove("hidden");
+    } else {
+      infoEl.classList.add("hidden");
+    }
+
     updateFieldInfoHint();
     showSheet("rock-modal", "modal-backdrop");
   }
@@ -3128,12 +3171,13 @@ service cloud.firestore {
       var e = x.entry;
       var dateStr = formatLogTimestamp(e.date);
       var byBit = e.editedBy ? ("Edited by "+escapeHtml(e.editedBy)) : (e.enteredBy ? ("Entered by "+escapeHtml(e.enteredBy)) : "—");
-      return '<tr><td>'+escapeHtml(x.bin)+'</td><td>'+escapeHtml(dateStr)+'</td><td>'+logEntrySummaryLine(e)+'</td><td>'+escapeHtml(e.note||"")+'</td><td>'+byBit+'</td></tr>';
+      var deviceBit = e.editedBy ? (e.editedOnDevice || "—") : (e.enteredOnDevice || "—");
+      return '<tr><td>'+escapeHtml(x.bin)+'</td><td>'+escapeHtml(dateStr)+'</td><td>'+logEntrySummaryLine(e)+'</td><td>'+escapeHtml(e.note||"")+'</td><td>'+byBit+'</td><td>'+escapeHtml(deviceBit)+'</td></tr>';
     }).join("");
     return '<div class="report-section">'+
       '<h3>🚛 Bin Load Report</h3>'+
       '<div class="report-meta">'+allEntries.length+' logged '+(allEntries.length === 1 ? "entry" : "entries")+' across all bins</div>'+
-      '<table class="report-table"><thead><tr><th>Bin</th><th>Date/time</th><th>Entry</th><th>Note</th><th>Entered/edited by</th></tr></thead><tbody>'+
+      '<table class="report-table"><thead><tr><th>Bin</th><th>Date/time</th><th>Entry</th><th>Note</th><th>Entered/edited by</th><th>Device</th></tr></thead><tbody>'+
       rows+
       '</tbody></table>'+
     '</div>';
@@ -3153,14 +3197,14 @@ service cloud.firestore {
       var rows = sorted.map(function(r){
         bySize[r.size||"medium"] = (bySize[r.size||"medium"] || 0) + 1;
         var dateStr = r.createdAt ? formatLogTimestamp(r.createdAt) : "—";
-        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(dateStr)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(r.enteredOnDevice || "—")+'</td><td>'+escapeHtml(dateStr)+'</td></tr>';
       }).join("");
       var sizeOrder = ["boulder","large","medium","small"];
       var sizeSummary = sizeOrder.filter(function(s){ return bySize[s]; }).map(function(s){
         return rockSizeLabel(s) + ": " + bySize[s];
       }).join(" · ");
       html += '<div class="report-meta">'+rocks.length+' '+(rocks.length === 1 ? "rock" : "rocks")+' currently marked'+(sizeSummary ? (' · '+escapeHtml(sizeSummary)) : '')+'</div>'+
-        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Date marked</th></tr></thead><tbody>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Device</th><th>Date marked</th></tr></thead><tbody>'+
         rows+
         '</tbody></table>';
     }
@@ -3168,10 +3212,10 @@ service cloud.firestore {
       var sortedRemoved = removedRocks.slice().sort(function(a,z){ return (z.removedAt||"").localeCompare(a.removedAt||""); });
       var removedRows = sortedRemoved.map(function(r){
         var removedWhen = r.removedAt ? formatLogTimestamp(r.removedAt) : "—";
-        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(r.removedBy || "—")+'</td><td>'+escapeHtml(removedWhen)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(r.removedBy || "—")+'</td><td>'+escapeHtml(r.removedOnDevice || "—")+'</td><td>'+escapeHtml(removedWhen)+'</td></tr>';
       }).join("");
       html += '<div class="summary-subtitle" style="margin-top:14px;">Removed rocks</div>'+
-        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Removed by</th><th>Date removed</th></tr></thead><tbody>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Removed by</th><th>Device</th><th>Date removed</th></tr></thead><tbody>'+
         removedRows+
         '</tbody></table>';
     }
@@ -3361,7 +3405,7 @@ service cloud.firestore {
         var cropBit = e.crop ? ((cropIcon(e.crop) ? cropIcon(e.crop) + " " : "") + escapeHtml(e.crop)) : "";
         var amt = (typeof e.bu === "number" && e.bu > 0) ? ("≈"+e.bu.toLocaleString()+" bu"+(cropBit?" "+cropBit:"")) : "";
         var detail = [truckBit, levelBit, amt].filter(Boolean).join(" · ");
-        var byBit = e.editedBy ? ("Edited by "+escapeHtml(e.editedBy)) : (e.enteredBy ? ("Entered by "+escapeHtml(e.enteredBy)) : "");
+        var byBit = e.editedBy ? ("Edited by "+escapeHtml(e.editedBy)+(e.editedOnDevice?" ("+escapeHtml(e.editedOnDevice)+")":"")) : (e.enteredBy ? ("Entered by "+escapeHtml(e.enteredBy)+(e.enteredOnDevice?" ("+escapeHtml(e.enteredOnDevice)+")":"")) : "");
         return '<div class="log-entry">'+
           '<div class="log-entry-main">'+
             '<div class="le1">'+escapeHtml(e.action||"")+(detail ? " — "+detail : "")+'</div>'+
@@ -3653,7 +3697,7 @@ service cloud.firestore {
       var entry = {
         id:"le"+Date.now()+"_"+Math.floor(Math.random()*10000), date:date, action:action,
         crop:crop, bu:bu, truckType:truckType, fraction:fraction, note:note,
-        enteredBy: getDeviceName()
+        enteredBy: getDeviceName(), enteredOnDevice: getDeviceLabel()
       };
       var newLog = (b.log || []).concat([entry]);
       applyBinLogUpdate(binId, newLog);
@@ -3669,18 +3713,21 @@ service cloud.firestore {
     var b = bins.find(function(x){ return x.id === payload.binId; });
     if(!b) return;
     var actorName = getDeviceName();
+    var actorDevice = getDeviceLabel();
     var oldEntry = (b.log || []).find(function(x){ return x.id === payload.editedId; });
     var updatedLog = (b.log || []).map(function(x){
       if(x.id !== payload.editedId) return x;
-      // enteredBy stays whoever originally logged it — editedBy/editedAt
-      // record who most recently changed it, without losing that history.
+      // enteredBy/enteredOnDevice stay whoever originally logged it —
+      // editedBy/editedOnDevice/editedAt record who most recently changed
+      // it, without losing that history.
       return {id:x.id, date:payload.date, action:payload.action, crop:payload.crop, bu:payload.bu, truckType:payload.truckType, fraction:payload.fraction, note:payload.note,
-        enteredBy: x.enteredBy || "", editedBy: actorName, editedAt: new Date().toISOString()};
+        enteredBy: x.enteredBy || "", enteredOnDevice: x.enteredOnDevice || "",
+        editedBy: actorName, editedOnDevice: actorDevice, editedAt: new Date().toISOString()};
     });
     var updatedArchive = (b.archivedLog || []).slice();
     if(oldEntry){
       var changedTo = {action:payload.action, crop:payload.crop, bu:payload.bu, truckType:payload.truckType, fraction:payload.fraction, note:payload.note};
-      updatedArchive.push(archiveLogEntry(oldEntry, "edited", changedTo, reasonText, actorName));
+      updatedArchive.push(archiveLogEntry(oldEntry, "edited", changedTo, reasonText, actorName, actorDevice));
     }
     applyBinLogUpdate(payload.binId, updatedLog, updatedArchive);
     closeBinLogModal();
@@ -3773,7 +3820,7 @@ service cloud.firestore {
   // and gives it its own archiveId separate from the entry's original id
   // (so the same entry can be archived more than once — edited twice, say —
   // without the archive list getting confused about which copy is which).
-  function archiveLogEntry(entry, reason, changedTo, reasonNote, actorName){
+  function archiveLogEntry(entry, reason, changedTo, reasonNote, actorName, actorDevice){
     var copy = {};
     for(var k in entry){ if(Object.prototype.hasOwnProperty.call(entry, k)){ copy[k] = entry[k]; } }
     copy.archiveId = "ar"+Date.now()+"_"+Math.floor(Math.random()*10000);
@@ -3786,10 +3833,11 @@ service cloud.firestore {
     // The reason picked (or typed, for "Other") from the reason dropdown
     // shown before the delete/edit was committed.
     if(reasonNote){ copy.reasonNote = reasonNote; }
-    // Who actually performed THIS delete/edit/clear — separate from
-    // enteredBy/editedBy on the entry itself, which describe who touched it
-    // before it ever reached the archive.
+    // Who — and which device — actually performed THIS delete/edit/clear —
+    // separate from enteredBy/editedBy on the entry itself, which describe
+    // who touched it before it ever reached the archive.
     if(actorName){ copy.archivedBy = actorName; }
+    if(actorDevice){ copy.archivedOnDevice = actorDevice; }
     return copy;
   }
 
@@ -3804,7 +3852,7 @@ service cloud.firestore {
     var entry = (b.log || []).find(function(e){ return e.id === entryId; });
     var newLog = (b.log || []).filter(function(e){ return e.id !== entryId; });
     var newArchive = (b.archivedLog || []).slice();
-    if(entry){ newArchive.push(archiveLogEntry(entry, "deleted", null, reasonNote, getDeviceName())); }
+    if(entry){ newArchive.push(archiveLogEntry(entry, "deleted", null, reasonNote, getDeviceName(), getDeviceLabel())); }
     applyBinLogUpdate(binId, newLog, newArchive);
     toast("Log entry moved to the archive");
   }
@@ -3813,7 +3861,8 @@ service cloud.firestore {
     var b = bins.find(function(x){ return x.id === binId; });
     if(!b) return;
     var actorName = getDeviceName();
-    var newArchive = (b.archivedLog || []).concat((b.log || []).map(function(e){ return archiveLogEntry(e, "cleared", null, null, actorName); }));
+    var actorDevice = getDeviceLabel();
+    var newArchive = (b.archivedLog || []).concat((b.log || []).map(function(e){ return archiveLogEntry(e, "cleared", null, null, actorName, actorDevice); }));
     applyBinLogUpdate(binId, [], newArchive);
     toast("Entries moved to the archive");
   }
@@ -3874,7 +3923,7 @@ service cloud.firestore {
         var reasonLabel = e.archiveReason === "edited" ? "Edited" : (e.archiveReason === "cleared" ? "Cleared" : "Deleted");
         var reasonBit = e.reasonNote ? (" · " + escapeHtml(e.reasonNote)) : "";
         var archivedWhen = formatLogTimestamp(e.archivedAt);
-        var byBit = e.archivedBy ? (" · by " + escapeHtml(e.archivedBy)) : "";
+        var byBit = e.archivedBy ? (" · by " + escapeHtml(e.archivedBy) + (e.archivedOnDevice ? " (" + escapeHtml(e.archivedOnDevice) + ")" : "")) : "";
         var restoreTitle = isEdit ? "Undo this edit — put the original values back" : "Restore this entry";
         return '<div class="log-entry">'+
           '<div class="log-entry-main">'+
@@ -4815,10 +4864,10 @@ service cloud.firestore {
         field: field,
         note: note,
         createdAt: new Date().toISOString(),
-        enteredBy: getDeviceName()
+        enteredBy: getDeviceName(), enteredOnDevice: getDeviceLabel()
       };
       if(sharingEnabled){
-        var data = {lat:newRock.lat, lng:newRock.lng, size:newRock.size, field:newRock.field, note:newRock.note, createdAt:newRock.createdAt, enteredBy:newRock.enteredBy};
+        var data = {lat:newRock.lat, lng:newRock.lng, size:newRock.size, field:newRock.field, note:newRock.note, createdAt:newRock.createdAt, enteredBy:newRock.enteredBy, enteredOnDevice:newRock.enteredOnDevice};
         rockDocRef(newRock.id).set(data).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
@@ -4837,7 +4886,7 @@ service cloud.firestore {
     if(!editingId) return;
     if(!confirm("Delete this rock? This can't be undone.")) return;
     var removedRock = rocks.find(function(x){ return x.id === editingId; });
-    if(removedRock){ recordRemovedRock(removedRock, getDeviceName()); }
+    if(removedRock){ recordRemovedRock(removedRock, getDeviceName(), getDeviceLabel()); }
     if(sharingEnabled){
       rockDocRef(editingId).delete().catch(function(){
         toast("Couldn't delete from the shared map — check your connection.");
@@ -5237,12 +5286,12 @@ service cloud.firestore {
   function removedRocksDocRef(){
     return firestoreDb.collection("farms").doc(farmCode).collection("config").doc("removedRocks");
   }
-  function recordRemovedRock(rock, removedBy){
+  function recordRemovedRock(rock, removedBy, removedOnDevice){
     var record = {
       id: rock.id, lat: rock.lat, lng: rock.lng, size: rock.size || "medium",
       field: rock.field || "", note: rock.note || "",
-      enteredBy: rock.enteredBy || "", createdAt: rock.createdAt || "",
-      removedBy: removedBy, removedAt: new Date().toISOString()
+      enteredBy: rock.enteredBy || "", enteredOnDevice: rock.enteredOnDevice || "", createdAt: rock.createdAt || "",
+      removedBy: removedBy, removedOnDevice: removedOnDevice, removedAt: new Date().toISOString()
     };
     if(sharingEnabled){
       removedRocksDocRef().set({
@@ -5474,7 +5523,8 @@ service cloud.firestore {
             lat: r.lat, lng: r.lng, size: r.size || "medium",
             field: r.field || "", note: r.note || "",
             createdAt: r.createdAt || new Date().toISOString(),
-            enteredBy: r.enteredBy || ""
+            enteredBy: r.enteredBy || "",
+            enteredOnDevice: r.enteredOnDevice || ""
           });
           uploaded++;
         });
@@ -6323,6 +6373,10 @@ service cloud.firestore {
   function showNameGate(){
     var gate = document.getElementById("name-gate");
     if(!gate) return;
+    var labelInput = document.getElementById("input-device-label");
+    if(labelInput && !labelInput.value){
+      labelInput.value = getDeviceLabel() || guessDeviceLabel();
+    }
     gate.classList.remove("hidden");
     setTimeout(function(){
       var input = document.getElementById("input-device-name");
@@ -6332,12 +6386,15 @@ service cloud.firestore {
 
   function submitDeviceName(){
     var input = document.getElementById("input-device-name");
+    var labelInput = document.getElementById("input-device-label");
     var name = (input.value || "").trim();
+    var label = (labelInput.value || "").trim();
     if(!name){
       toast("Enter your name to continue.");
       return;
     }
     try{ localStorage.setItem(DEVICE_NAME_KEY, name); }catch(e){}
+    try{ localStorage.setItem(DEVICE_LABEL_KEY, label || guessDeviceLabel()); }catch(e){}
     document.getElementById("name-gate").classList.add("hidden");
     if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
   }
@@ -6345,6 +6402,9 @@ service cloud.firestore {
   function wireNameGate(){
     document.getElementById("btn-name-gate-submit").addEventListener("click", submitDeviceName);
     document.getElementById("input-device-name").addEventListener("keydown", function(e){
+      if(e.key === "Enter"){ submitDeviceName(); }
+    });
+    document.getElementById("input-device-label").addEventListener("keydown", function(e){
       if(e.key === "Enter"){ submitDeviceName(); }
     });
   }
