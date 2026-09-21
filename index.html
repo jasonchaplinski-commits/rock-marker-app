@@ -216,10 +216,12 @@
     width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink);
   }
   .field-row textarea{resize:vertical;min-height:60px;}
-  .size-options{display:flex;gap:8px;}
+  .size-options{display:flex;gap:8px;align-items:flex-start;}
   .size-opt{
     flex:1;border:2px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);
   }
+  .size-opt-wrap{flex:1;display:flex;flex-direction:column;}
+  .size-opt-wrap .size-opt{flex:none;width:100%;}
   .size-opt .dot{width:14px;height:14px;border-radius:50%;margin:0 auto 6px auto;}
   .size-opt[data-size=small] .dot{background:var(--small);}
   .size-opt[data-size=medium] .dot{background:var(--medium);}
@@ -669,9 +671,11 @@
       <div class="size-opt" data-size="small"><div class="dot"></div>Small</div>
       <div class="size-opt" data-size="medium"><div class="dot"></div>Medium</div>
       <div class="size-opt" data-size="large"><div class="dot"></div>Large</div>
-      <div class="size-opt" data-size="boulder"><div class="dot"></div>FOD</div>
+      <div class="size-opt-wrap">
+        <div class="size-opt" data-size="boulder"><div class="dot"></div>FOD</div>
+        <div class="coord-readout hidden" id="size-fod-hint" style="margin-top:6px;margin-bottom:0;font-size:10.5px;line-height:1.35;text-align:left;">Foreign Object Debris — metal, broken equipment parts, or other debris laying in the field.</div>
+      </div>
     </div>
-    <div class="coord-readout hidden" id="size-fod-hint" style="margin-top:6px;margin-bottom:0;">FOD = Foreign Object Debris — metal, broken equipment parts, or other debris laying in the field.</div>
   </div>
 
   <div class="field-row">
