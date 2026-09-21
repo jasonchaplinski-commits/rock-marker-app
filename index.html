@@ -3103,7 +3103,13 @@ service cloud.firestore {
     if(fields.length === 0){
       return '<div class="report-section"><h3>🗺️ Crop Report (by field)</h3><div class="report-empty">No fields have been mapped yet.</div></div>';
     }
-    var sorted = fields.slice().sort(function(a,z){ return (a.name||"").localeCompare(z.name||""); });
+    var harvestSortRank = {"Not Harvested": 0, "Partial Harvested": 1, "Harvested": 2};
+    var sorted = fields.slice().sort(function(a,z){
+      var ra = harvestSortRank[harvestStatusOf(a)];
+      var rz = harvestSortRank[harvestStatusOf(z)];
+      if(ra !== rz) return ra - rz;
+      return (a.name||"").localeCompare(z.name||"");
+    });
     var rows = sorted.map(function(f){
       if(!f.points || f.points.length < 3) return "";
       var acres = polygonAreaAcres(f.points);
@@ -3140,16 +3146,35 @@ service cloud.firestore {
       var remaining = binRemainingBu(b);
       var remainingBit = remaining === null ? "—" : (remaining > 0 ? remaining.toLocaleString() : "Full");
       var fillEquiv = (remaining !== null && remaining > 0) ? (loadsEquivLine(remaining) || "—") : "—";
+      var emptyEquiv = loadsEquivLine(bu) || "—";
       var cropBit = b.currentCrop ? ((CROP_ICONS[b.currentCrop] ? CROP_ICONS[b.currentCrop]+' ' : '') + escapeHtml(b.currentCrop)) : "Empty";
       var dumpedBit = truckCountsLine(binTruckCounts(b.log)) || "—";
-      return '<tr><td>'+escapeHtml(b.name||"Bin")+'</td><td>'+cropBit+'</td><td>'+bu.toLocaleString()+'</td><td>'+(cap ? cap.toLocaleString() : "—")+'</td><td>'+pct+'</td><td>'+remainingBit+'</td><td>'+escapeHtml(fillEquiv)+'</td><td>'+escapeHtml(dumpedBit)+'</td></tr>';
+      return '<tr><td>'+escapeHtml(b.name||"Bin")+'</td><td>'+cropBit+'</td><td>'+bu.toLocaleString()+'</td><td>'+(cap ? cap.toLocaleString() : "—")+'</td><td>'+pct+'</td><td>'+escapeHtml(emptyEquiv)+'</td><td>'+remainingBit+'</td><td>'+escapeHtml(fillEquiv)+'</td><td>'+escapeHtml(dumpedBit)+'</td></tr>';
+    }).join("");
+    // Per-bin breakdown of every truck dumped or removed, with who logged
+    // (or last edited) it and on what device — so the Bin Report answers
+    // "who entered this load" without switching to the Bin Load Report.
+    var detailSections = sorted.map(function(b){
+      var entries = (b.log || []).slice().sort(function(a,z){ return (z.date||"").localeCompare(a.date||""); });
+      if(entries.length === 0) return "";
+      var entryRows = entries.map(function(e){
+        var dateStr = formatLogTimestamp(e.date);
+        var byBit = e.editedBy ? ("Edited by "+escapeHtml(e.editedBy)) : (e.enteredBy ? ("Entered by "+escapeHtml(e.enteredBy)) : "—");
+        var deviceBit = e.editedBy ? (e.editedOnDevice || "—") : (e.enteredOnDevice || "—");
+        return '<tr><td>'+escapeHtml(dateStr)+'</td><td>'+logEntrySummaryLine(e)+'</td><td>'+escapeHtml(e.note||"")+'</td><td>'+byBit+'</td><td>'+escapeHtml(deviceBit)+'</td></tr>';
+      }).join("");
+      return '<div class="summary-subtitle" style="margin-top:14px;">'+escapeHtml(b.name||"Bin")+'</div>'+
+        '<table class="report-table"><thead><tr><th>Date/time</th><th>Entry</th><th>Note</th><th>Entered/edited by</th><th>Device</th></tr></thead><tbody>'+
+        entryRows+
+        '</tbody></table>';
     }).join("");
     return '<div class="report-section">'+
       '<h3>🛢 Bin Report</h3>'+
       '<div class="report-meta">≈'+totalBu.toLocaleString()+' bu currently in bins'+(totalCap ? (' of ≈'+totalCap.toLocaleString()+' bu total capacity') : '')+'</div>'+
-      '<table class="report-table"><thead><tr><th>Bin</th><th>Crop</th><th>Current (bu)</th><th>Capacity (bu)</th><th>% full</th><th>Space left (bu)</th><th>Loads to fill</th><th>Trucks dumped</th></tr></thead><tbody>'+
+      '<table class="report-table"><thead><tr><th>Bin</th><th>Crop</th><th>Current (bu)</th><th>Capacity (bu)</th><th>% full</th><th>Loads to empty</th><th>Space left (bu)</th><th>Loads to fill</th><th>Trucks dumped</th></tr></thead><tbody>'+
       rows+
       '</tbody></table>'+
+      detailSections+
     '</div>';
   }
 
@@ -3288,10 +3313,9 @@ service cloud.firestore {
     var name = document.getElementById("input-bin-name").value.trim();
     if(!name){ toast("Enter a bin name."); return; }
 
-    // Editing any detail of an EXISTING bin (name, capacity, etc.) needs the
-    // admin code — adding a brand new bin doesn't.
-    if(editingBinId && !checkAdminCode()) return;
-
+    // Editing any detail of an EXISTING bin needs the admin code, but it's
+    // asked up front when "Edit bin details" is first tapped (see
+    // btn-bin-edit / bin-list "edit" action) rather than here on Save.
     var rawCap = parseFloat(document.getElementById("input-bin-capacity").value);
     var capacityBu = (!isNaN(rawCap) && rawCap >= 0) ? rawCap : null;
 
@@ -3350,7 +3374,8 @@ service cloud.firestore {
 
   function deleteCurrentBin(){
     if(!editingBinId) return;
-    if(!checkAdminCode()) return;
+    // No separate admin check here — reaching the edit sheet (where this
+    // button lives) already required the admin code.
     var delB = bins.find(function(x){ return x.id === editingBinId; });
     if(!confirm('Delete "' + (delB && delB.name ? delB.name : "this bin") + '"? This can\'t be undone.')) return;
     if(sharingEnabled){
@@ -6000,6 +6025,7 @@ service cloud.firestore {
         var bounds = L.latLngBounds(b.points.map(function(p){ return [p[0], p[1]]; }));
         map.fitBounds(bounds, {padding:[50,50]});
       } else if(action === "edit"){
+        if(!checkAdminCode()) return;
         hideSheet("list-drawer", "list-backdrop");
         openBinModal(b);
       }
@@ -6013,7 +6039,8 @@ service cloud.firestore {
     document.getElementById("btn-save-bin").addEventListener("click", saveBinFromForm);
     document.getElementById("btn-delete-bin").addEventListener("click", deleteCurrentBin);
     document.getElementById("btn-redraw-bin").addEventListener("click", function(){
-      if(!checkAdminCode()) return;
+      // No separate admin check here — reaching this button already required
+      // the admin code to open the edit sheet in the first place.
       hideSheet("bin-modal", "bin-backdrop");
       startDrawingBin();
     });
@@ -6024,6 +6051,7 @@ service cloud.firestore {
       openBinLogModal();
     });
     document.getElementById("btn-bin-edit").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
       var binId = binActionsBinId;
       closeBinActions();
       var b = bins.find(function(x){ return x.id === binId; });
