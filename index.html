@@ -622,7 +622,8 @@
   <div class="side-menu-item" id="menu-item-belts"><span class="smi-icon">⚙️</span> Belts</div>
   <div class="side-menu-item" id="menu-item-reports"><span class="smi-icon">📊</span> Reports</div>
   <div class="side-menu-sep"></div>
-  <div class="side-menu-item" id="menu-item-employees"><span class="smi-icon">🪪</span> Employee Info</div>
+  <div class="side-menu-item" id="menu-item-my-info"><span class="smi-icon">📝</span> My Info</div>
+  <div class="side-menu-item" id="menu-item-employees"><span class="smi-icon">🪪</span> Employee Info (admin)</div>
 </div>
 
 <div id="install-banner" class="hidden">
@@ -1286,6 +1287,7 @@ service cloud.firestore {
   <div class="sheet-handle"></div>
   <h2>🪪 Employee Info <button class="icon-btn" id="btn-close-employees-list" style="font-size:14px;">✕</button></h2>
   <div class="coord-readout" style="margin-top:0;">Optional — only add someone here if you need their contact info on file. This is separate from the name someone enters when they first open the app.</div>
+  <input type="text" id="input-employee-search" placeholder="🔎 Search by name…" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink);box-sizing:border-box;margin-bottom:10px;">
   <div class="btn-row" style="margin-bottom:10px;">
     <button class="btn btn-primary" id="btn-add-employee">+ Add person</button>
   </div>
@@ -1551,6 +1553,24 @@ service cloud.firestore {
   var belts = [];
   var employees = [];
   var editingEmployeeId = null;
+  // Which mode the employee add/edit sheet is currently open in: true when
+  // opened from "My Info" (no admin code, scoped to this device's own
+  // record only), false when opened from the admin-gated full list.
+  var employeeModalIsSelf = false;
+  // Remembers, per device, which employee record (if any) this device
+  // created through "My Info", so reopening it edits that same record
+  // instead of creating a duplicate or exposing anyone else's.
+  var MY_EMPLOYEE_ID_KEY = "rockMarkerMyEmployeeId_v1";
+  function getMyEmployeeId(){
+    try{ return localStorage.getItem(MY_EMPLOYEE_ID_KEY) || ""; }catch(e){ return ""; }
+  }
+  function setMyEmployeeId(id){
+    try{ localStorage.setItem(MY_EMPLOYEE_ID_KEY, id); }catch(e){}
+  }
+  function clearMyEmployeeId(){
+    try{ localStorage.removeItem(MY_EMPLOYEE_ID_KEY); }catch(e){}
+  }
+  var employeeSearchQuery = "";
   // Rocks are hard-deleted from the map, but a record of who removed one and
   // when is kept here (in one small config doc, like truckSizes — not its
   // own collection, since these are only ever read, never edited) so the
@@ -5066,8 +5086,31 @@ service cloud.firestore {
   }
 
   function openEmployeesListSheet(){
+    employeeSearchQuery = "";
+    var searchInput = document.getElementById("input-employee-search");
+    if(searchInput) searchInput.value = "";
     renderEmployeesList();
     showSheet("employees-list-modal", "employees-list-backdrop");
+  }
+
+  // Lets someone add or update their OWN contact info without the admin
+  // code — they can never see or reach anyone else's info this way, since
+  // it only ever opens the one record this device is remembered as owning.
+  function openMyEmployeeInfoFlow(){
+    employeeModalIsSelf = true;
+    var myId = getMyEmployeeId();
+    var mine = myId ? employees.find(function(x){ return x.id === myId; }) : null;
+    openEmployeeModal(mine || null);
+    if(!mine){
+      // Convenience: prefill from the name already entered when this device
+      // first opened the app, so there's less to retype.
+      var dn = (getDeviceName() || "").trim();
+      if(dn){
+        var parts = dn.split(/\s+/);
+        document.getElementById("input-employee-first").value = parts[0] || "";
+        document.getElementById("input-employee-last").value = parts.slice(1).join(" ") || "";
+      }
+    }
   }
 
   // tel: links need digits (and a leading +) only; the display text keeps
@@ -5098,6 +5141,16 @@ service cloud.firestore {
     var sorted = employees.slice().sort(function(a,z){
       return ((a.lastName||"")+(a.firstName||"")).localeCompare((z.lastName||"")+(z.firstName||""));
     });
+    if(employeeSearchQuery){
+      sorted = sorted.filter(function(p){
+        var fullName = ((p.firstName||"") + " " + (p.lastName||"")).toLowerCase();
+        return fullName.indexOf(employeeSearchQuery) !== -1;
+      });
+    }
+    if(sorted.length === 0){
+      listEl.innerHTML = '<div id="empty-list">No one matches that search.</div>';
+      return;
+    }
     listEl.innerHTML = sorted.map(function(p){
       var fullName = ((p.firstName||"") + " " + (p.lastName||"")).trim() || "Unnamed";
       var addrLines = employeeAddressLines(p);
@@ -5123,7 +5176,7 @@ service cloud.firestore {
   function openEmployeeModal(p){
     if(p){
       editingEmployeeId = p.id;
-      document.getElementById("employee-modal-title").textContent = "Edit person";
+      document.getElementById("employee-modal-title").textContent = employeeModalIsSelf ? "My Info" : "Edit person";
       document.getElementById("input-employee-first").value = p.firstName || "";
       document.getElementById("input-employee-last").value = p.lastName || "";
       document.getElementById("input-employee-phone").value = p.phone || "";
@@ -5135,7 +5188,7 @@ service cloud.firestore {
       document.getElementById("employee-edit-only-row").classList.remove("hidden");
     } else {
       editingEmployeeId = null;
-      document.getElementById("employee-modal-title").textContent = "Add person";
+      document.getElementById("employee-modal-title").textContent = employeeModalIsSelf ? "My Info" : "Add person";
       document.getElementById("input-employee-first").value = "";
       document.getElementById("input-employee-last").value = "";
       document.getElementById("input-employee-phone").value = "";
@@ -5152,6 +5205,7 @@ service cloud.firestore {
   function closeEmployeeModal(){
     hideSheet("employee-modal", "employee-backdrop");
     editingEmployeeId = null;
+    employeeModalIsSelf = false;
   }
 
   function saveEmployeeFromForm(){
@@ -5198,6 +5252,7 @@ service cloud.firestore {
         saveData();
         renderEmployeesList();
       }
+      if(employeeModalIsSelf){ setMyEmployeeId(newEmployee.id); }
       toast("Saved");
     }
     closeEmployeeModal();
@@ -5208,6 +5263,7 @@ service cloud.firestore {
     var delP = employees.find(function(x){ return x.id === editingEmployeeId; });
     var delName = delP ? ((delP.firstName||"")+" "+(delP.lastName||"")).trim() : "this person";
     if(!confirm('Delete "' + (delName || "this person") + '"? This can\'t be undone.')) return;
+    if(getMyEmployeeId() === editingEmployeeId){ clearMyEmployeeId(); }
     if(sharingEnabled){
       employeeDocRef(editingEmployeeId).delete().catch(function(){
         toast("Couldn't delete from the shared map — check your connection.");
@@ -6247,7 +6303,12 @@ service cloud.firestore {
     document.getElementById("menu-item-employees").addEventListener("click", function(){
       closeSideMenu();
       if(!checkAdminCode()) return;
+      employeeModalIsSelf = false;
       openEmployeesListSheet();
+    });
+    document.getElementById("menu-item-my-info").addEventListener("click", function(){
+      closeSideMenu();
+      openMyEmployeeInfoFlow();
     });
     document.getElementById("input-report-type").addEventListener("change", renderReportsBody);
     document.getElementById("btn-print-report").addEventListener("click", function(){ window.print(); });
@@ -6394,7 +6455,14 @@ service cloud.firestore {
     document.getElementById("employees-list-backdrop").addEventListener("click", function(){
       hideSheet("employees-list-modal", "employees-list-backdrop");
     });
-    document.getElementById("btn-add-employee").addEventListener("click", function(){ openEmployeeModal(null); });
+    document.getElementById("input-employee-search").addEventListener("input", function(e){
+      employeeSearchQuery = (e.target.value || "").trim().toLowerCase();
+      renderEmployeesList();
+    });
+    document.getElementById("btn-add-employee").addEventListener("click", function(){
+      employeeModalIsSelf = false;
+      openEmployeeModal(null);
+    });
     document.getElementById("employees-list").addEventListener("click", function(e){
       // Let a tap on the phone/email/address link do its own thing (call,
       // email, or open Maps) instead of opening the edit sheet underneath it.
@@ -6404,6 +6472,7 @@ service cloud.firestore {
       var id = row.getAttribute("data-id");
       var p = employees.find(function(x){ return x.id === id; });
       if(!p) return;
+      employeeModalIsSelf = false;
       openEmployeeModal(p);
     });
     document.getElementById("btn-cancel-employee").addEventListener("click", closeEmployeeModal);
