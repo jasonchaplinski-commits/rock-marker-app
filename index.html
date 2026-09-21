@@ -1112,7 +1112,7 @@
   </div>
 
   <div class="share-help">
-    To share your map live with others, everyone pastes the <b>same Firebase settings</b> and types the <b>same farm code</b> into their own copy of this app. One person sets up the free Firebase project (~5 minutes, no cost, no credit card):
+    Every device already connects to the shared farm automatically — nobody needs to open this screen or paste anything to see the same live map on a new phone or computer. The fields below are only for the rare case of moving this app to a brand-new Firebase project (for example, starting a completely separate farm's map). One person sets up the free Firebase project (~5 minutes, no cost, no credit card):
     <ol>
       <li>Go to <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a>, sign in, and click "Add project" (name it anything, Analytics can be off).</li>
       <li>In the left sidebar, look for <b>Databases &amp; Storage</b> (Firebase has moved this around — if you don't see that exact label, look for anything mentioning "Firestore") → <b>Firestore</b> → <b>Create database</b> → pick a location → start in <b>production mode</b> → Create.</li>
@@ -1405,6 +1405,24 @@ service cloud.firestore {
 
   var STORAGE_KEY = "rockMarkerData_v1";
   var SHARE_KEY = "rockMarkerShareConfig_v1";
+
+  // Every copy of this app connects to this one shared farm automatically —
+  // nobody has to open "Share with others" or paste Firebase settings by
+  // hand on a new computer or phone; it just works like a normal website
+  // the moment it loads. This is what makes that automatic. To move this
+  // app to a different Firebase project or farm code later, update these
+  // two values and re-upload index.html — every device picks up the new
+  // one on its next visit.
+  var BAKED_IN_FARM_CODE = "Chaplinski";
+  var BAKED_IN_FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAhCpI9ojiVWMyERPKQgm9cB4BzmoAFcqk",
+    authDomain: "rock-marker-eeb95.firebaseapp.com",
+    projectId: "rock-marker-eeb95",
+    storageBucket: "rock-marker-eeb95.firebasestorage.app",
+    messagingSenderId: "804039397841",
+    appId: "1:804039397841:web:a072a0dfa054b5c7e710f0",
+    measurementId: "G-94J8D0EL56"
+  };
 
   // ---------- Access code ----------
   // Whoever downloads/opens the app has to enter this once. To change the
@@ -6164,11 +6182,17 @@ service cloud.firestore {
   function tryAutoReconnect(){
     try{
       var raw = localStorage.getItem(SHARE_KEY);
-      if(!raw) return;
-      var saved = JSON.parse(raw);
+      var saved = raw ? JSON.parse(raw) : null;
       if(saved && saved.config && saved.farmCode){
+        // A device that was manually pointed at a different farm/project
+        // before keeps using that, rather than being switched back.
         document.getElementById("input-farm-code").value = saved.farmCode;
         connectSharing(saved.config, saved.farmCode, true);
+      } else if(BAKED_IN_FARM_CODE && BAKED_IN_FIREBASE_CONFIG && BAKED_IN_FIREBASE_CONFIG.apiKey){
+        // First time this device has opened the app — connect it straight
+        // to the shared farm automatically, no setup needed.
+        document.getElementById("input-farm-code").value = BAKED_IN_FARM_CODE;
+        connectSharing(BAKED_IN_FIREBASE_CONFIG, BAKED_IN_FARM_CODE, true);
       }
     }catch(e){ /* ignore */ }
   }
