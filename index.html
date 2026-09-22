@@ -333,9 +333,10 @@
   .field-label{
     display:inline-block;width:max-content;
     cursor:pointer;transform:translate(-50%,-50%);white-space:nowrap;
-    background:rgba(255,255,255,.92);border:2px solid #888;border-radius:10px;padding:5px 11px;
+    background:transparent;border:none;border-radius:10px;padding:5px 11px;
     font-size:15px;font-weight:800;color:var(--ink);text-align:center;line-height:1.25;
-    box-shadow:0 2px 6px rgba(0,0,0,.22);touch-action:manipulation;
+    text-shadow:0 1px 2px rgba(255,255,255,.85),0 0 5px rgba(255,255,255,.75),0 0 5px rgba(255,255,255,.75);
+    touch-action:manipulation;
   }
   .field-label .emoji{font-size:20px;margin-right:4px;vertical-align:middle;}
   .field-label span{display:block;font-weight:700;color:var(--ink);font-size:11px;margin-top:1px;}
@@ -832,6 +833,7 @@
   <div class="summary-card" id="field-label-actions-stats"></div>
   <div class="btn-row" style="flex-direction:column;">
     <button class="btn btn-primary" id="btn-label-edit-field">✏️ Edit field details</button>
+    <button class="btn btn-maps" id="btn-label-navigate-field">🧭 Navigate to this field</button>
     <button class="btn btn-secondary" id="btn-label-mark-rock">🪨 Mark a rock here</button>
     <button class="btn btn-secondary" id="btn-label-actions-cancel">Cancel</button>
   </div>
@@ -1406,7 +1408,18 @@ service cloud.firestore {
   <div class="sheet-handle"></div>
   <h2>📂 Downloads <button class="icon-btn" id="btn-close-downloads" style="font-size:14px;">✕</button></h2>
   <div class="coord-readout" style="margin-top:0;">Files for the farm to view and download. Anyone can download — adding, replacing, or removing a file needs the admin code.</div>
-  <div class="btn-row" style="margin-bottom:10px;">
+
+  <div class="rock-row">
+    <div class="rock-info">
+      <div class="r1">📱 Install this app</div>
+      <div class="r2">Add it to your Home Screen for quick access, like any other app</div>
+    </div>
+    <div class="rock-actions">
+      <button class="btn btn-primary" id="btn-install-from-downloads">Install</button>
+    </div>
+  </div>
+
+  <div class="btn-row" style="margin-top:14px;margin-bottom:10px;">
     <button class="btn btn-primary" id="btn-add-file">+ Add file (admin)</button>
   </div>
   <input type="file" id="input-file-upload" class="hidden">
@@ -3423,9 +3436,18 @@ service cloud.firestore {
         '</tbody></table>'+
       '</div>';
     }).join("");
+    var summaryRows = order.filter(function(k){ return groups[k]; }).map(function(key){
+      var g = groups[key];
+      var pct = totalAcres > 0 ? Math.round((g.acres/totalAcres)*100) : 0;
+      var label = key === "Unassigned" ? "🚫 Unassigned" : "🧑‍🌾 "+escapeHtml(key);
+      return '<tr><td>'+label+'</td><td>'+g.acres.toFixed(1)+'</td><td>'+pct+'%</td></tr>';
+    }).join("");
     return '<div class="report-section" style="margin-bottom:4px;">'+
       '<h3>🧑‍🌾 Farmed By</h3>'+
       '<div class="report-meta">'+totalAcres.toFixed(1)+' acres total across '+fields.length+' '+(fields.length === 1 ? "field" : "fields")+'</div>'+
+      '<table class="report-table"><thead><tr><th>Farmer</th><th>Acres</th><th>% of farm</th></tr></thead><tbody>'+
+      summaryRows+
+      '</tbody></table>'+
     '</div>'+
     sections;
   }
@@ -6488,6 +6510,29 @@ service cloud.firestore {
     document.getElementById("install-banner").classList.add("hidden");
   }
 
+  // Shared by the top install banner's button AND the "Install this app"
+  // row in Downloads, so there's one obvious place to trigger it from at
+  // any time — not just whenever the banner happens to be showing.
+  function triggerInstallFlow(){
+    if(deferredInstallPrompt){
+      // Android / desktop Chrome etc: real native install prompt.
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(function(){
+        deferredInstallPrompt = null;
+        hideInstallBanner();
+      });
+    } else if(isStandaloneDisplay()){
+      toast("Already installed — you're using it as an app right now.");
+    } else if(isIOSDevice()){
+      // iOS/iPadOS Safari has no programmatic install API — walk the user through it.
+      toast('Tap the Share icon 􀈂 in Safari\'s toolbar, then choose "Add to Home Screen".', 6000);
+    } else {
+      // Android/desktop browser that hasn't (yet) fired beforeinstallprompt —
+      // most likely already installed, or a browser without this feature.
+      toast('Open your browser\'s menu, then look for "Install app" or "Add to Home screen".', 6000);
+    }
+  }
+
   function wireInstallPrompt(){
     // Android / desktop Chrome etc: native install prompt.
     window.addEventListener("beforeinstallprompt", function(e){
@@ -6501,18 +6546,10 @@ service cloud.firestore {
     });
 
     var installBtn = document.getElementById("btn-install");
-    installBtn.addEventListener("click", function(){
-      if(deferredInstallPrompt){
-        deferredInstallPrompt.prompt();
-        deferredInstallPrompt.userChoice.then(function(){
-          deferredInstallPrompt = null;
-          hideInstallBanner();
-        });
-      } else if(isIOSDevice()){
-        // iOS/iPadOS Safari has no programmatic install API — walk the user through it.
-        toast('Tap the Share icon 􀈂 in Safari\'s toolbar, then choose "Add to Home Screen".', 6000);
-      }
-    });
+    installBtn.addEventListener("click", triggerInstallFlow);
+
+    var downloadsInstallBtn = document.getElementById("btn-install-from-downloads");
+    if(downloadsInstallBtn){ downloadsInstallBtn.addEventListener("click", triggerInstallFlow); }
 
     document.getElementById("btn-install-dismiss").addEventListener("click", function(){
       hideInstallBanner();
@@ -7163,6 +7200,15 @@ service cloud.firestore {
       closeFieldLabelActions();
       var f = fields.find(function(x){ return x.id === fieldId; });
       if(f) openFieldModal(f);
+    });
+    document.getElementById("btn-label-navigate-field").addEventListener("click", function(){
+      var fieldId = fieldLabelActionsFieldId;
+      closeFieldLabelActions();
+      var f = fields.find(function(x){ return x.id === fieldId; });
+      if(f && f.points && f.points.length >= 3){
+        var c = polygonCentroid(f.points);
+        openInGoogleMaps(c[0], c[1]);
+      }
     });
     document.getElementById("btn-label-mark-rock").addEventListener("click", function(){
       var fieldId = fieldLabelActionsFieldId;
