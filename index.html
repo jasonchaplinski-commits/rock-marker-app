@@ -562,6 +562,13 @@
   .equip-file-info .efi-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .equip-file-info .efi-sub{font-size:11px;color:var(--muted);font-weight:600;}
 
+  /* Crop Planning photo grid (Firestore-only, base64 thumbnails — see
+     cropPlanPhotosRef/compressCropPlanPhoto). */
+  .crop-plan-photos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .crop-plan-photo-cell{position:relative;aspect-ratio:1/1;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#eee;}
+  .crop-plan-photo-thumb{width:100%;height:100%;object-fit:cover;cursor:pointer;display:block;}
+  .crop-plan-photo-del{position:absolute;top:4px;right:4px;border:none;background:rgba(0,0,0,.55);color:#fff;border-radius:6px;padding:2px 6px;font-size:13px;cursor:pointer;line-height:1.4;}
+
   /* One card per belt within a system, in the Add/Edit belt sheet —
      size/number on one row, that belt's own note (e.g. "top of system")
      below it. */
@@ -873,10 +880,23 @@
   <div class="summary-card" id="field-label-actions-stats"></div>
   <div class="btn-row" style="flex-direction:column;">
     <button class="btn btn-primary" id="btn-label-edit-field">✏️ Edit field details</button>
-    <button class="btn btn-maps" id="btn-label-edit-boundary">📐 Edit boundary</button>
+    <button class="btn btn-maps" id="btn-label-boundary">📐 Boundary</button>
     <button class="btn btn-maps" id="btn-label-navigate-field">🧭 Navigate to this field</button>
     <button class="btn btn-secondary" id="btn-label-mark-rock">🪨 Mark a rock here</button>
     <button class="btn btn-secondary" id="btn-label-actions-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- Field boundary actions sub-menu (Match previous year / Delete / Edit) -->
+<div class="sheet-backdrop" id="field-boundary-actions-backdrop"></div>
+<div class="sheet" id="field-boundary-actions-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="field-boundary-actions-title">Boundary</h2>
+  <div class="btn-row" style="flex-direction:column;">
+    <button class="btn btn-maps" id="btn-boundary-match-previous">🔁 Match previous year boundary</button>
+    <button class="btn btn-danger" id="btn-boundary-delete">🗑️ Delete boundary</button>
+    <button class="btn btn-maps" id="btn-boundary-edit">✏️ Edit boundary</button>
+    <button class="btn btn-secondary" id="btn-boundary-actions-cancel">Cancel</button>
   </div>
 </div>
 
@@ -1470,6 +1490,23 @@ service cloud.firestore {
   </div>
 </div>
 
+<!-- Crop Planning (doc shortcut + per-year photos, stored inline in Firestore) -->
+<div class="sheet-backdrop" id="crop-plan-backdrop"></div>
+<div class="sheet" id="crop-plan-modal">
+  <div class="sheet-handle"></div>
+  <h2>📄 Crop Planning <button class="icon-btn" id="btn-close-crop-plan" style="font-size:14px;">✕</button></h2>
+  <div class="btn-row" style="margin-bottom:14px;">
+    <button class="btn btn-primary" id="btn-open-crop-plan-doc">📄 Open Crop Planning doc</button>
+  </div>
+  <div class="summary-subtitle">Photos — <span id="crop-plan-photos-year-label"></span></div>
+  <div class="coord-readout" style="margin-top:4px;">Quick reference photos for this crop year — soil tests, seed tags, notes on paper, etc.</div>
+  <div class="btn-row" style="margin-top:6px;margin-bottom:10px;">
+    <button class="btn btn-secondary" id="btn-add-crop-plan-photo">+ Add photo (admin)</button>
+  </div>
+  <input type="file" id="input-crop-plan-photo" class="hidden" accept="image/*" capture="environment">
+  <div id="crop-plan-photos-grid" class="crop-plan-photos-grid"></div>
+</div>
+
 <div id="toast"></div>
 
 <div id="bin-zoom-cta">
@@ -1754,6 +1791,13 @@ service cloud.firestore {
   // year's collection) without tearing down/re-establishing every other
   // shared listener (rocks, waypoints, bins, etc).
   var unsubscribeFieldsFn = null;
+
+  // Crop Planning photos (Feature: inline-Firestore base64 photos, no
+  // Firebase Storage needed) — year-scoped exactly like fields above, via
+  // its own standalone re-subscribable listener (see
+  // subscribeToCropPlanPhotos / cropPlanPhotosCollectionName).
+  var cropPlanPhotos = [];
+  var unsubscribeCropPlanPhotosFn = null;
 
   var deferredInstallPrompt = null;
 
@@ -3322,6 +3366,100 @@ service cloud.firestore {
   function closeFieldLabelActions(){
     hideSheet("field-label-actions-modal", "field-label-actions-backdrop");
     fieldLabelActionsFieldId = null;
+  }
+
+  // ---------- Field boundary sub-menu (Match previous year / Delete / Edit) ----------
+  var fieldBoundaryActionsFieldId = null;
+
+  function openFieldBoundaryActions(fieldId){
+    var f = fields.find(function(x){ return x.id === fieldId; });
+    if(!f) return;
+    fieldBoundaryActionsFieldId = fieldId;
+    document.getElementById("field-boundary-actions-title").textContent = (f.name || "Field") + " boundary";
+    showSheet("field-boundary-actions-modal", "field-boundary-actions-backdrop");
+  }
+
+  function closeFieldBoundaryActions(){
+    hideSheet("field-boundary-actions-modal", "field-boundary-actions-backdrop");
+    fieldBoundaryActionsFieldId = null;
+  }
+
+  // Walks backward from targetYear toward EARLIEST_YEAR — same backward-walk
+  // approach findNearestYearWithData/seedYearFrom use for whole-year
+  // seeding — looking for the nearest earlier year that has a field
+  // matching this one BY NAME (trimmed; the same convention used elsewhere
+  // in the app, e.g. matching rocks to a field by name, since each year's
+  // field docs have independent Firestore ids). Calls back with that year's
+  // string and the matched field's points (already unwrapped to
+  // [[lat,lng],...]), or (null, null) if no earlier year has a match.
+  function findPreviousYearBoundaryForField(field, targetYear, onFound){
+    var name = (field.name || "").trim();
+    var y = parseInt(targetYear, 10) - 1;
+    function tryYear(){
+      if(!name || y < EARLIEST_YEAR){ onFound(null, null); return; }
+      var yearStr = String(y);
+      firestoreDb.collection("farms").doc(farmCode).collection(fieldsCollectionName(yearStr)).get().then(function(snap){
+        var matchPoints = null;
+        snap.forEach(function(d){
+          if(matchPoints) return;
+          var data = d.data();
+          if((data.name || "").trim() === name && data.points && data.points.length){
+            matchPoints = pointsFromFirestore(data.points);
+          }
+        });
+        if(matchPoints){ onFound(yearStr, matchPoints); return; }
+        y--;
+        tryYear();
+      }).catch(function(){ onFound(null, null); });
+    }
+    tryYear();
+  }
+
+  // Copies ONLY the matched earlier-year field's boundary (points) onto
+  // this year's field doc — crop, farmer, name, harvest status, color, etc.
+  // on the current year's field are left completely untouched.
+  function matchPreviousYearBoundary(fieldId){
+    var f = fields.find(function(x){ return x.id === fieldId; });
+    if(!f) return;
+    if(!sharingEnabled || !firestoreDb || !farmCode){
+      toast("Connect sharing first to use crop years.");
+      return;
+    }
+    toast("Looking for an earlier boundary…");
+    findPreviousYearBoundaryForField(f, currentYear, function(sourceYear, matchedPoints){
+      if(!sourceYear || !matchedPoints || !matchedPoints.length){
+        toast("No earlier boundary found for this field.");
+        return;
+      }
+      if(!confirm('Replace the current boundary for "' + (f.name || "this field") + '" with its ' + sourceYear + ' shape? This can\'t be undone.')) return;
+      fieldDocRef(fieldId).update({points: pointsToFirestore(matchedPoints)}).then(function(){
+        toast("Boundary matched to " + sourceYear + ".");
+      }).catch(function(){
+        toast("Couldn't save to the shared map — check your connection.");
+      });
+    });
+  }
+
+  // Same delete-a-field operation as deleteCurrentField (used by the
+  // field-edit modal's "Delete field" button), just exposed as a direct
+  // shortcut from the boundary sub-menu instead of requiring the edit modal
+  // to be open first. fieldDocRef() is scoped to currentYear, so this only
+  // ever touches the currently-selected crop year's collection.
+  function deleteFieldBoundaryShortcut(fieldId){
+    var delF = fields.find(function(x){ return x.id === fieldId; });
+    if(!delF) return;
+    if(!confirm('Delete "' + (delF.name || "this field") + '"? This can\'t be undone.')) return;
+    if(sharingEnabled){
+      fieldDocRef(fieldId).delete().catch(function(){
+        toast("Couldn't delete from the shared map — check your connection.");
+      });
+    } else {
+      fields = fields.filter(function(x){ return x.id !== fieldId; });
+      saveData();
+      updateFieldOptions();
+      renderAll();
+    }
+    toast("Field deleted");
   }
 
   var currentFieldModalTotalAcres = 0;
@@ -5802,6 +5940,134 @@ service cloud.firestore {
     document.body.removeChild(a);
   }
 
+  // ---------- Crop Planning photos (Firestore-only, no Firebase Storage) ----------
+  // Mirrors fieldsCollectionName's convention: BASE_YEAR keeps the plain
+  // "cropPlanPhotos" collection name, any other year gets its own
+  // "cropPlanPhotos_<year>" collection — so each crop year's planning
+  // photos are completely separate Firestore documents.
+  function cropPlanPhotosCollectionName(year){
+    return year === BASE_YEAR ? "cropPlanPhotos" : "cropPlanPhotos_" + year;
+  }
+  function cropPlanPhotosRef(){
+    return firestoreDb.collection("farms").doc(farmCode).collection(cropPlanPhotosCollectionName(currentYear));
+  }
+
+  // Standalone, independently re-subscribable listener — kept separate from
+  // subscribeToFarm()'s shared listeners (same reasoning as
+  // subscribeToFields) so a crop-year switch only repoints this one.
+  function subscribeToCropPlanPhotos(year){
+    if(unsubscribeCropPlanPhotosFn){ unsubscribeCropPlanPhotosFn(); unsubscribeCropPlanPhotosFn = null; }
+    if(!firestoreDb || !farmCode) return;
+    unsubscribeCropPlanPhotosFn = firestoreDb.collection("farms").doc(farmCode).collection(cropPlanPhotosCollectionName(year))
+      .orderBy("uploadedAt", "desc").onSnapshot(function(snapshot){
+        cropPlanPhotos = snapshot.docs.map(function(d){
+          var data = d.data();
+          data.id = d.id;
+          return data;
+        });
+        renderCropPlanPhotos();
+      }, function(err){
+        toast("Sync error loading crop planning photos.");
+      });
+  }
+
+  function openCropPlanSheet(){
+    document.getElementById("crop-plan-photos-year-label").textContent = currentYear;
+    renderCropPlanPhotos();
+    showSheet("crop-plan-modal", "crop-plan-backdrop");
+  }
+  function closeCropPlanSheet(){
+    hideSheet("crop-plan-modal", "crop-plan-backdrop");
+  }
+
+  function renderCropPlanPhotos(){
+    var el = document.getElementById("crop-plan-photos-grid");
+    if(!el) return;
+    if(!sharingEnabled){
+      el.innerHTML = '<div id="empty-list">Connect sharing to view and add photos.</div>';
+      return;
+    }
+    if(cropPlanPhotos.length === 0){
+      el.innerHTML = '<div id="empty-list">No photos yet for ' + escapeHtml(currentYear) + '. Tap "+ Add photo" above.</div>';
+      return;
+    }
+    el.innerHTML = cropPlanPhotos.map(function(p){
+      return '<div class="crop-plan-photo-cell">'+
+        '<img class="crop-plan-photo-thumb" src="'+(p.dataUrl||"")+'" data-view-photo="'+p.id+'">'+
+        '<button type="button" class="crop-plan-photo-del" data-del-photo="'+p.id+'">🗑️</button>'+
+      '</div>';
+    }).join("");
+  }
+
+  // Shrinks/re-compresses a picked photo before it's stored inline in a
+  // Firestore document — same idea as compressImageFile (used for equipment
+  // attachments), but tuned to a much smaller target since these live
+  // directly on a small metadata-only doc rather than Firebase Storage:
+  // aims for well under half of Firestore's ~1MiB document limit.
+  function compressCropPlanPhoto(file, callback){
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var img = new Image();
+      img.onload = function(){
+        function tryCompress(maxDim, quality){
+          var w = img.width, h = img.height;
+          var scale = Math.min(1, maxDim / Math.max(w, h));
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+          var canvas = document.createElement("canvas");
+          canvas.width = cw; canvas.height = ch;
+          canvas.getContext("2d").drawImage(img, 0, 0, cw, ch);
+          return canvas.toDataURL("image/jpeg", quality);
+        }
+        var dataUrl = tryCompress(1000, 0.6);
+        if(dataUrl.length > 400000){ dataUrl = tryCompress(1000, 0.5); }
+        if(dataUrl.length > 400000){ dataUrl = tryCompress(800, 0.4); }
+        if(dataUrl.length > 400000){ dataUrl = tryCompress(600, 0.4); }
+        if(dataUrl.length > 900000){ callback(null, "That photo is too large even after compressing — try a simpler or smaller photo."); return; }
+        callback(dataUrl, null);
+      };
+      img.onerror = function(){ callback(null, "Couldn't read that image file."); };
+      img.src = ev.target.result;
+    };
+    reader.onerror = function(){ callback(null, "Couldn't read that image file."); };
+    reader.readAsDataURL(file);
+  }
+
+  function triggerCropPlanPhotoUpload(){
+    if(!sharingEnabled){ toast("Connect sharing first."); return; }
+    if(!checkAdminCode()) return;
+    var input = document.getElementById("input-crop-plan-photo");
+    if(input) input.click();
+  }
+
+  function handleCropPlanPhotoSelected(e){
+    var f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if(!f) return;
+    toast("Adding photo…");
+    compressCropPlanPhoto(f, function(dataUrl, err){
+      if(err){ toast(err); return; }
+      var id = "cpp_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
+      cropPlanPhotosRef().doc(id).set({
+        dataUrl: dataUrl,
+        uploadedByName: getDeviceName() || "",
+        uploadedAt: Date.now()
+      }).then(function(){
+        toast("Photo added");
+      }).catch(function(){
+        toast("Couldn't save that photo — check your connection.");
+      });
+    });
+  }
+
+  function deleteCropPlanPhoto(id){
+    if(!checkAdminCode()) return;
+    cropPlanPhotosRef().doc(id).delete().then(function(){
+      toast("Photo removed");
+    }).catch(function(){
+      toast("Couldn't remove that photo.");
+    });
+  }
+
   function openEmployeeModal(p){
     if(p){
       editingEmployeeId = p.id;
@@ -6519,6 +6785,9 @@ service cloud.firestore {
     // a different year's collection on its own, without tearing down and
     // re-establishing every other shared listener below.
     subscribeToFields(currentYear);
+    // Crop Planning photos are year-scoped the same way — its own
+    // standalone listener, repointed alongside the fields one.
+    subscribeToCropPlanPhotos(currentYear);
 
     unsubscribeFns.push(
       firestoreDb.collection("farms").doc(farmCode).collection("waypoints").onSnapshot(function(snapshot){
@@ -6707,6 +6976,7 @@ service cloud.firestore {
       editingFieldId = null;
       pendingFieldPoints = null;
       subscribeToFields(currentYear);
+      subscribeToCropPlanPhotos(currentYear);
       updateCropYearUI();
       toast(isFutureYear(targetYear) ? "Switched to " + targetYear + " planning" : "Switched to " + targetYear);
     }
@@ -6948,6 +7218,8 @@ service cloud.firestore {
     unsubscribeFns.forEach(function(fn){ fn(); });
     unsubscribeFns = [];
     if(unsubscribeFieldsFn){ unsubscribeFieldsFn(); unsubscribeFieldsFn = null; }
+    if(unsubscribeCropPlanPhotosFn){ unsubscribeCropPlanPhotosFn(); unsubscribeCropPlanPhotosFn = null; }
+    cropPlanPhotos = [];
     sharingEnabled = false;
     farmCode = null;
     firestoreDb = null;
@@ -7137,7 +7409,7 @@ service cloud.firestore {
     });
     document.getElementById("menu-item-crop-plan").addEventListener("click", function(){
       closeSideMenu();
-      openCropPlanningFile();
+      openCropPlanSheet();
     });
     document.getElementById("menu-item-employees").addEventListener("click", function(){
       closeSideMenu();
@@ -7334,6 +7606,27 @@ service cloud.firestore {
       var row = e.target.closest(".rock-row");
       if(!row) return;
       deleteFileById(row.getAttribute("data-id"));
+    });
+
+    // ---------- Crop Planning (doc shortcut + per-year photos) ----------
+    document.getElementById("btn-close-crop-plan").addEventListener("click", closeCropPlanSheet);
+    document.getElementById("crop-plan-backdrop").addEventListener("click", closeCropPlanSheet);
+    document.getElementById("btn-open-crop-plan-doc").addEventListener("click", openCropPlanningFile);
+    document.getElementById("btn-add-crop-plan-photo").addEventListener("click", triggerCropPlanPhotoUpload);
+    document.getElementById("input-crop-plan-photo").addEventListener("change", handleCropPlanPhotoSelected);
+    document.getElementById("crop-plan-photos-grid").addEventListener("click", function(e){
+      var delBtn = e.target.closest("[data-del-photo]");
+      if(delBtn){ deleteCropPlanPhoto(delBtn.getAttribute("data-del-photo")); return; }
+      var thumb = e.target.closest("[data-view-photo]");
+      if(thumb){
+        var viewId = thumb.getAttribute("data-view-photo");
+        var idx = 0;
+        for(var i = 0; i < cropPlanPhotos.length; i++){
+          if(cropPlanPhotos[i].id === viewId){ idx = i; break; }
+        }
+        var asFiles = cropPlanPhotos.map(function(p, i){ return {name: "Photo " + (i + 1), pages: [p.dataUrl]}; });
+        openPhotoViewerForFiles(asFiles, "Crop Planning Photos", idx);
+      }
     });
 
     document.getElementById("belt-backdrop").addEventListener("click", closeBeltModal);
@@ -7747,12 +8040,31 @@ service cloud.firestore {
       var f = fields.find(function(x){ return x.id === fieldId; });
       if(f) openFieldModal(f);
     });
-    document.getElementById("btn-label-edit-boundary").addEventListener("click", function(){
-      if(!checkAdminCode()) return;
+    document.getElementById("btn-label-boundary").addEventListener("click", function(){
       var fieldId = fieldLabelActionsFieldId;
       closeFieldLabelActions();
+      openFieldBoundaryActions(fieldId);
+    });
+    document.getElementById("btn-boundary-match-previous").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
+      var fieldId = fieldBoundaryActionsFieldId;
+      closeFieldBoundaryActions();
+      matchPreviousYearBoundary(fieldId);
+    });
+    document.getElementById("btn-boundary-delete").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
+      var fieldId = fieldBoundaryActionsFieldId;
+      closeFieldBoundaryActions();
+      deleteFieldBoundaryShortcut(fieldId);
+    });
+    document.getElementById("btn-boundary-edit").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
+      var fieldId = fieldBoundaryActionsFieldId;
+      closeFieldBoundaryActions();
       startBoundaryEditMode(fieldId);
     });
+    document.getElementById("btn-boundary-actions-cancel").addEventListener("click", closeFieldBoundaryActions);
+    document.getElementById("field-boundary-actions-backdrop").addEventListener("click", closeFieldBoundaryActions);
     document.getElementById("btn-label-navigate-field").addEventListener("click", function(){
       var fieldId = fieldLabelActionsFieldId;
       closeFieldLabelActions();
