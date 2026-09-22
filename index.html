@@ -333,10 +333,9 @@
   .field-label{
     display:inline-block;width:max-content;
     cursor:pointer;transform:translate(-50%,-50%);white-space:nowrap;
-    background:transparent;border:none;border-radius:10px;padding:5px 11px;
+    background:rgba(255,255,255,.6);border:1px solid rgba(136,136,136,.6);border-radius:10px;padding:5px 11px;
     font-size:15px;font-weight:800;color:var(--ink);text-align:center;line-height:1.25;
-    text-shadow:0 1px 2px rgba(255,255,255,.85),0 0 5px rgba(255,255,255,.75),0 0 5px rgba(255,255,255,.75);
-    touch-action:manipulation;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);touch-action:manipulation;
   }
   .field-label .emoji{font-size:20px;margin-right:4px;vertical-align:middle;}
   .field-label span{display:block;font-weight:700;color:var(--ink);font-size:11px;margin-top:1px;}
@@ -3423,15 +3422,38 @@ service cloud.firestore {
     var sections = order.filter(function(k){ return groups[k]; }).map(function(key){
       var g = groups[key];
       var pct = totalAcres > 0 ? Math.round((g.acres/totalAcres)*100) : 0;
-      var rows = g.fields.slice().sort(function(a,z){ return a.name.localeCompare(z.name); }).map(function(f){
+
+      // Per-crop acres for THIS farmer only, so the "Crop Total" column
+      // reflects their share of that crop, not the whole farm's.
+      var cropTotalsForFarmer = {};
+      g.fields.forEach(function(f){
+        var cropKey = f.crop && CROP_COLORS[f.crop] ? f.crop : "No Crop";
+        cropTotalsForFarmer[cropKey] = (cropTotalsForFarmer[cropKey] || 0) + f.acres;
+      });
+
+      var sortedFields = g.fields.slice().sort(function(a,z){
+        var cropA = a.crop && CROP_COLORS[a.crop] ? a.crop : "No Crop";
+        var cropZ = z.crop && CROP_COLORS[z.crop] ? z.crop : "No Crop";
+        if(cropA !== cropZ){
+          if(cropA === "No Crop") return 1;
+          if(cropZ === "No Crop") return -1;
+          // Larger crop (for this farmer) first, matching the Crop Totals report's convention.
+          var diff = cropTotalsForFarmer[cropZ] - cropTotalsForFarmer[cropA];
+          if(diff !== 0) return diff;
+          return cropA.localeCompare(cropZ);
+        }
+        return a.name.localeCompare(z.name);
+      });
+
+      var rows = sortedFields.map(function(f){
         var cropKey = f.crop && CROP_COLORS[f.crop] ? f.crop : "No Crop";
         var icon = CROP_ICONS[cropKey] ? CROP_ICONS[cropKey]+' ' : '';
-        return '<tr><td>'+escapeHtml(f.name)+'</td><td>'+f.acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(f.name)+'</td><td>'+f.acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+cropTotalsForFarmer[cropKey].toFixed(1)+'</td></tr>';
       }).join("");
       var label = key === "Unassigned" ? "🚫 Unassigned" : "🧑‍🌾 "+escapeHtml(key);
       return '<div class="report-section">'+
         '<h3>'+label+' — '+g.acres.toFixed(1)+' ac ('+pct+'%)</h3>'+
-        '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th></tr></thead><tbody>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th><th>Crop Total (ac)</th></tr></thead><tbody>'+
         rows+
         '</tbody></table>'+
       '</div>';
