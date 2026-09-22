@@ -42,6 +42,11 @@
   }
   #topbar > *{pointer-events:auto;}
   #app-title{color:#fff;font-weight:700;font-size:16px;text-shadow:0 1px 3px rgba(0,0,0,.5);margin-right:auto;white-space:nowrap;}
+  #crop-year-badge{
+    background:#ef6c00;color:#fff;font-weight:800;font-size:12px;text-shadow:none;
+    padding:7px 12px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);
+  }
+  #crop-year-badge.hidden{display:none;}
   #field-filter{
     max-width:38vw;
     border:none;border-radius:20px;padding:8px 12px;font-size:13px;font-weight:600;
@@ -68,6 +73,9 @@
   .side-menu-item:active{background:rgba(0,0,0,.06);}
   .side-menu-item .smi-icon{font-size:20px;width:24px;text-align:center;flex-shrink:0;}
   .side-menu-sep{height:1px;background:var(--line);margin:6px 18px;}
+  .side-menu-crop-year{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 18px;}
+  .side-menu-crop-year label{font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .side-menu-crop-year select{border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:14px;font-weight:700;background:#fff;color:var(--ink);}
 
   /* Search bar */
   #searchwrap{position:absolute;top:56px;left:10px;right:10px;z-index:499;display:flex;gap:6px;}
@@ -606,6 +614,7 @@
 <div id="topbar">
   <button class="icon-btn" id="btn-menu" title="Menu">☰</button>
   <div id="app-title">🪨 Rock Marker</div>
+  <div id="crop-year-badge" class="hidden"></div>
   <select id="field-filter"><option value="all">All fields</option></select>
   <button class="icon-btn" id="btn-search-toggle" title="Search a place">🔎</button>
   <button class="icon-btn" id="btn-layer" title="Switch map view">🛰️</button>
@@ -617,6 +626,10 @@
 <div id="side-menu">
   <h2>☰ Menu</h2>
   <div class="side-menu-item" id="menu-item-home"><span class="smi-icon">🏠</span> Home</div>
+  <div class="side-menu-crop-year">
+    <label for="input-crop-year">📅 Crop Year</label>
+    <select id="input-crop-year"></select>
+  </div>
   <div class="side-menu-sep"></div>
   <div class="side-menu-item" id="menu-item-equipment"><span class="smi-icon">🚜</span> Equipment</div>
   <div class="side-menu-item" id="menu-item-belts"><span class="smi-icon">⚙️</span> Belts</div>
@@ -772,7 +785,7 @@
     </select>
   </div>
 
-  <div class="field-row">
+  <div class="field-row" id="field-harvest-status-row">
     <label>Harvest status</label>
     <select id="input-field-harvest">
       <option value="Not Harvested">⬜ Not Harvested</option>
@@ -1703,8 +1716,34 @@ service cloud.firestore {
   var farmCode = null;
   var firestoreDb = null;
   var unsubscribeFns = [];
+  // The fields listener is kept separate from unsubscribeFns above so a
+  // crop-year switch can repoint just this one listener (to a different
+  // year's collection) without tearing down/re-establishing every other
+  // shared listener (rocks, waypoints, bins, etc).
+  var unsubscribeFieldsFn = null;
 
   var deferredInstallPrompt = null;
+
+  // ---------- Crop year (multi-year field planning) ----------
+  // Only field boundaries/crop/farmer are year-specific (see fieldDocRef /
+  // fieldsCollectionName below) — harvest tracking is a base-year-only
+  // concept and is hidden in the field modal for any other year.
+  var YEARS = ["2026", "2027"];
+  var BASE_YEAR = "2026";
+  var CROP_YEAR_KEY = "rockMarkerCropYear_v1";
+  function loadCropYear(){
+    try{
+      var y = localStorage.getItem(CROP_YEAR_KEY);
+      return (y && YEARS.indexOf(y) !== -1) ? y : BASE_YEAR;
+    }catch(e){ return BASE_YEAR; }
+  }
+  function saveCropYear(y){
+    try{ localStorage.setItem(CROP_YEAR_KEY, y); }catch(e){}
+  }
+  var currentYear = loadCropYear();
+  function isPlanningYear(){
+    return currentYear !== BASE_YEAR;
+  }
 
   // ---------- Persistence ----------
   function loadData(){
@@ -1713,7 +1752,12 @@ service cloud.firestore {
       if(raw){
         var parsed = JSON.parse(raw);
         rocks = Array.isArray(parsed.rocks) ? parsed.rocks : [];
-        fields = Array.isArray(parsed.fields) ? parsed.fields : [];
+        // Fields are cached per crop year (see cacheSharedData) — fall back
+        // to the legacy unsuffixed "fields" key when this year has no cached
+        // entry of its own yet (e.g. a brand-new year, or data cached before
+        // multi-year support existed).
+        var cachedYearFields = parsed["fields_" + currentYear];
+        fields = Array.isArray(cachedYearFields) ? cachedYearFields : (Array.isArray(parsed.fields) ? parsed.fields : []);
         waypoints = Array.isArray(parsed.waypoints) ? parsed.waypoints : [];
         bins = Array.isArray(parsed.bins) ? parsed.bins : [];
         equipment = Array.isArray(parsed.equipment) ? parsed.equipment : [];
@@ -3143,6 +3187,13 @@ service cloud.firestore {
     updateColorSectionForCrop();
     updatePartialAcresRow();
     updateHarvestedAtRow();
+    // Harvest tracking only makes sense for the current/base year — a
+    // future planning year's fields shouldn't expose it at all.
+    document.getElementById("field-harvest-status-row").classList.toggle("hidden", isPlanningYear());
+    if(isPlanningYear()){
+      document.getElementById("field-partial-acres-row").classList.add("hidden");
+      document.getElementById("field-harvested-at-row").classList.add("hidden");
+    }
     showSheet("field-modal", "field-backdrop");
   }
 
@@ -3151,8 +3202,15 @@ service cloud.firestore {
     pendingFieldPoints = null;
   }
 
+  // Base year (2026) keeps the original "fields" collection name so no
+  // migration is needed for existing data; any other year gets its own
+  // "fields_<year>" collection — already covered by the farm's wildcard
+  // Firestore rules, so no rules change is needed either.
+  function fieldsCollectionName(year){
+    return year === BASE_YEAR ? "fields" : "fields_" + year;
+  }
   function fieldDocRef(id){
-    return firestoreDb.collection("farms").doc(farmCode).collection("fields").doc(id);
+    return firestoreDb.collection("farms").doc(farmCode).collection(fieldsCollectionName(currentYear)).doc(id);
   }
 
   // Firestore rejects an array whose entries are themselves arrays (our field
@@ -3182,6 +3240,10 @@ service cloud.firestore {
 
     var crop = document.getElementById("input-field-crop").value;
     var harvestStatus = document.getElementById("input-field-harvest").value || "Not Harvested";
+    // Harvest tracking doesn't apply to a future planning year — the
+    // dropdown is hidden in the modal for those years, but force it here
+    // too as a safety net regardless of stale form state.
+    if(isPlanningYear()){ harvestStatus = "Not Harvested"; }
     var color = selectedFieldColor || FIELD_COLORS[0];
 
     var partialAcresHarvested = 0;
@@ -6156,7 +6218,25 @@ service cloud.firestore {
   }
 
   function cacheSharedData(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks:rocks, fields:fields, waypoints:waypoints, bins:bins, equipment:equipment, belts:belts, employees:employees, truckSizes:truckSizes, removedRocks:removedRocks})); }catch(e){}
+    try{
+      // Merge onto whatever's already cached (rather than a clean
+      // overwrite) so caching one crop year's fields doesn't blow away
+      // another year's cached fields written earlier.
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var blob = {};
+      try{ blob = raw ? (JSON.parse(raw) || {}) : {}; }catch(e2){ blob = {}; }
+      blob.rocks = rocks; blob.waypoints = waypoints; blob.bins = bins;
+      blob.equipment = equipment; blob.belts = belts; blob.employees = employees;
+      blob.truckSizes = truckSizes; blob.removedRocks = removedRocks;
+      // Fields are cached per crop year so switching years and then going
+      // offline shows that year's own boundaries, not whichever year
+      // happened to sync last. The legacy unsuffixed "fields" key is kept
+      // mirrored to the base year, since that's what a cold boot (or code
+      // that predates multi-year support) falls back to.
+      blob["fields_" + currentYear] = fields;
+      if(currentYear === BASE_YEAR){ blob.fields = fields; }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(blob));
+    }catch(e){}
   }
 
   // Rocks are hard-deleted (no per-rock archive), so this is the only place
@@ -6184,6 +6264,27 @@ service cloud.firestore {
     }
   }
 
+  // Standalone, independently re-subscribable listener for field
+  // boundaries/crop/farmer — kept separate from subscribeToFarm()'s shared
+  // listeners so switching crop years only repoints this one, and never
+  // touches rocks/waypoints/bins/equipment/belts/employees/files/etc.
+  function subscribeToFields(year){
+    if(unsubscribeFieldsFn){ unsubscribeFieldsFn(); unsubscribeFieldsFn = null; }
+    unsubscribeFieldsFn = firestoreDb.collection("farms").doc(farmCode).collection(fieldsCollectionName(year)).onSnapshot(function(snapshot){
+      fields = snapshot.docs.map(function(d){
+        var data = d.data();
+        data.id = d.id;
+        data.points = pointsFromFirestore(data.points);
+        return data;
+      });
+      cacheSharedData();
+      updateFieldOptions();
+      renderAll();
+    }, function(err){
+      toast("Sync error loading field boundaries.");
+    });
+  }
+
   function subscribeToFarm(){
     unsubscribeFns.forEach(function(fn){ fn(); });
     unsubscribeFns = [];
@@ -6203,21 +6304,11 @@ service cloud.firestore {
       })
     );
 
-    unsubscribeFns.push(
-      firestoreDb.collection("farms").doc(farmCode).collection("fields").onSnapshot(function(snapshot){
-        fields = snapshot.docs.map(function(d){
-          var data = d.data();
-          data.id = d.id;
-          data.points = pointsFromFirestore(data.points);
-          return data;
-        });
-        cacheSharedData();
-        updateFieldOptions();
-        renderAll();
-      }, function(err){
-        toast("Sync error loading field boundaries.");
-      })
-    );
+    // The fields listener is NOT pushed into unsubscribeFns — it's tracked
+    // separately (unsubscribeFieldsFn) so changeCropYear() can repoint it to
+    // a different year's collection on its own, without tearing down and
+    // re-establishing every other shared listener below.
+    subscribeToFields(currentYear);
 
     unsubscribeFns.push(
       firestoreDb.collection("farms").doc(farmCode).collection("waypoints").onSnapshot(function(snapshot){
@@ -6327,6 +6418,107 @@ service cloud.firestore {
         }
       }, function(err){ /* best-effort */ })
     );
+  }
+
+  // ---------- Crop year switching ----------
+  // Copies every current base-year (2026) field into a fresh planning
+  // year's collection, as a starting point for editing — resetting the
+  // harvest-related fields, since harvest tracking doesn't apply to a
+  // future planning year. Only ever run after Jason explicitly confirms
+  // (see changeCropYear), never silently.
+  function seedYearFromBase(targetYear, targetRef, onDone){
+    var baseRef = firestoreDb.collection("farms").doc(farmCode).collection(fieldsCollectionName(BASE_YEAR));
+    baseRef.get().then(function(snapshot){
+      if(snapshot.empty){ onDone(); return; }
+      var batch = firestoreDb.batch();
+      snapshot.docs.forEach(function(d){
+        var data = d.data();
+        batch.set(targetRef.doc(d.id), {
+          name: data.name || "Field",
+          crop: data.crop || "",
+          farmer: data.farmer || "",
+          harvestStatus: "Not Harvested",
+          partialAcresHarvested: 0,
+          harvestedAt: null,
+          color: data.color || FIELD_COLORS[0],
+          points: data.points || [],
+          createdAt: new Date().toISOString()
+        });
+      });
+      batch.commit().then(function(){
+        toast("Copied " + snapshot.size + " field" + (snapshot.size === 1 ? "" : "s") + " from " + BASE_YEAR + " into " + targetYear + ".");
+        onDone();
+      }).catch(function(){
+        toast("Couldn't copy " + BASE_YEAR + "'s fields — check your connection.");
+        onDone();
+      });
+    }).catch(function(){
+      toast("Couldn't read " + BASE_YEAR + "'s fields — check your connection.");
+      onDone();
+    });
+  }
+
+  // Switches the active crop year: repoints the live field listener to that
+  // year's own Firestore collection (leaving 2026's collection/documents
+  // completely untouched), persists the choice, and refreshes UI that shows
+  // the active year or lists fields. Requires a live shared connection,
+  // since local (device-only) mode has no separate per-year data.
+  function changeCropYear(newYear){
+    if(YEARS.indexOf(newYear) === -1 || newYear === currentYear){ updateCropYearUI(); return; }
+    if(!sharingEnabled || !firestoreDb || !farmCode){
+      toast("Connect sharing first to use separate crop years.");
+      updateCropYearUI();
+      return;
+    }
+    var targetYear = newYear;
+    function finishSwitch(){
+      currentYear = targetYear;
+      saveCropYear(currentYear);
+      editingFieldId = null;
+      pendingFieldPoints = null;
+      subscribeToFields(currentYear);
+      updateCropYearUI();
+      toast(targetYear === BASE_YEAR ? "Switched to " + targetYear : "Switched to " + targetYear + " planning");
+    }
+    if(targetYear === BASE_YEAR){
+      finishSwitch();
+      return;
+    }
+    var targetRef = firestoreDb.collection("farms").doc(farmCode).collection(fieldsCollectionName(targetYear));
+    targetRef.limit(1).get().then(function(snap){
+      if(!snap.empty){ finishSwitch(); return; }
+      var wantsCopy = confirm(
+        targetYear + " has no fields yet.\n\nStart it as a copy of " + BASE_YEAR + "'s current boundaries and crops, as a starting point you can edit for " + targetYear + " without changing " + BASE_YEAR + "?\n\nOK = copy from " + BASE_YEAR + "\nCancel = start " + targetYear + " empty"
+      );
+      if(!wantsCopy){ finishSwitch(); return; }
+      seedYearFromBase(targetYear, targetRef, finishSwitch);
+    }).catch(function(){
+      toast("Couldn't check " + targetYear + "'s data — check your connection.");
+      updateCropYearUI();
+    });
+  }
+
+  function populateCropYearSelect(){
+    var sel = document.getElementById("input-crop-year");
+    sel.innerHTML = "";
+    YEARS.forEach(function(y){
+      var opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = (y === BASE_YEAR) ? y : (y + " (planning)");
+      sel.appendChild(opt);
+    });
+  }
+
+  // Keeps the side-menu year picker, the "Planning" map badge, and the
+  // field modal's harvest rows all in sync with currentYear.
+  function updateCropYearUI(){
+    var sel = document.getElementById("input-crop-year");
+    if(sel){ sel.value = currentYear; }
+    var badge = document.getElementById("crop-year-badge");
+    if(badge){
+      badge.classList.toggle("hidden", !isPlanningYear());
+      badge.textContent = "📅 " + currentYear + " Planning";
+    }
   }
 
   function connectSharing(config, code, isAutoReconnect){
@@ -6522,14 +6714,22 @@ service cloud.firestore {
   function disconnectSharing(){
     unsubscribeFns.forEach(function(fn){ fn(); });
     unsubscribeFns = [];
+    if(unsubscribeFieldsFn){ unsubscribeFieldsFn(); unsubscribeFieldsFn = null; }
     sharingEnabled = false;
     farmCode = null;
     firestoreDb = null;
     firebaseStorageInst = null;
+    // Multi-year planning only exists in the shared Firestore farm — local
+    // (device-only) mode has no separate per-year data, so drop back to the
+    // base year rather than risk editing local data under the wrong year's
+    // label.
+    currentYear = BASE_YEAR;
+    saveCropYear(currentYear);
     try{ localStorage.removeItem(SHARE_KEY); }catch(e){}
     setShareStatusUI();
     loadData();
     updateFieldOptions();
+    updateCropYearUI();
     renderAll();
     toast("Sharing stopped — back to this device only");
   }
@@ -6681,6 +6881,11 @@ service cloud.firestore {
     // re-syncs everything from scratch.
     document.getElementById("menu-item-home").addEventListener("click", function(){
       location.reload();
+    });
+    populateCropYearSelect();
+    updateCropYearUI();
+    document.getElementById("input-crop-year").addEventListener("change", function(){
+      changeCropYear(this.value);
     });
     document.getElementById("menu-item-equipment").addEventListener("click", function(){
       closeSideMenu();
