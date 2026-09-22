@@ -3445,15 +3445,32 @@ service cloud.firestore {
         return a.name.localeCompare(z.name);
       });
 
+      // One row per crop, not per field — the field-level table below already
+      // shows each field's own acres, so this is just the per-crop summary.
+      var cropOrderForFarmer = Object.keys(cropTotalsForFarmer).sort(function(a,z){
+        if(a === "No Crop") return 1;
+        if(z === "No Crop") return -1;
+        var diff = cropTotalsForFarmer[z] - cropTotalsForFarmer[a];
+        if(diff !== 0) return diff;
+        return a.localeCompare(z);
+      });
+      var cropTotalRows = cropOrderForFarmer.map(function(cropKey){
+        var icon = CROP_ICONS[cropKey] ? CROP_ICONS[cropKey]+' ' : '';
+        return '<tr><td>'+icon+escapeHtml(cropKey)+'</td><td>'+cropTotalsForFarmer[cropKey].toFixed(1)+'</td></tr>';
+      }).join("");
+
       var rows = sortedFields.map(function(f){
         var cropKey = f.crop && CROP_COLORS[f.crop] ? f.crop : "No Crop";
         var icon = CROP_ICONS[cropKey] ? CROP_ICONS[cropKey]+' ' : '';
-        return '<tr><td>'+escapeHtml(f.name)+'</td><td>'+f.acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+cropTotalsForFarmer[cropKey].toFixed(1)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(f.name)+'</td><td>'+f.acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td></tr>';
       }).join("");
       var label = key === "Unassigned" ? "🚫 Unassigned" : "🧑‍🌾 "+escapeHtml(key);
       return '<div class="report-section">'+
         '<h3>'+label+' — '+g.acres.toFixed(1)+' ac ('+pct+'%)</h3>'+
-        '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th><th>Crop Total (ac)</th></tr></thead><tbody>'+
+        '<table class="report-table" style="margin-bottom:10px;"><thead><tr><th>Crop</th><th>Total acres</th></tr></thead><tbody>'+
+        cropTotalRows+
+        '</tbody></table>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th></tr></thead><tbody>'+
         rows+
         '</tbody></table>'+
       '</div>';
