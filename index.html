@@ -3163,11 +3163,23 @@ service cloud.firestore {
       partialAcresHarvested = rawPartial;
     }
 
+    // Stamp the moment a field flips to "Harvested" so reports can show when
+    // it happened. Leaving Harvested status clears the stamp; staying on
+    // Harvested (an unrelated edit, e.g. renaming) keeps the original stamp
+    // rather than bumping it to "now".
+    var oldHarvestStatus = existingField ? (existingField.harvestStatus || "Not Harvested") : "Not Harvested";
+    var harvestedAt = existingField ? (existingField.harvestedAt || null) : null;
+    if(harvestStatus === "Harvested" && oldHarvestStatus !== "Harvested"){
+      harvestedAt = new Date().toISOString();
+    } else if(harvestStatus !== "Harvested"){
+      harvestedAt = null;
+    }
+
     if(editingFieldId){
-      var updates = {name:name, crop:crop, farmer:farmer, harvestStatus:harvestStatus, partialAcresHarvested:partialAcresHarvested, color:color};
+      var updates = {name:name, crop:crop, farmer:farmer, harvestStatus:harvestStatus, partialAcresHarvested:partialAcresHarvested, harvestedAt:harvestedAt, color:color};
       if(pendingFieldPoints){ updates.points = pendingFieldPoints; }
       if(sharingEnabled){
-        var fsUpdates = {name:updates.name, crop:updates.crop, farmer:updates.farmer, harvestStatus:updates.harvestStatus, partialAcresHarvested:updates.partialAcresHarvested, color:updates.color};
+        var fsUpdates = {name:updates.name, crop:updates.crop, farmer:updates.farmer, harvestStatus:updates.harvestStatus, partialAcresHarvested:updates.partialAcresHarvested, harvestedAt:updates.harvestedAt, color:updates.color};
         if(updates.points){ fsUpdates.points = pointsToFirestore(updates.points); }
         fieldDocRef(editingFieldId).update(fsUpdates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
@@ -3181,7 +3193,7 @@ service cloud.firestore {
         var f = fields.find(function(x){ return x.id === editingFieldId; });
         if(f){
           f.name = updates.name; f.crop = updates.crop; f.farmer = updates.farmer; f.harvestStatus = updates.harvestStatus;
-          f.partialAcresHarvested = updates.partialAcresHarvested; f.color = updates.color;
+          f.partialAcresHarvested = updates.partialAcresHarvested; f.harvestedAt = updates.harvestedAt; f.color = updates.color;
           if(updates.points){ f.points = updates.points; }
         }
         if(nameChanged){
@@ -3206,12 +3218,13 @@ service cloud.firestore {
         farmer: farmer,
         harvestStatus: harvestStatus,
         partialAcresHarvested: partialAcresHarvested,
+        harvestedAt: harvestedAt,
         color: color,
         points: pendingFieldPoints,
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
-        fieldDocRef(newField.id).set({name:newField.name, crop:newField.crop, farmer:newField.farmer, harvestStatus:newField.harvestStatus, partialAcresHarvested:newField.partialAcresHarvested, color:newField.color, points:pointsToFirestore(newField.points), createdAt:newField.createdAt}).catch(function(){
+        fieldDocRef(newField.id).set({name:newField.name, crop:newField.crop, farmer:newField.farmer, harvestStatus:newField.harvestStatus, partialAcresHarvested:newField.partialAcresHarvested, harvestedAt:newField.harvestedAt, color:newField.color, points:pointsToFirestore(newField.points), createdAt:newField.createdAt}).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
@@ -3388,14 +3401,26 @@ service cloud.firestore {
       if(hStatus === "Partial Harvested"){
         hLabel = "Partial (" + partialAcresOf(f).toFixed(1) + " of " + acres.toFixed(1) + " ac)";
       }
-      return '<tr><td>'+escapeHtml(f.name||"Field")+'</td><td>'+acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+hIcon+' '+escapeHtml(hLabel)+'</td></tr>';
+      var hWhen = (hStatus === "Harvested" && f.harvestedAt) ? formatHarvestedAt(f.harvestedAt) : "—";
+      return '<tr><td>'+escapeHtml(f.name||"Field")+'</td><td>'+acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+hIcon+' '+escapeHtml(hLabel)+'</td><td>'+escapeHtml(hWhen)+'</td></tr>';
     }).join("");
     return '<div class="report-section">'+
       '<h3>🗺️ Crop Report (by field)</h3>'+
-      '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th><th>Harvest status</th></tr></thead><tbody>'+
+      '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th><th>Harvest status</th><th>Harvested on</th></tr></thead><tbody>'+
       rows+
       '</tbody></table>'+
     '</div>';
+  }
+
+  // Formats the harvestedAt ISO timestamp for display in the Crop Report —
+  // e.g. "Sep 22, 2026, 3:45 PM". Falls back to the raw value if it can't be
+  // parsed as a date (shouldn't normally happen).
+  function formatHarvestedAt(iso){
+    var d = new Date(iso);
+    if(isNaN(d.getTime())) return iso;
+    var datePart = d.toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
+    var timePart = d.toLocaleTimeString(undefined, {hour:"numeric", minute:"2-digit"});
+    return datePart + ", " + timePart;
   }
 
   // The two people fields get assigned to. Add a name here (and a matching
@@ -6006,7 +6031,7 @@ service cloud.firestore {
         fieldsIn.forEach(function(f){
           if(f && Array.isArray(f.points) && f.points.length >= 3 && !existingFieldIds.has(f.id)){
             if(sharingEnabled){
-              fieldDocRef(f.id).set({name:f.name||"Field", crop:f.crop||"", harvestStatus:f.harvestStatus||"Not Harvested", partialAcresHarvested:(typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0), color:f.color||FIELD_COLORS[0], points:pointsToFirestore(f.points), createdAt:f.createdAt||new Date().toISOString()});
+              fieldDocRef(f.id).set({name:f.name||"Field", crop:f.crop||"", harvestStatus:f.harvestStatus||"Not Harvested", partialAcresHarvested:(typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0), harvestedAt:f.harvestedAt||null, color:f.color||FIELD_COLORS[0], points:pointsToFirestore(f.points), createdAt:f.createdAt||new Date().toISOString()});
             } else {
               fields.push(f);
             }
@@ -6355,6 +6380,7 @@ service cloud.firestore {
             crop: f.crop || "",
             harvestStatus: f.harvestStatus || "Not Harvested",
             partialAcresHarvested: (typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0),
+            harvestedAt: f.harvestedAt || null,
             color: f.color || FIELD_COLORS[0],
             points: pointsToFirestore(f.points),
             createdAt: f.createdAt || new Date().toISOString()
