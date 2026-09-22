@@ -338,6 +338,21 @@
   #draw-toolbar .msg{font-size:13px;font-weight:700;margin-bottom:10px;text-align:center;}
   #draw-toolbar button:disabled{opacity:.45;cursor:not-allowed;}
 
+  #boundary-edit-toolbar{
+    position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:600;
+    background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 3px 14px rgba(0,0,0,.3);
+  }
+  #boundary-edit-toolbar .msg{font-size:13px;font-weight:700;margin-bottom:10px;text-align:center;}
+
+  .vertex-handle{
+    width:20px;height:20px;border-radius:50%;background:#2b7bff;
+    border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);cursor:grab;
+  }
+  .midpoint-handle{
+    width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.9);
+    border:2px solid #2b7bff;box-shadow:0 1px 3px rgba(0,0,0,.35);cursor:copy;
+  }
+
   .field-label{
     display:inline-block;width:max-content;
     cursor:pointer;transform:translate(-50%,-50%);white-space:nowrap;
@@ -679,6 +694,14 @@
   </div>
 </div>
 
+<div id="boundary-edit-toolbar" class="hidden">
+  <div class="msg">Drag a dot to reshape · tap a small dot to add a point · long-press a dot to remove it — <span id="boundary-edit-acres">0.0 acres</span></div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-cancel-boundary-edit">Cancel</button>
+    <button class="btn btn-primary" id="btn-save-boundary-edit">Save boundary</button>
+  </div>
+</div>
+
 <!-- Add/Edit rock sheet -->
 <div class="sheet-backdrop" id="modal-backdrop"></div>
 <div class="sheet" id="rock-modal">
@@ -850,6 +873,7 @@
   <div class="summary-card" id="field-label-actions-stats"></div>
   <div class="btn-row" style="flex-direction:column;">
     <button class="btn btn-primary" id="btn-label-edit-field">✏️ Edit field details</button>
+    <button class="btn btn-maps" id="btn-label-edit-boundary">📐 Edit boundary</button>
     <button class="btn btn-maps" id="btn-label-navigate-field">🧭 Navigate to this field</button>
     <button class="btn btn-secondary" id="btn-label-mark-rock">🪨 Mark a rock here</button>
     <button class="btn btn-secondary" id="btn-label-actions-cancel">Cancel</button>
@@ -1687,7 +1711,7 @@ service cloud.firestore {
   var pdfJsLoadState = "idle"; // idle | loading | ready | failed
   var pdfJsLoadCallbacks = [];
   var map, satelliteLayer, streetLayer, usingSatellite = true;
-  var rockLayerGroup, fieldLayerGroup, drawTempLayerGroup, waypointLayerGroup, binLayerGroup, youAreHereMarker;
+  var rockLayerGroup, fieldLayerGroup, drawTempLayerGroup, waypointLayerGroup, binLayerGroup, boundaryEditLayerGroup, youAreHereMarker;
   var fieldSvgRenderer;
   var editingId = null;
   var pendingLatLng = null;
@@ -1706,6 +1730,15 @@ service cloud.firestore {
   var pendingFieldPoints = null;
   var pendingBinPoints = null;
   var editingFieldId = null;
+  // Boundary-edit (drag-to-reshape) mode state — separate from the
+  // trace-from-scratch drawingField flow above. boundaryEditPoints is a
+  // working copy of the field's points array; nothing is written back
+  // until "Save boundary" is tapped.
+  var boundaryEditFieldId = null;
+  var boundaryEditPoints = null;
+  var boundaryEditPolygon = null;
+  var boundaryEditVertexMarkers = [];
+  var boundaryEditMidMarkers = [];
   var editingBinId = null;
   var binActionsBinId = null;
   var editingLogEntryId = null;
@@ -1881,6 +1914,7 @@ service cloud.firestore {
     drawTempLayerGroup = L.layerGroup().addTo(map);
     waypointLayerGroup = L.layerGroup().addTo(map);
     binLayerGroup = L.layerGroup().addTo(map);
+    boundaryEditLayerGroup = L.layerGroup().addTo(map);
 
     map.on("click", function(e){
       if(drawingField || drawingBin){ addDrawPoint(e.latlng); }
@@ -2136,6 +2170,9 @@ service cloud.firestore {
     var labelScale = fieldLabelScale();
     fields.forEach(function(f){
       if(!f.points || f.points.length < 3) return;
+      // Its outline+label are drawn by the boundary-edit overlay instead
+      // while that mode is active, so the two don't double up.
+      if(f.id === boundaryEditFieldId) return;
       var latlngs = f.points.map(function(p){ return [p[0], p[1]]; });
       var displayColor = fieldColor(f);
       var hasCropFill = !!(f.crop && CROP_COLORS[f.crop]);
@@ -3074,6 +3111,162 @@ service cloud.firestore {
     pendingFieldPoints = drawPoints.slice();
     exitDrawingMode();
     openFieldModal(editingFieldId ? fields.find(function(f){ return f.id === editingFieldId; }) : null);
+  }
+
+  // ---------- Boundary edit (drag existing corner points) ----------
+  // A lighter-weight alternative to the trace-from-scratch flow above: the
+  // field's existing points stay put and Jason just drags them into place,
+  // adds a point by tapping the small dot at an edge's midpoint, or removes
+  // one by long-pressing it. Nothing is written to fields/Firestore until
+  // "Save boundary" — Cancel just tears the overlay down.
+  function boundaryVertexIcon(){
+    return L.divIcon({className:"", html:'<div class="vertex-handle"></div>', iconSize:[20,20], iconAnchor:[10,10]});
+  }
+  function boundaryMidpointIcon(){
+    return L.divIcon({className:"", html:'<div class="midpoint-handle"></div>', iconSize:[13,13], iconAnchor:[6,6]});
+  }
+
+  function startBoundaryEditMode(fieldId){
+    var f = fields.find(function(x){ return x.id === fieldId; });
+    if(!f || !f.points || f.points.length < 3) return;
+    setDroppingPin(false);
+    hideSheet("list-drawer", "list-backdrop");
+    boundaryEditFieldId = fieldId;
+    boundaryEditPoints = f.points.map(function(p){ return [p[0], p[1]]; });
+    document.getElementById("fabs").classList.add("hidden");
+    document.getElementById("boundary-edit-toolbar").classList.remove("hidden");
+    renderAll(); // re-renders fields, which now hides this one (see renderFields)
+    renderBoundaryEdit();
+    toast("Drag the dots to reshape the field, then Save boundary.", 3200);
+  }
+
+  function updateBoundaryEditAcreageReadout(){
+    var el = document.getElementById("boundary-edit-acres");
+    if(el){ el.textContent = polygonAreaAcres(boundaryEditPoints).toFixed(1) + " acres"; }
+  }
+
+  function updateBoundaryEditNeighborMidpoints(vertexIndex){
+    var n = boundaryEditPoints.length;
+    [(vertexIndex - 1 + n) % n, vertexIndex].forEach(function(edgeIndex){
+      var m = boundaryEditMidMarkers[edgeIndex];
+      if(!m) return;
+      var a = boundaryEditPoints[edgeIndex];
+      var b = boundaryEditPoints[(edgeIndex + 1) % n];
+      m.setLatLng([(a[0]+b[0])/2, (a[1]+b[1])/2]);
+    });
+  }
+
+  function deleteBoundaryVertex(i){
+    if(!boundaryEditPoints || boundaryEditPoints.length <= 3){
+      toast("A field needs at least 3 points — can't remove any more.");
+      return;
+    }
+    boundaryEditPoints.splice(i, 1);
+    renderBoundaryEdit();
+    toast("Point removed");
+  }
+
+  function insertBoundaryMidpoint(edgeIndex, latlng){
+    boundaryEditPoints.splice(edgeIndex + 1, 0, [latlng.lat, latlng.lng]);
+    renderBoundaryEdit();
+  }
+
+  function renderBoundaryEdit(){
+    boundaryEditLayerGroup.clearLayers();
+    boundaryEditVertexMarkers = [];
+    boundaryEditMidMarkers = [];
+    if(!boundaryEditPoints || boundaryEditPoints.length < 3) return;
+
+    boundaryEditPolygon = L.polygon(boundaryEditPoints, {
+      color:"#2b7bff", weight:3, fillColor:"#2b7bff", fillOpacity:0.12, interactive:false
+    }).addTo(boundaryEditLayerGroup);
+
+    boundaryEditPoints.forEach(function(p, i){
+      var marker = L.marker(p, {draggable:true, icon: boundaryVertexIcon(), zIndexOffset: 1000});
+      var pressTimer = null;
+      function clearPressTimer(){
+        if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; }
+      }
+      marker.on("drag", function(ev){
+        boundaryEditPoints[i] = [ev.latlng.lat, ev.latlng.lng];
+        boundaryEditPolygon.setLatLngs(boundaryEditPoints);
+        updateBoundaryEditNeighborMidpoints(i);
+        updateBoundaryEditAcreageReadout();
+      });
+      marker.on("dragstart", clearPressTimer);
+      marker.on("dragend", function(){
+        // Rebuild so midpoint markers land exactly on the new edges.
+        renderBoundaryEdit();
+      });
+      marker.on("mousedown", function(){
+        clearPressTimer();
+        pressTimer = setTimeout(function(){
+          pressTimer = null;
+          deleteBoundaryVertex(i);
+        }, 600);
+      });
+      marker.on("mouseup", clearPressTimer);
+      marker.addTo(boundaryEditLayerGroup);
+      boundaryEditVertexMarkers.push(marker);
+    });
+
+    var n = boundaryEditPoints.length;
+    for(var i = 0; i < n; i++){
+      (function(edgeIndex){
+        var a = boundaryEditPoints[edgeIndex];
+        var b = boundaryEditPoints[(edgeIndex + 1) % n];
+        var mid = [(a[0]+b[0])/2, (a[1]+b[1])/2];
+        var midMarker = L.marker(mid, {icon: boundaryMidpointIcon(), zIndexOffset: 900});
+        midMarker.on("click", function(ev){
+          L.DomEvent.stopPropagation(ev);
+          insertBoundaryMidpoint(edgeIndex, ev.target.getLatLng());
+        });
+        midMarker.addTo(boundaryEditLayerGroup);
+        boundaryEditMidMarkers.push(midMarker);
+      })(i);
+    }
+
+    updateBoundaryEditAcreageReadout();
+  }
+
+  function exitBoundaryEditMode(){
+    boundaryEditFieldId = null;
+    boundaryEditPoints = null;
+    boundaryEditPolygon = null;
+    boundaryEditVertexMarkers = [];
+    boundaryEditMidMarkers = [];
+    boundaryEditLayerGroup.clearLayers();
+    document.getElementById("boundary-edit-toolbar").classList.add("hidden");
+    document.getElementById("fabs").classList.remove("hidden");
+  }
+
+  function cancelBoundaryEdit(){
+    exitBoundaryEditMode();
+    renderAll();
+    toast("Boundary edit discarded");
+  }
+
+  function saveBoundaryEdit(){
+    if(!boundaryEditFieldId || !boundaryEditPoints || boundaryEditPoints.length < 3){
+      toast("A field needs at least 3 points.");
+      return;
+    }
+    var fieldId = boundaryEditFieldId;
+    var newPoints = boundaryEditPoints.map(function(p){ return [p[0], p[1]]; });
+    exitBoundaryEditMode();
+    if(sharingEnabled){
+      fieldDocRef(fieldId).update({points: pointsToFirestore(newPoints)}).catch(function(){
+        toast("Couldn't save to the shared map — check your connection.");
+      });
+      renderAll();
+    } else {
+      var f = fields.find(function(x){ return x.id === fieldId; });
+      if(f){ f.points = newPoints; }
+      saveData();
+      updateFieldOptions();
+      renderAll();
+    }
+    toast("Boundary updated");
   }
 
   // ---------- Field modal (name / color / delete) ----------
@@ -7512,6 +7705,8 @@ service cloud.firestore {
     document.getElementById("btn-undo-draw").addEventListener("click", undoDrawPoint);
     document.getElementById("btn-cancel-draw").addEventListener("click", cancelDrawing);
     document.getElementById("btn-finish-draw").addEventListener("click", finishDrawing);
+    document.getElementById("btn-cancel-boundary-edit").addEventListener("click", cancelBoundaryEdit);
+    document.getElementById("btn-save-boundary-edit").addEventListener("click", saveBoundaryEdit);
 
     document.querySelectorAll(".color-swatch").forEach(function(el){
       el.addEventListener("click", function(){ selectFieldColor(el.getAttribute("data-color")); });
@@ -7551,6 +7746,12 @@ service cloud.firestore {
       closeFieldLabelActions();
       var f = fields.find(function(x){ return x.id === fieldId; });
       if(f) openFieldModal(f);
+    });
+    document.getElementById("btn-label-edit-boundary").addEventListener("click", function(){
+      if(!checkAdminCode()) return;
+      var fieldId = fieldLabelActionsFieldId;
+      closeFieldLabelActions();
+      startBoundaryEditMode(fieldId);
     });
     document.getElementById("btn-label-navigate-field").addEventListener("click", function(){
       var fieldId = fieldLabelActionsFieldId;
