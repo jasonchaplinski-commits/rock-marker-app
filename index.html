@@ -796,6 +796,11 @@
     <div class="coord-readout" id="field-partial-acres-hint" style="margin-top:6px;margin-bottom:0;"></div>
   </div>
 
+  <div class="field-row hidden" id="field-harvested-at-row">
+    <label>Harvested on <span style="font-weight:400;color:var(--muted);">(edit if this isn't right)</span></label>
+    <input type="datetime-local" id="input-field-harvested-at">
+  </div>
+
   <div class="field-row" id="field-color-row">
     <label>Color</label>
     <div class="color-swatches" id="field-color-options">
@@ -3086,6 +3091,27 @@ service cloud.firestore {
     }
   }
 
+  // Formats a Date as the local "YYYY-MM-DDTHH:mm" string a
+  // <input type="datetime-local"> expects.
+  function toDatetimeLocalValue(d){
+    var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) +
+      "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  function updateHarvestedAtRow(){
+    var status = document.getElementById("input-field-harvest").value;
+    var isHarvested = status === "Harvested";
+    var row = document.getElementById("field-harvested-at-row");
+    var input = document.getElementById("input-field-harvested-at");
+    row.classList.toggle("hidden", !isHarvested);
+    if(isHarvested && input.value === ""){
+      // Default to now so it's pre-filled with something sensible; the
+      // admin can still change it to backdate an older harvest.
+      input.value = toDatetimeLocalValue(new Date());
+    }
+  }
+
   function openFieldModal(field){
     if(field){
       editingFieldId = field.id;
@@ -3097,6 +3123,8 @@ service cloud.firestore {
       document.getElementById("input-field-harvest").value = harvestStatusOf(field);
       document.getElementById("input-field-partial-acres").value =
         (typeof field.partialAcresHarvested === "number" && !isNaN(field.partialAcresHarvested)) ? field.partialAcresHarvested : "";
+      document.getElementById("input-field-harvested-at").value =
+        field.harvestedAt ? toDatetimeLocalValue(new Date(field.harvestedAt)) : "";
       selectFieldColor(field.color || FIELD_COLORS[0]);
       document.getElementById("field-edit-only-row").classList.remove("hidden");
     } else {
@@ -3108,11 +3136,13 @@ service cloud.firestore {
       document.getElementById("input-field-farmer").value = "";
       document.getElementById("input-field-harvest").value = "Not Harvested";
       document.getElementById("input-field-partial-acres").value = "";
+      document.getElementById("input-field-harvested-at").value = "";
       selectFieldColor(FIELD_COLORS[fields.length % FIELD_COLORS.length]);
       document.getElementById("field-edit-only-row").classList.add("hidden");
     }
     updateColorSectionForCrop();
     updatePartialAcresRow();
+    updateHarvestedAtRow();
     showSheet("field-modal", "field-backdrop");
   }
 
@@ -3163,16 +3193,27 @@ service cloud.firestore {
       partialAcresHarvested = rawPartial;
     }
 
-    // Stamp the moment a field flips to "Harvested" so reports can show when
-    // it happened. Leaving Harvested status clears the stamp; staying on
-    // Harvested (an unrelated edit, e.g. renaming) keeps the original stamp
-    // rather than bumping it to "now".
+    // The "Harvested on" field lets the admin set or correct the date/time
+    // directly (handy for backdating fields that were marked Harvested
+    // before this feature existed, or fixing a wrong stamp). If they leave
+    // it as-is, fall back to the old automatic behavior: stamp "now" the
+    // moment a field flips to Harvested, keep the existing stamp if it was
+    // already Harvested, and clear it if the status isn't Harvested.
     var oldHarvestStatus = existingField ? (existingField.harvestStatus || "Not Harvested") : "Not Harvested";
     var harvestedAt = existingField ? (existingField.harvestedAt || null) : null;
     if(harvestStatus === "Harvested" && oldHarvestStatus !== "Harvested"){
       harvestedAt = new Date().toISOString();
     } else if(harvestStatus !== "Harvested"){
       harvestedAt = null;
+    }
+    if(harvestStatus === "Harvested"){
+      var harvestedAtRaw = document.getElementById("input-field-harvested-at").value;
+      if(harvestedAtRaw){
+        var manualDate = new Date(harvestedAtRaw);
+        if(!isNaN(manualDate.getTime())){
+          harvestedAt = manualDate.toISOString();
+        }
+      }
     }
 
     if(editingFieldId){
@@ -7250,6 +7291,7 @@ service cloud.firestore {
     document.getElementById("waypoint-actions-backdrop").addEventListener("click", closeWaypointActions);
     document.getElementById("input-field-crop").addEventListener("change", updateColorSectionForCrop);
     document.getElementById("input-field-harvest").addEventListener("change", updatePartialAcresRow);
+    document.getElementById("input-field-harvest").addEventListener("change", updateHarvestedAtRow);
     document.getElementById("btn-cancel-field").addEventListener("click", closeFieldModal);
     document.getElementById("btn-save-field").addEventListener("click", saveFieldFromForm);
     document.getElementById("btn-delete-field").addEventListener("click", deleteCurrentField);
