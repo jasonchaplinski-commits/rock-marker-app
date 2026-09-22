@@ -1732,10 +1732,11 @@ service cloud.firestore {
   // EARLIEST_YEAR is fixed — that's when Jason's field data starts and it's
   // also the fallback collection name ("fields", no year suffix). LATEST_YEAR
   // is recomputed from today's real date every time the app loads, so the
-  // year picker always shows ~30 years of headroom into the future no matter
-  // what year Jason actually opens the app in.
+  // year picker always shows YEARS_AHEAD years of headroom into the future no
+  // matter what year Jason actually opens the app in.
+  var YEARS_AHEAD = 100;
   var EARLIEST_YEAR = 2026;
-  var LATEST_YEAR = (new Date()).getFullYear() + 30;
+  var LATEST_YEAR = (new Date()).getFullYear() + YEARS_AHEAD;
   var YEARS = (function(){
     var arr = [];
     for(var y = EARLIEST_YEAR; y <= LATEST_YEAR; y++){ arr.push(String(y)); }
