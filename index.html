@@ -216,6 +216,20 @@
     .report-print-header h1{margin:0 0 2px 0;font-size:20px;}
     .report-section{page-break-inside:avoid;}
     .report-section h3{page-break-after:avoid;}
+    /* CSS can't truly repeat custom content on every printed page (no
+       browser reliably supports that for arbitrary styled markup) — but
+       page-break-inside:avoid above means a new printed page almost always
+       starts at a report-section boundary, so stamping a small farm/year
+       label right before every section (after the first, which already
+       sits under the big header) means a fresh page virtually always shows
+       it too, without repeating it redundantly between sections that share
+       a page. See --print-page-stamp, set from currentYear in
+       renderReportsBody(). */
+    .report-section + .report-section::before{
+      content: var(--print-page-stamp);
+      display:block;font-size:11px;font-weight:800;color:var(--green);
+      margin:0 0 10px 0;padding-bottom:4px;border-bottom:1px solid var(--line);
+    }
   }
   .sheet-handle{width:40px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 12px auto;}
   .sheet h2{margin:0 0 14px 0;font-size:18px;}
@@ -4090,6 +4104,10 @@ service cloud.firestore {
   function renderReportsBody(){
     var type = document.getElementById("input-report-type").value;
     var bodyEl = document.getElementById("reports-body");
+    // Feeds the small repeating "farm — year" stamp that prints before every
+    // report-section after the first (see the .report-section+.report-section::before
+    // rule) — keeps it in sync whenever the crop year or report type changes.
+    bodyEl.style.setProperty("--print-page-stamp", '"🌾 Chaplinski Farms — ' + currentYear + ' Crop Year"');
     var subtitleByType = {
       "all": "All reports",
       "crop-summary": "Crop totals",
@@ -7432,7 +7450,17 @@ service cloud.firestore {
       openMyEmployeeInfoFlow();
     });
     document.getElementById("input-report-type").addEventListener("change", renderReportsBody);
-    document.getElementById("btn-print-report").addEventListener("click", function(){ window.print(); });
+    document.getElementById("btn-print-report").addEventListener("click", function(){
+      // If Jason turns on "Headers and footers" in the print dialog, the
+      // browser stamps this title (plus date + page number) on every single
+      // physical page on its own — a free, fully-reliable backstop beyond
+      // the in-content stamp above every report-section, since the browser
+      // controls that placement itself rather than the page's own CSS.
+      var prevTitle = document.title;
+      document.title = "Chaplinski Farms — " + currentYear + " Crop Year";
+      window.print();
+      setTimeout(function(){ document.title = prevTitle; }, 1000);
+    });
     document.getElementById("btn-clear-rock-report").addEventListener("click", clearRemovedRocksHistory);
     document.getElementById("btn-close-reports").addEventListener("click", closeReportsSheet);
     document.getElementById("reports-backdrop").addEventListener("click", closeReportsSheet);
