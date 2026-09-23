@@ -568,6 +568,7 @@
   .crop-plan-photo-cell{position:relative;aspect-ratio:1/1;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#eee;}
   .crop-plan-photo-thumb{width:100%;height:100%;object-fit:cover;cursor:pointer;display:block;}
   .crop-plan-photo-del{position:absolute;top:4px;right:4px;border:none;background:rgba(0,0,0,.55);color:#fff;border-radius:6px;padding:2px 6px;font-size:13px;cursor:pointer;line-height:1.4;}
+  .crop-plan-photo-name{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff;font-size:11px;font-weight:600;padding:10px 6px 4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;}
 
   /* One card per belt within a system, in the Add/Edit belt sheet —
      size/number on one row, that belt's own note (e.g. "top of system")
@@ -5994,6 +5995,7 @@ service cloud.firestore {
     el.innerHTML = cropPlanPhotos.map(function(p){
       return '<div class="crop-plan-photo-cell">'+
         '<img class="crop-plan-photo-thumb" src="'+(p.dataUrl||"")+'" data-view-photo="'+p.id+'">'+
+        (p.name ? '<div class="crop-plan-photo-name">'+escapeHtml(p.name)+'</div>' : '')+
         '<button type="button" class="crop-plan-photo-del" data-del-photo="'+p.id+'">🗑️</button>'+
       '</div>';
     }).join("");
@@ -6043,12 +6045,17 @@ service cloud.firestore {
     var f = e.target.files && e.target.files[0];
     e.target.value = "";
     if(!f) return;
+    var suggested = (f.name || "").replace(/\.[a-zA-Z0-9]+$/, "");
+    var name = window.prompt("Name this photo:", suggested);
+    if(name === null) return; // cancelled — don't upload
+    name = name.trim();
     toast("Adding photo…");
     compressCropPlanPhoto(f, function(dataUrl, err){
       if(err){ toast(err); return; }
       var id = "cpp_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
       cropPlanPhotosRef().doc(id).set({
         dataUrl: dataUrl,
+        name: name,
         uploadedByName: getDeviceName() || "",
         uploadedAt: Date.now()
       }).then(function(){
@@ -7624,7 +7631,7 @@ service cloud.firestore {
         for(var i = 0; i < cropPlanPhotos.length; i++){
           if(cropPlanPhotos[i].id === viewId){ idx = i; break; }
         }
-        var asFiles = cropPlanPhotos.map(function(p, i){ return {name: "Photo " + (i + 1), pages: [p.dataUrl]}; });
+        var asFiles = cropPlanPhotos.map(function(p, i){ return {name: p.name || ("Photo " + (i + 1)), pages: [p.dataUrl]}; });
         openPhotoViewerForFiles(asFiles, "Crop Planning Photos", idx);
       }
     });
