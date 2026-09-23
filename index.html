@@ -187,6 +187,7 @@
   .report-section h3{margin:0 0 8px 0;font-size:15px;border-bottom:2px solid var(--ink);padding-bottom:5px;}
   .report-meta{font-size:12px;color:var(--muted);margin:-4px 0 10px 0;}
   .report-year-stamp{font-size:16px;font-weight:800;color:var(--green);margin:0 0 4px 0;}
+  .reports-year-onscreen{font-size:13px;font-weight:800;color:var(--green);margin:-8px 0 14px 0;}
   .report-table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:13px;}
   .report-table th,.report-table td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);}
   .report-table th{background:#f0ede6;font-weight:700;}
@@ -1101,6 +1102,7 @@
 <div class="sheet" id="reports-modal">
   <div class="sheet-handle"></div>
   <h2>📊 Reports</h2>
+  <div id="reports-year-onscreen" class="reports-year-onscreen"></div>
   <div class="field-row">
     <label>Report</label>
     <select id="input-report-type">
@@ -7040,8 +7042,9 @@ service cloud.firestore {
     });
   }
 
-  // Keeps the side-menu year picker, the "Planning" map badge, and the
-  // field modal's harvest rows all in sync with currentYear.
+  // Keeps the side-menu year picker, the "Planning" map badge, the Reports
+  // sheet's on-screen year line, and the field modal's harvest rows all in
+  // sync with currentYear.
   function updateCropYearUI(){
     var sel = document.getElementById("input-crop-year");
     if(sel){ sel.value = currentYear; }
@@ -7050,6 +7053,8 @@ service cloud.firestore {
       badge.classList.toggle("hidden", !isFutureYear(currentYear));
       badge.textContent = "📅 " + currentYear + " Planning";
     }
+    var reportsYearEl = document.getElementById("reports-year-onscreen");
+    if(reportsYearEl){ reportsYearEl.textContent = "📅 " + currentYear + " Crop Year"; }
   }
 
   function connectSharing(config, code, isAutoReconnect){
