@@ -3933,7 +3933,8 @@ service cloud.firestore {
       });
       var cropTotalRows = cropOrderForFarmer.map(function(cropKey){
         var icon = CROP_ICONS[cropKey] ? CROP_ICONS[cropKey]+' ' : '';
-        return '<tr><td>'+icon+escapeHtml(cropKey)+'</td><td>'+cropTotalsForFarmer[cropKey].toFixed(1)+'</td></tr>';
+        var cropPct = g.acres > 0 ? Math.round((cropTotalsForFarmer[cropKey]/g.acres)*100) : 0;
+        return '<tr><td>'+icon+escapeHtml(cropKey)+'</td><td>'+cropTotalsForFarmer[cropKey].toFixed(1)+'</td><td>'+cropPct+'%</td></tr>';
       }).join("");
 
       var rows = sortedFields.map(function(f){
@@ -3944,7 +3945,7 @@ service cloud.firestore {
       var label = key === "Unassigned" ? "🚫 Unassigned" : "🧑‍🌾 "+escapeHtml(key);
       return '<div class="report-section">'+
         '<h3>'+label+' — '+g.acres.toFixed(1)+' ac ('+pct+'%)</h3>'+
-        '<table class="report-table" style="margin-bottom:10px;"><thead><tr><th>Crop</th><th>Total acres</th></tr></thead><tbody>'+
+        '<table class="report-table" style="margin-bottom:10px;"><thead><tr><th>Crop</th><th>Total acres</th><th>% of their acres</th></tr></thead><tbody>'+
         cropTotalRows+
         '</tbody></table>'+
         '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th></tr></thead><tbody>'+
