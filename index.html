@@ -1089,7 +1089,7 @@
     <button class="job-chip" data-f="harvest">🌾 Pre-harvest</button>
     <button class="job-chip" data-f="winter">❄️ Winter</button>
     <button class="job-chip" data-f="spring">🌱 Pre-planting</button>
-    <button class="job-chip" data-f="done">✅ Done</button>
+    <button class="job-chip" data-f="parts">📦 Waiting on parts</button><button class="job-chip" data-f="done">✅ Done</button>
   </div>
   <div class="btn-row" style="margin:0 0 8px;">
     <button class="btn btn-primary" id="btn-job-add">+ Add job</button>
@@ -1115,7 +1115,7 @@
   <div class="field-row"><label>Machine (optional)</label><select id="input-job-machine"></select></div>
   <div class="rec-two">
     <div class="field-row"><label>Who (optional)</label><input type="text" id="input-job-assigned" list="job-people" placeholder="Anyone"><datalist id="job-people"></datalist></div>
-    <div class="field-row"><label>Status</label><select id="input-job-status"><option value="todo">To do</option><option value="doing">In progress</option><option value="done">Done</option></select></div>
+    <div class="field-row"><label>Status</label><select id="input-job-status"><option value="todo">To do</option><option value="doing">In progress</option><option value="parts">Waiting on parts</option><option value="done">Done</option></select></div>
   </div>
   <div class="field-row"><label>Notes</label><textarea id="input-job-notes" placeholder="e.g. alternator whines at idle; part # on order"></textarea></div>
   <div class="coord-readout" id="job-created-info"></div>
@@ -3332,7 +3332,7 @@ service cloud.firestore {
     return jobs.filter(function(j){
       if(jobsFilter === "done") return j.status === "done";
       if(j.status === "done") return false;
-      if(jobsFilter === "open") return true;
+      if(jobsFilter === "open") return true; if(jobsFilter === "parts") return j.status === "parts";
       return (j.when || "anytime") === jobsFilter || (j.when || "anytime") === "anytime";
     }).sort(function(a, b){
       if(jobsFilter === "done") return (b.doneAt || "").localeCompare(a.doneAt || "");
@@ -3359,7 +3359,7 @@ service cloud.firestore {
       var bits = [w.icon + " " + w.label];
       var m = jobMachineName(j); if(m) bits.push("🚜 " + m);
       if(j.assignedTo) bits.push("👤 " + j.assignedTo);
-      if(j.status === "doing") bits.push("⏳ In progress");
+      if(j.status === "doing") bits.push("⏳ In progress"); if(j.status === "parts") bits.push("📦 Waiting on parts");
       if(j.status === "done") bits.push("✅ " + (j.doneBy ? j.doneBy + " · " : "") + (j.doneAt ? new Date(j.doneAt).toLocaleDateString() : ""));
       return '<div class="job-row '+pr.cls+(j.status === "done" ? ' done' : '')+'" data-id="'+escapeHtml(j.id)+'">'+
         '<label class="part-check"><input type="checkbox" class="job-cb"'+(j.status === "done" ? ' checked' : '')+' aria-label="Done"></label>'+
@@ -3384,7 +3384,7 @@ service cloud.firestore {
     }).join("");
     document.getElementById("input-job-title").value = j ? j.title : ((preset && preset.title) || "");
     document.getElementById("input-job-priority").value = String(j ? (j.priority || 3) : ((preset && preset.priority) || 2));
-    document.getElementById("input-job-when").value = j ? (j.when || "anytime") : ((preset && preset.when) || (jobsFilter !== "open" && jobsFilter !== "done" ? jobsFilter : "anytime"));
+    document.getElementById("input-job-when").value = j ? (j.when || "anytime") : ((preset && preset.when) || (JOB_WHEN[jobsFilter] ? jobsFilter : "anytime"));
     sel.value = j ? (j.machineId || "") : ((preset && preset.machineId) || "");
     document.getElementById("input-job-assigned").value = j ? (j.assignedTo || "") : "";
     document.getElementById("input-job-status").value = j ? (j.status || "todo") : "todo";
@@ -3457,10 +3457,10 @@ service cloud.firestore {
     return filteredJobs().map(function(j){
       var pr = (JOB_PRIORITIES[j.priority || 3] || JOB_PRIORITIES[3]).label;
       var m = jobMachineName(j);
-      return {qty:"", name:j.title, sub:[pr, m, j.assignedTo ? "for " + j.assignedTo : "", j.notes].filter(Boolean).join(" · ")};
+      return {qty:"", name:j.title, sub:[pr, j.status === "parts" ? "waiting on parts" : "", m, j.assignedTo ? "for " + j.assignedTo : "", j.notes].filter(Boolean).join(" · ")};
     });
   }
-  function jobsFilterLabel(){ return jobsFilter === "open" ? "All open jobs" : (jobsFilter === "done" ? "Finished jobs" : JOB_WHEN[jobsFilter].label + " jobs"); }
+  function jobsFilterLabel(){ return jobsFilter === "open" ? "All open jobs" : (jobsFilter === "done" ? "Finished jobs" : (jobsFilter === "parts" ? "Jobs waiting on parts" : JOB_WHEN[jobsFilter].label + " jobs")); }
   function shareJobs(){
     var lines = jobsAsLines();
     if(!lines.length){ toast("Nothing in this list to share."); return; }
