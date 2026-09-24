@@ -5390,8 +5390,8 @@ var jobsSelecting = false, jobsSel = {}; function jobNamesOf(s){ return String(s
       cropRows+
       '</tbody></table>'+
       buildLeftByCropHtml()+'<table class="report-table" style="margin-top:10px;"><thead><tr><th>Harvest status</th><th>Acres</th></tr></thead><tbody>'+
-        '<tr><td>✅ Harvested</td><td>'+totals.harvestedAcres.toFixed(1)+'</td></tr>'+
-        '<tr><td>🌗 Partial (so far)</td><td>'+totals.partialAcres.toFixed(1)+'</td></tr>'+
+        '<tr><td>✅ Harvested</td><td>'+(totals.harvestedAcres + totals.partialAcres).toFixed(1)+'</td></tr>'+
+        ''+
         '<tr><td>⬜ Not harvested</td><td>'+totals.notHarvestedAcres.toFixed(1)+'</td></tr>'+
       '</tbody></table>'+
     '</div>';
