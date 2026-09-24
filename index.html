@@ -3430,7 +3430,7 @@ service cloud.firestore {
     if(!j) return;
     var job = Object.assign({}, j, done ? {status:"done", doneAt:new Date().toISOString(), doneBy:getDeviceName() || ""} : {status:"todo", doneAt:"", doneBy:""});
     saveJob(job, false);
-    if(done) toast("Nice — marked done");
+    if(done) toast("Marked done — find it under ✅ Done to undo");
   }
   function openJobIdeas(){
     var el = document.getElementById("job-ideas-list");
@@ -9184,7 +9184,7 @@ service cloud.firestore {
     on("btn-job-ideas", "click", openJobIdeas);
     on("jobs-list", "change", function(ev){
       if(!ev.target.classList.contains("job-cb")) return;
-      var row = ev.target.closest(".job-row"); if(row) toggleJobDone(row.getAttribute("data-id"), ev.target.checked);
+      var row = ev.target.closest(".job-row"); if(!row) return; var cb = ev.target, id = row.getAttribute("data-id"), jj = jobs.find(function(x){ return x.id === id; }); if(cb.checked && !confirm('Mark "' + (jj ? jj.title : "this job") + '" as done?\n\nIt moves to the ✅ Done list.')){ cb.checked = false; return; } if(!cb.checked && !confirm("Move this job back to the open list?")){ cb.checked = true; return; } toggleJobDone(id, cb.checked);
     });
     on("jobs-list", "click", function(ev){
       var info = ev.target.closest("[data-act=edit]"); if(!info) return;
