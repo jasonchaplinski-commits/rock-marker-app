@@ -716,7 +716,7 @@
   #service-modal, #parts-modal, #chooser-modal, #field-record-modal{z-index:960;}
   #service-backdrop, #parts-backdrop, #chooser-backdrop, #field-record-backdrop{z-index:955;}
   /* Parts shopping list */
-  .parts-hint{font-size:13px;margin:0 0 8px;}
+  .parts-hint{font-size:13px;margin:0 0 8px;} .other-part-row{display:flex;gap:6px;margin-bottom:6px;} .other-part-row input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:15px;font-family:inherit;} .other-part-row .op-part{flex:0 0 38%;}
   .part-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
   .part-row.picked{background:#eef4ec;margin:0 -8px;padding:10px 8px;border-radius:10px;}
   .part-check input{width:24px;height:24px;accent-color:var(--green);}
@@ -1640,28 +1640,28 @@ service cloud.firestore {
     <input type="text" id="input-equip-serial" placeholder="e.g. 1RW8320RJEL123456">
   </div>
   <div class="field-row">
-    <label>Oil filter</label>
+    <label>Engine oil filter</label>
     <input type="text" id="input-equip-oil-filter" placeholder="e.g. RE504836">
   </div>
   <div class="field-row">
-    <label>Fuel filter</label>
-    <input type="text" id="input-equip-fuel-filter" placeholder="e.g. RE62418">
+    <label>Fuel filter — primary / water separator</label>
+    <input type="text" id="input-equip-fuel-filter" placeholder="e.g. RE62418"></div><div class="field-row"><label>Fuel filter — final / secondary</label><input type="text" id="input-equip-fuel-filter2" placeholder="e.g. RE533910">
   </div>
   <div class="field-row">
-    <label>Air filter</label>
-    <input type="text" id="input-equip-air-filter" placeholder="e.g. RE572598">
+    <label>Engine air filter — outer (primary)</label>
+    <input type="text" id="input-equip-air-filter" placeholder="e.g. RE572598"></div><div class="field-row"><label>Engine air filter — inner (safety)</label><input type="text" id="input-equip-air-filter2" placeholder="e.g. RE587794">
   </div>
   <div class="field-row">
-    <label>Cabin filter</label>
-    <input type="text" id="input-equip-cabin-filter" placeholder="e.g. RE164825">
+    <label>Cab fresh-air filter</label>
+    <input type="text" id="input-equip-cabin-filter" placeholder="e.g. RE284091"></div><div class="field-row"><label>Cab recirculation filter</label><input type="text" id="input-equip-cab-recirc" placeholder="e.g. L214634">
   </div>
   <div class="field-row">
-    <label>Hydraulic filter</label>
+    <label>Hydraulic / transmission filter</label>
     <input type="text" id="input-equip-hydraulic-filter" placeholder="e.g. RE204946">
   </div>
   <div class="field-row">
     <label>Wiper blade size</label>
-    <input type="text" id="input-equip-wiper-blade" placeholder="e.g. 20 in">
+    <input type="text" id="input-equip-wiper-blade" placeholder="e.g. 20 in"></div><div class="field-row"><label>Other parts (DEF filter, bulbs, belts…)</label><div id="equip-other-parts"></div><button type="button" class="btn btn-secondary" id="btn-add-other-part" style="width:100%;">+ Add another part</button>
   </div>
   <div class="field-row">
     <label>Files (optional)</label>
@@ -3000,12 +3000,12 @@ service cloud.firestore {
   // details and part numbers still needs the admin code like before.
   var SERVICE_ITEMS = [
     {k:"oil",       label:"Engine oil & filter", part:"oilFilter",       def:250},
-    {k:"fuel",      label:"Fuel filter",         part:"fuelFilter",      def:500},
-    {k:"air",       label:"Air filter",          part:"airFilter",       def:500},
-    {k:"hydraulic", label:"Hydraulic filter",    part:"hydraulicFilter", def:1000},
-    {k:"cabin",     label:"Cabin filter",        part:"cabinFilter",     def:500}
+    {k:"fuel", label:"Fuel filter — primary", part:"fuelFilter", def:500}, {k:"fuel2", label:"Fuel filter — final", part:"fuelFilter2", def:500},
+    {k:"air", label:"Engine air filter — outer", part:"airFilter", def:500}, {k:"air2", label:"Engine air filter — inner", part:"airFilter2", def:1000},
+    {k:"hydraulic", label:"Hydraulic / transmission filter", part:"hydraulicFilter", def:1000},
+    {k:"cabin", label:"Cab fresh-air filter", part:"cabinFilter", def:50}, {k:"cabrecirc", label:"Cab recirculation filter", part:"cabRecircFilter", def:200}
   ];
-  var DUE_SOON_HRS = 25;
+  var DUE_SOON_HRS = 25; var EQUIP_PART_FIELDS = [{field:"oilFilter", short:"Oil filter", id:"input-equip-oil-filter"}, {field:"fuelFilter", short:"Fuel (primary)", id:"input-equip-fuel-filter"}, {field:"fuelFilter2", short:"Fuel (final)", id:"input-equip-fuel-filter2"}, {field:"airFilter", short:"Engine air (outer)", id:"input-equip-air-filter"}, {field:"airFilter2", short:"Engine air (inner)", id:"input-equip-air-filter2"}, {field:"cabinFilter", short:"Cab fresh-air", id:"input-equip-cabin-filter"}, {field:"cabRecircFilter", short:"Cab recirc", id:"input-equip-cab-recirc"}, {field:"hydraulicFilter", short:"Hyd / trans", id:"input-equip-hydraulic-filter"}, {field:"wiperBlade", short:"Wiper blade", id:"input-equip-wiper-blade"}];
   var serviceEquipId = null;
   var serviceDraft = null;
 
@@ -3058,7 +3058,7 @@ service cloud.firestore {
   function renderServiceItems(){
     var e = draftEquip();
     var el = document.getElementById("service-items");
-    el.innerHTML = SERVICE_ITEMS.map(function(it){
+    el.innerHTML = SERVICE_ITEMS.filter(function(it){ var sv = serviceDraft.service[it.k]; return ["oil","fuel","air","hydraulic"].indexOf(it.k) !== -1 || e[it.part] || (sv && sv.lastAt !== undefined && sv.lastAt !== null && sv.lastAt !== ""); }).map(function(it){
       var st = serviceStatus(e, it);
       var s = serviceDraft.service[it.k] || {};
       var status;
@@ -3125,13 +3125,13 @@ service cloud.firestore {
         if(!byPart[key]) byPart[key] = {part:p, what:it.label, machines:[]};
         byPart[key].machines.push(e.name || "Equipment");
       });
-      if(!onlyDue && (e.wiperBlade || "").trim()){
+      (Array.isArray(e.otherParts) ? e.otherParts : []).forEach(function(op){ if(onlyDue || !op || !(op.part || "").trim()) return; var okey = "OTHER " + op.part.trim().toUpperCase(); if(!byPart[okey]) byPart[okey] = {part:op.part.trim(), what:op.name || "Other part", machines:[]}; byPart[okey].machines.push(e.name || "Equipment"); });       if(!onlyDue && (e.wiperBlade || "").trim()){
         var wk = "WIPER " + e.wiperBlade.trim().toUpperCase();
         if(!byPart[wk]) byPart[wk] = {part:e.wiperBlade.trim(), what:"Wiper blade", machines:[]};
         byPart[wk].machines.push(e.name || "Equipment");
       }
     });
-    return Object.keys(byPart).sort(function(a,b){ return byPart[a].what.localeCompare(byPart[b].what) || a.localeCompare(b); }).map(function(k){ return byPart[k]; });
+    if(!onlyDue){ belts.forEach(function(bl){ beltItemsOf(bl).forEach(function(it){ var num = String(it.number || it.size || "").split(" ").filter(Boolean).join(" "); if(!num) return; var bkey = "BELT " + num.toUpperCase(); if(!byPart[bkey]) byPart[bkey] = {part:num, what:"Belt", machines:[], count:0}; byPart[bkey].machines.push((bl.system || "Belt") + (it.notes ? " – " + it.notes : "")); byPart[bkey].count += (parseInt(it.qty, 10) || 1); }); }); } return Object.keys(byPart).sort(function(a,b){ return byPart[a].what.localeCompare(byPart[b].what) || a.localeCompare(b); }).map(function(k){ return byPart[k]; });
   }
   // ---------- Parts list → shopping list ----------
   // Tick the parts you need (and how many), add anything else by hand, then
@@ -3165,7 +3165,7 @@ service cloud.firestore {
     var rows = items.map(function(p){
       var k = partKey(p);
       var pick = partsPicks[k] || {};
-      var qty = pick.qty || p.machines.length;
+      var qty = pick.qty || p.count || p.machines.length;
       return '<div class="part-row'+(pick.checked ? ' picked' : '')+'" data-key="'+escapeHtml(k)+'">'+
         '<label class="part-check"><input type="checkbox" class="part-cb"'+(pick.checked ? ' checked' : '')+'></label>'+
         '<div class="part-info"><div class="part-num">'+escapeHtml(p.part)+'</div>'+
@@ -3190,7 +3190,7 @@ service cloud.firestore {
     var lines = [];
     buildPartsListText(false).forEach(function(p){
       var pick = partsPicks[partKey(p)];
-      if(pick && pick.checked){ lines.push({qty: pick.qty || p.machines.length, name: p.part, sub: p.what + " — " + p.machines.join(", ")}); }
+      if(pick && pick.checked){ lines.push({qty: pick.qty || p.count || p.machines.length, name: p.part, sub: p.what + " — " + p.machines.join(", ")}); }
     });
     partsExtras.forEach(function(x){ lines.push({qty: x.qty || 1, name: x.name, sub: ""}); });
     return lines;
@@ -6507,12 +6507,12 @@ service cloud.firestore {
     listEl.innerHTML = sorted.map(function(e){
       var ymBits = [e.year, e.model, (e.serial ? "SN " + e.serial : "")].filter(Boolean).join(" · ");
       var filterBits = [];
-      if(e.oilFilter) filterBits.push("Oil filter: " + e.oilFilter);
-      if(e.fuelFilter) filterBits.push("Fuel filter: " + e.fuelFilter);
-      if(e.airFilter) filterBits.push("Air filter: " + e.airFilter);
-      if(e.cabinFilter) filterBits.push("Cabin filter: " + e.cabinFilter);
-      if(e.hydraulicFilter) filterBits.push("Hydraulic filter: " + e.hydraulicFilter);
-      if(e.wiperBlade) filterBits.push("Wiper blade: " + e.wiperBlade);
+      EQUIP_PART_FIELDS.forEach(function(pf){ if(e[pf.field]) filterBits.push(pf.short + ": " + e[pf.field]); }); (Array.isArray(e.otherParts) ? e.otherParts : []).forEach(function(op){ if(op && (op.name || op.part)) filterBits.push((op.name || "Part") + (op.part ? ": " + op.part : "")); });
+      /* (listed above) */
+      /* (listed above) */
+      /* (listed above) */
+      /* (listed above) */
+      /* (listed above) */
       var line2 = [ymBits, filterBits.join(" · ")].filter(Boolean).join(" · ");
       var svc = serviceSummary(e);
       var files = equipFilesOf(e);
@@ -6587,20 +6587,20 @@ service cloud.firestore {
   // varies enough that a guess can occasionally grab the wrong number.
   var FILTER_SCAN_FIELDS = [
     {field:"hydraulicFilter", keywords:["hydraulic oil filter","hydraulic filter","hyd. filter","hyd filter"]},
-    {field:"cabinFilter", keywords:["cab air filter","cabin air filter","cab filter","cabin filter","fresh air filter","recirculation filter","recirculating filter","hvac filter"]},
-    {field:"airFilter", keywords:["engine air filter","air cleaner element","air filter element","primary air filter","secondary air filter","outer air filter","inner air filter","air filter"]},
-    {field:"fuelFilter", keywords:["primary fuel filter","final fuel filter","fuel filter element","fuel water separator","fuel filter"]},
+    {field:"cabRecircFilter", keywords:["cab recirculation filter","recirculation air filter","recirculation filter","recirculating filter","recirc filter"]}, {field:"cabinFilter", keywords:["cab fresh air filter","fresh air filter","cab air filter","cabin air filter","cab filter","cabin filter","hvac filter"]},
+    {field:"airFilter2", keywords:["secondary air filter","inner air filter","secondary element","safety element","secondary air cleaner"]}, {field:"airFilter", keywords:["engine air filter","primary air filter","outer air filter","primary element","air cleaner element","air filter element","air filter"]},
+    {field:"fuelFilter2", keywords:["final fuel filter","secondary fuel filter"]}, {field:"fuelFilter", keywords:["primary fuel filter","fuel water separator","fuel filter element","fuel filter"]},
     {field:"oilFilter", keywords:["engine oil filter","lube oil filter","oil filter"]},
     {field:"wiperBlade", keywords:["wiper blade","windshield wiper blade","wiper element","wiper arm"]}
   ];
   var FILTER_FIELD_LABELS = {
     hydraulicFilter:"Hydraulic filter", cabinFilter:"Cabin filter", airFilter:"Air filter",
-    fuelFilter:"Fuel filter", oilFilter:"Oil filter", wiperBlade:"Wiper blade"
+    fuelFilter:"Fuel filter (primary)", oilFilter:"Oil filter", wiperBlade:"Wiper blade", fuelFilter2:"Fuel filter (final)", airFilter2:"Inner air filter", cabRecircFilter:"Cab recirculation filter"
   };
   var FILTER_FIELD_INPUT_IDS = {
     hydraulicFilter:"input-equip-hydraulic-filter", cabinFilter:"input-equip-cabin-filter",
     airFilter:"input-equip-air-filter", fuelFilter:"input-equip-fuel-filter",
-    oilFilter:"input-equip-oil-filter", wiperBlade:"input-equip-wiper-blade"
+    oilFilter:"input-equip-oil-filter", wiperBlade:"input-equip-wiper-blade", fuelFilter2:"input-equip-fuel-filter2", airFilter2:"input-equip-air-filter2", cabRecircFilter:"input-equip-cab-recirc"
   };
   // Matches typical filter part-number shapes (e.g. RE504836, BF7633,
   // AT171853) or a plain 4-7 digit code (e.g. Baldwin-style 51782).
@@ -6814,7 +6814,7 @@ service cloud.firestore {
     }).join("");
   }
 
-  function openEquipmentModal(e){
+  function renderOtherParts(list){ var el = document.getElementById("equip-other-parts"); if(!el) return; el.innerHTML = (Array.isArray(list) ? list : []).map(function(op){ return otherPartRowHtml(op); }).join(""); } function otherPartRowHtml(op){ op = op || {}; return '<div class="other-part-row"><input type="text" class="op-name" placeholder="What (e.g. DEF filter)" value="' + escapeHtml(op.name || "") + '"><input type="text" class="op-part" placeholder="Part #" value="' + escapeHtml(op.part || "") + '"><button type="button" class="row-btn op-del" title="Remove">✕</button></div>'; } function readOtherParts(){ return Array.prototype.map.call(document.querySelectorAll("#equip-other-parts .other-part-row"), function(r){ return {name: r.querySelector(".op-name").value.trim(), part: r.querySelector(".op-part").value.trim()}; }).filter(function(op){ return op.name || op.part; }); } document.addEventListener("click", function(ev){ if(ev.target && ev.target.id === "btn-add-other-part"){ document.getElementById("equip-other-parts").insertAdjacentHTML("beforeend", otherPartRowHtml({})); var rows = document.querySelectorAll("#equip-other-parts .op-name"); if(rows.length) rows[rows.length - 1].focus(); } if(ev.target && ev.target.classList && ev.target.classList.contains("op-del")){ ev.target.closest(".other-part-row").remove(); } });   function openEquipmentModal(e){
     document.getElementById("input-equip-file").value = "";
     if(e){
       editingEquipmentId = e.id;
@@ -6828,7 +6828,7 @@ service cloud.firestore {
       document.getElementById("input-equip-air-filter").value = e.airFilter || "";
       document.getElementById("input-equip-cabin-filter").value = e.cabinFilter || "";
       document.getElementById("input-equip-hydraulic-filter").value = e.hydraulicFilter || "";
-      document.getElementById("input-equip-wiper-blade").value = e.wiperBlade || "";
+      document.getElementById("input-equip-wiper-blade").value = e.wiperBlade || ""; document.getElementById("input-equip-fuel-filter2").value = e.fuelFilter2 || ""; document.getElementById("input-equip-air-filter2").value = e.airFilter2 || ""; document.getElementById("input-equip-cab-recirc").value = e.cabRecircFilter || ""; renderOtherParts(e.otherParts);
       document.getElementById("equipment-edit-only-row").classList.remove("hidden");
       pendingEquipFiles = equipFilesOf(e).slice();
     } else {
@@ -6843,7 +6843,7 @@ service cloud.firestore {
       document.getElementById("input-equip-air-filter").value = "";
       document.getElementById("input-equip-cabin-filter").value = "";
       document.getElementById("input-equip-hydraulic-filter").value = "";
-      document.getElementById("input-equip-wiper-blade").value = "";
+      document.getElementById("input-equip-wiper-blade").value = ""; document.getElementById("input-equip-fuel-filter2").value = ""; document.getElementById("input-equip-air-filter2").value = ""; document.getElementById("input-equip-cab-recirc").value = ""; renderOtherParts([]);
       document.getElementById("equipment-edit-only-row").classList.add("hidden");
       pendingEquipFiles = [];
     }
@@ -6868,7 +6868,7 @@ service cloud.firestore {
     var airFilter = document.getElementById("input-equip-air-filter").value.trim();
     var cabinFilter = document.getElementById("input-equip-cabin-filter").value.trim();
     var hydraulicFilter = document.getElementById("input-equip-hydraulic-filter").value.trim();
-    var wiperBlade = document.getElementById("input-equip-wiper-blade").value.trim();
+    var wiperBlade = document.getElementById("input-equip-wiper-blade").value.trim(); var fuelFilter2 = document.getElementById("input-equip-fuel-filter2").value.trim(); var airFilter2 = document.getElementById("input-equip-air-filter2").value.trim(); var cabRecircFilter = document.getElementById("input-equip-cab-recirc").value.trim(); var otherParts = readOtherParts();
     var files = pendingEquipFiles;
 
     if(editingEquipmentId){
@@ -6877,14 +6877,14 @@ service cloud.firestore {
       // new piece of equipment doesn't (that's already gated separately,
       // at the "Add equipment" button, before this modal even opens).
       if(!checkAdminCode()) return;
-      var updates = {name:name, year:year, model:model, serial:serial, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, files:files, photo:""};
+      var updates = {name:name, year:year, model:model, serial:serial, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, fuelFilter2:fuelFilter2, airFilter2:airFilter2, cabRecircFilter:cabRecircFilter, otherParts:otherParts, files:files, photo:""};
       if(sharingEnabled){
         equipmentDocRef(editingEquipmentId).update(updates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
         var ex = equipment.find(function(x){ return x.id === editingEquipmentId; });
-        if(ex){ ex.name=name; ex.year=year; ex.model=model; ex.serial=serial; ex.oilFilter=oilFilter; ex.fuelFilter=fuelFilter; ex.airFilter=airFilter; ex.cabinFilter=cabinFilter; ex.hydraulicFilter=hydraulicFilter; ex.wiperBlade=wiperBlade; ex.files=files; ex.photo=""; }
+        if(ex){ ex.name=name; ex.year=year; ex.model=model; ex.serial=serial; ex.oilFilter=oilFilter; ex.fuelFilter=fuelFilter; ex.airFilter=airFilter; ex.cabinFilter=cabinFilter; ex.hydraulicFilter=hydraulicFilter; ex.wiperBlade=wiperBlade; ex.fuelFilter2=fuelFilter2; ex.airFilter2=airFilter2; ex.cabRecircFilter=cabRecircFilter; ex.otherParts=otherParts; ex.files=files; ex.photo=""; }
         saveData();
         renderEquipmentList();
       }
@@ -6892,7 +6892,7 @@ service cloud.firestore {
     } else {
       var newEquip = {
         id: "eq"+Date.now()+"_"+Math.floor(Math.random()*10000),
-        name:name, year:year, model:model, serial:serial, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, files:files, photo:"",
+        name:name, year:year, model:model, serial:serial, oilFilter:oilFilter, fuelFilter:fuelFilter, airFilter:airFilter, cabinFilter:cabinFilter, hydraulicFilter:hydraulicFilter, wiperBlade:wiperBlade, fuelFilter2:fuelFilter2, airFilter2:airFilter2, cabRecircFilter:cabRecircFilter, otherParts:otherParts, files:files, photo:"",
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
@@ -8821,7 +8821,7 @@ service cloud.firestore {
             airFilter: e.airFilter || "",
             cabinFilter: e.cabinFilter || "",
             hydraulicFilter: e.hydraulicFilter || "",
-            wiperBlade: e.wiperBlade || "",
+            wiperBlade: e.wiperBlade || "", fuelFilter2: e.fuelFilter2 || "", airFilter2: e.airFilter2 || "", cabRecircFilter: e.cabRecircFilter || "", otherParts: Array.isArray(e.otherParts) ? e.otherParts : [],
             files: Array.isArray(e.files) ? e.files : equipFilesOf(e),
             photo: "",
             createdAt: e.createdAt || new Date().toISOString()
