@@ -190,15 +190,15 @@
   .sheet{
     position:fixed;left:0;right:0;bottom:0;z-index:900;background:var(--cream);
     border-radius:18px 18px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,.3);
-    max-height:86vh;overflow-y:auto;
+    max-height:86vh;max-height:86dvh;overflow-y:auto;
     transform:translateY(105%);transition:transform .25s ease;
     padding:14px 18px calc(env(safe-area-inset-bottom,0px) + 18px) 18px;
   }
   .sheet.show{transform:translateY(0);}
   /* Bin Totals is a "view everything" page rather than a quick-glance sheet,
      so it gets noticeably more vertical room than the standard bottom sheets. */
-  #bin-totals-modal{max-height:94vh;}
-  #reports-modal{max-height:94vh;}
+  #bin-totals-modal{max-height:94vh;max-height:94dvh;}
+  #reports-modal{max-height:94vh;max-height:94dvh;}
   .report-print-header{display:none;}
   .report-section{margin-bottom:26px;}
   .report-section h3{margin:0 0 8px 0;font-size:15px;border-bottom:2px solid var(--ink);padding-bottom:5px;}
@@ -546,7 +546,21 @@
     display:flex;align-items:center;justify-content:center;padding:24px;
   }
   #access-gate.hidden{display:none;}
-  #access-gate-card, #name-gate-card{width:100%;max-width:320px;text-align:center;}
+  #access-gate input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink);box-sizing:border-box;}
+  #access-gate-card, #name-gate-card, #wait-gate-card{width:100%;max-width:320px;text-align:center;}
+  #wait-gate{position:fixed;inset:0;z-index:3500;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:24px;}
+  #wait-gate.hidden{display:none;}
+  #wait-gate h2{margin:0 0 6px 0;color:var(--ink);} #wait-gate p{margin:0 0 18px 0;color:var(--ink);font-size:14px;}
+  #wait-gate input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink);box-sizing:border-box;}
+  .gate-logo{width:88px;height:88px;border-radius:20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+  #wait-email{font-size:13px;margin-top:14px;}
+  .gate-link{background:none;border:none;color:var(--green-dark);font-weight:700;font-size:14px;margin-top:14px;cursor:pointer;text-decoration:underline;font-family:inherit;padding:6px;}
+  .menu-badge{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:#c62828;color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;padding:0 5px;margin-left:6px;vertical-align:middle;}
+  #btn-menu{position:relative;}
+  #btn-menu .menu-dot{position:absolute;top:-3px;right:-3px;margin:0;}
+  .appr-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .appr-row .rock-info{flex:1;min-width:0;}
+  .appr-row .btn{flex:none;padding:9px 12px;font-size:14px;}
   #access-gate-logo, #name-gate-logo{width:88px;height:88px;border-radius:20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
   #access-gate-card h2, #name-gate-card h2{margin:0 0 6px 0;color:var(--ink);}
   #access-gate-card p, #name-gate-card p{margin:0 0 18px 0;color:var(--ink);font-size:14px;}
@@ -630,6 +644,117 @@
   #install-banner .msg{flex:1;font-size:13px;font-weight:600;}
   #install-banner .btn{flex:none;padding:9px 14px;font-size:13px;}
   #install-banner .icon-btn{width:30px;height:30px;font-size:13px;box-shadow:none;background:#f1efe8;}
+
+  /* ===== New features: markers, picking, records, service, seasons ===== */
+  .field-row input[type=number], .field-row input[type=date]{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink);
+  }
+  .kind-options{display:flex;flex-wrap:wrap;gap:6px;}
+  .kind-opt{border:2px solid var(--line);background:#fff;border-radius:18px;padding:7px 10px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink);font-family:inherit;}
+  .kind-opt.selected{border-color:var(--green);background:#eef4ec;}
+  .auto-hint{font-size:12.5px;font-weight:600;color:var(--green-dark);margin-top:6px;}
+  #rock-photo-preview{display:flex;align-items:center;gap:10px;margin-top:8px;}
+  #rock-photo-preview img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;}
+  .file-input-label input[type=file]{display:none;}
+  .rock-pin.kind-pin{width:32px;height:32px;font-size:16px;}
+  .rock-pin.picked{opacity:.5;position:relative;}
+  .rock-pin.picked::after{content:"✓";position:absolute;right:-6px;top:-6px;width:16px;height:16px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;line-height:16px;text-align:center;font-weight:800;}
+  .rock-pin.pick-target{animation:pickPulse 1.2s ease-in-out infinite;border-width:4px;}
+  @keyframes pickPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,124,42,.8),0 1px 4px rgba(0,0,0,.5);}50%{box-shadow:0 0 0 12px rgba(74,124,42,0),0 1px 4px rgba(0,0,0,.5);}}
+  .list-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 6px;flex-wrap:wrap;}
+  .list-tools label{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;}
+  .list-tools .btn{flex:none;padding:9px 12px;font-size:13px;}
+  .rock-row.is-picked .r1{text-decoration:line-through;opacity:.7;}
+
+  /* Picking mode panel */
+  #pick-panel{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:600;
+    background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 3px 14px rgba(0,0,0,.35);display:none;max-height:60vh;overflow-y:auto;}
+  body.picking-on #pick-panel{display:block;}
+  @media (min-width:600px){ #pick-panel{left:auto;width:420px;} }
+  body.picking-on #fabs, body.picking-on #farm-badge, body.picking-on #bin-badge, body.picking-on #count-badge, body.picking-on #app-credit{display:none !important;}
+  #pick-panel .pick-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  #pick-panel .pick-head b{font-size:15px;white-space:nowrap;}
+  #pick-panel select{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);}
+  #pick-count{font-size:13px;font-weight:700;color:var(--green-dark);}
+  #pick-target{font-size:15px;margin:6px 0 4px;}
+  #pick-target .pick-note{font-size:13px;margin-top:2px;}
+  #pick-photo img{width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-top:6px;cursor:zoom-in;}
+  #pick-panel .btn-row{margin-top:8px;}
+  #pick-panel .btn{padding:12px 6px;font-size:14px;}
+  #pick-panel .btn:disabled{opacity:.45;}
+
+  /* Field records */
+  .rec-section{font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.04em;margin:16px 0 6px;}
+  .rec-empty{font-size:13px;padding:6px 0;}
+  #record-sub{font-size:14px;font-weight:600;margin:-8px 0 12px;}
+  .rec-two{display:flex;gap:10px;}
+  .rec-two > .field-row{flex:1;min-width:0;}
+  #rec-app-form{background:#eef2ea;border-radius:12px;padding:12px;margin-top:8px;}
+  #rec-history .summary-row span:last-child{text-align:right;}
+
+  /* Equipment service */
+  .svc-item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fff;}
+  .svc-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap;}
+  .svc-sub{font-size:12px;margin-top:3px;}
+  .svc-controls{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;font-size:13px;}
+  .svc-controls input{width:74px;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:15px;font-family:inherit;}
+  .svc-ok{color:var(--green-dark);font-weight:700;} .svc-warn{color:#a15c00;font-weight:800;} .svc-bad{color:var(--danger);font-weight:800;} .svc-muted{font-size:12px;}
+  .r2.svc-line{white-space:normal;font-weight:700;}
+  .parts-table td,.parts-table th{font-size:13px;}
+
+  /* Season switch */
+  #btn-season{flex:none;height:38px;border:none;border-radius:19px;background:rgba(255,255,255,.92);padding:0 12px;font-size:14px;font-weight:700;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;white-space:nowrap;font-family:inherit;}
+  @media (max-width:370px){ #btn-season .season-label{display:none;} #btn-season{padding:0 10px;} }
+  @media (max-width:400px){ #app-title{display:none;} }
+  #season-menu{position:absolute;top:calc(env(safe-area-inset-top,0px) + 56px);left:52px;z-index:950;background:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.35);padding:6px;min-width:230px;}
+  .season-opt{display:block;width:100%;text-align:left;border:none;background:none;border-radius:10px;padding:10px 12px;font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);font-family:inherit;}
+  .season-opt small{display:block;font-weight:500;font-size:12px;margin-top:2px;}
+  .season-opt.selected{background:#eef4ec;}
+  body[data-season=all] .hide-all, body[data-season=spring] .hide-spring, body[data-season=harvest] .hide-harvest, body[data-season=spring] #bin-badge{display:none !important;}
+
+  /* New sheets open on top of whatever list they were opened from. */
+  #service-modal, #parts-modal, #chooser-modal, #field-record-modal{z-index:960;}
+  #service-backdrop, #parts-backdrop, #chooser-backdrop, #field-record-backdrop{z-index:955;}
+  /* Parts shopping list */
+  .parts-hint{font-size:13px;margin:0 0 8px;}
+  .part-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .part-row.picked{background:#eef4ec;margin:0 -8px;padding:10px 8px;border-radius:10px;}
+  .part-check input{width:24px;height:24px;accent-color:var(--green);}
+  .part-info{flex:1;min-width:0;}
+  .part-num{font-weight:800;font-size:16px;word-break:break-word;}
+  .part-sub{font-size:12.5px;}
+  .part-links{display:flex;gap:14px;margin-top:4px;font-size:13px;font-weight:700;}
+  .part-links a, .svc-sub a{color:var(--green-dark);}
+  .part-qty{width:58px;border:1px solid var(--line);border-radius:8px;padding:8px 6px;font-size:16px;text-align:center;font-family:inherit;}
+  .parts-add{display:flex;gap:8px;margin-top:10px;}
+  .parts-add input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;}
+  .parts-add .btn{flex:none;padding:10px 14px;}
+  #parts-selected-count{font-size:13px;font-weight:700;margin-top:10px;color:var(--green-dark);}
+  .btn:disabled{opacity:.45;}
+  /* Jobs list */
+  .job-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;-webkit-overflow-scrolling:touch;}
+  .job-chip{flex:none;border:1px solid var(--line);background:#fff;border-radius:16px;padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink);}
+  .job-chip.active{background:var(--green);color:#fff;border-color:var(--green);}
+  .job-row{display:flex;align-items:flex-start;gap:10px;padding:10px 8px;margin-bottom:6px;border-radius:10px;background:#fff;border:1px solid var(--line);border-left:6px solid #9e9e9e;}
+  .job-row.p1{border-left-color:#c62828;} .job-row.p2{border-left-color:#ef6c00;} .job-row.p3{border-left-color:#2e7d32;}
+  .job-row.done .job-title{text-decoration:line-through;opacity:.6;}
+  .job-info{flex:1;min-width:0;cursor:pointer;}
+  .job-title{font-weight:800;font-size:15.5px;}
+  .job-sub{font-size:12.5px;margin-top:2px;}
+  .job-notes{font-size:13px;margin-top:3px;font-style:italic;}
+  .job-pr{font-weight:800;border-radius:6px;padding:1px 6px;font-size:11px;color:#fff;}
+  .job-pr.p1{background:#c62828;} .job-pr.p2{background:#ef6c00;} .job-pr.p3{background:#2e7d32;}
+  .jobs-badge{background:#546e7a;} .jobs-badge.urgent{background:#c62828;}
+  .idea-row{display:flex;align-items:center;gap:10px;padding:9px 2px;font-size:15px;border-bottom:1px solid var(--line);}
+  .idea-row input{width:22px;height:22px;flex:none;accent-color:var(--green);}
+  .idea-row.have{opacity:.55;} .idea-have{font-size:11px;font-style:italic;}
+  #jobs-modal, #job-editor-modal, #job-ideas-modal{z-index:960;}
+  #jobs-backdrop, #job-editor-backdrop, #job-ideas-backdrop{z-index:955;}
+  #job-editor-modal, #job-ideas-modal{z-index:970;} #job-editor-backdrop, #job-ideas-backdrop{z-index:965;}
+  /* Chooser */
+  .chooser-item{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:15px;cursor:pointer;color:var(--ink);font-family:inherit;}
+  .chooser-sub{font-size:12.5px;margin-top:3px;}
+  #chooser-modal h2, #service-modal h2, #parts-modal h2, #jobs-modal h2, #job-ideas-modal h2{display:flex;justify-content:space-between;align-items:center;}
 </style>
 </head>
 <body>
@@ -641,11 +766,26 @@
 <div id="access-gate" class="hidden">
   <div id="access-gate-card">
     <img src="icon-512.png" alt="Chaplinski Farms" id="access-gate-logo">
-    <h2>Enter Access Code</h2>
-    <p>Ask Jason for the code to unlock Chaplinski Farms.</p>
-    <input type="text" id="input-access-code" inputmode="numeric" autocomplete="off" placeholder="Code">
-    <div class="hidden" id="access-gate-error">That code isn't right — try again.</div>
-    <button class="btn btn-primary" id="btn-access-gate-submit" style="width:100%;">Unlock</button>
+    <h2 id="gate-title">Farm sign-in</h2>
+    <p id="gate-text">Sign in with your email and password. Each phone or computer only has to do this once.</p>
+    <input type="text" id="input-signup-name" class="hidden" autocomplete="name" placeholder="Your first and last name" style="margin-bottom:10px;">
+    <input type="email" id="input-login-email" autocomplete="username" placeholder="Email" style="margin-bottom:10px;">
+    <input type="password" id="input-login-password" autocomplete="current-password" placeholder="Password">
+    <div class="hidden" id="access-gate-error">That email or password isn't right — try again.</div>
+    <button class="btn btn-primary" id="btn-access-gate-submit" style="width:100%;margin-top:12px;">Sign in</button>
+    <button type="button" class="gate-link" id="btn-gate-mode">New here? Request access</button>
+  </div>
+</div>
+
+<div id="wait-gate" class="hidden">
+  <div id="wait-gate-card">
+    <img src="icon-512.png" alt="Chaplinski Farms" class="gate-logo">
+    <h2 id="wait-title">Waiting for approval</h2>
+    <p id="wait-text">Jason has been sent your request. This screen opens up by itself as soon as he approves it.</p>
+    <input type="text" id="input-wait-name" class="hidden" autocomplete="name" placeholder="Your first and last name" style="margin-bottom:10px;">
+    <button class="btn btn-primary hidden" id="btn-wait-request" style="width:100%;">Request access</button>
+    <div id="wait-email"></div>
+    <button type="button" class="gate-link" id="btn-wait-signout">Sign out / use a different email</button>
   </div>
 </div>
 
@@ -669,6 +809,7 @@
 
 <div id="topbar">
   <button class="icon-btn" id="btn-menu" title="Menu">☰</button>
+  <button id="btn-season" title="View">🗂️ ▾</button>
   <div id="app-title">🪨<span class="app-title-text"> Rock Marker</span></div>
   <div id="crop-year-badge" class="hidden"></div>
   <select id="field-filter"><option value="all">All fields</option></select>
@@ -687,6 +828,7 @@
     <select id="input-crop-year"></select>
   </div>
   <div class="side-menu-sep"></div>
+  <div class="side-menu-item" id="menu-item-jobs"><span class="smi-icon">🛠️</span> Jobs list <span class="menu-badge jobs-badge hidden" id="jobs-count"></span></div>
   <div class="side-menu-item" id="menu-item-equipment"><span class="smi-icon">🚜</span> Equipment</div>
   <div class="side-menu-item" id="menu-item-belts"><span class="smi-icon">⚙️</span> Belts</div>
   <div class="side-menu-item" id="menu-item-reports"><span class="smi-icon">📊</span> Reports</div>
@@ -694,7 +836,9 @@
   <div class="side-menu-item" id="menu-item-crop-plan"><span class="smi-icon">📄</span> Crop Planning</div>
   <div class="side-menu-sep"></div>
   <div class="side-menu-item" id="menu-item-my-info"><span class="smi-icon">📝</span> My Info</div>
-  <div class="side-menu-item" id="menu-item-employees"><span class="smi-icon">🪪</span> Employee Info (admin)</div>
+  <div class="side-menu-item hidden" id="menu-item-approve"><span class="smi-icon">✅</span> Approve users <span class="menu-badge hidden" id="approve-count"></span></div>
+  <div class="side-menu-item hidden" id="menu-item-employees"><span class="smi-icon">🪪</span> Employee Info</div>
+  <div class="side-menu-item" id="menu-item-sign-out"><span class="smi-icon">🔒</span> Sign out of this device</div>
 </div>
 
 <div id="install-banner" class="hidden">
@@ -718,10 +862,14 @@
   <button id="btn-drop-pin-done">Done</button>
 </div>
 <div id="fabs">
-  <button class="fab fab-small" id="btn-drop-pin" title="Drop a pin to navigate">🚩</button>
-  <button class="fab fab-small" id="btn-draw-field" title="Outline a field">📐</button>
+  <button class="fab fab-small hide-all hide-harvest" id="btn-picking-fab" title="Picking mode — walk to the closest rock">🧭</button>
+  <button class="fab fab-small hide-all hide-spring" id="btn-quick-rock" title="Mark a rock where I am">🪨</button>
+  <button class="fab fab-small hide-all" id="btn-quick-wet" title="Mark a wet spot where I am">💧</button>
+  <button class="fab fab-small hide-all hide-harvest" id="btn-records-fab" title="Field records — planting, spray, yield">📒</button>
+  <button class="fab fab-small hide-spring hide-harvest" id="btn-drop-pin" title="Drop a pin to navigate">🚩</button>
+  <button class="fab fab-small hide-spring hide-harvest" id="btn-draw-field" title="Outline a field">📐</button>
   <button class="fab fab-small" id="btn-list" title="Rock &amp; field list">📋</button>
-  <button class="fab fab-small hidden" id="bin-tab" title="Zoom to all bins">🛢</button>
+  <button class="fab fab-small hidden hide-spring" id="bin-tab" title="Zoom to all bins">🛢</button>
   <button class="fab fab-small" id="btn-locate" title="Find my location">📍</button>
   <button class="fab fab-main" id="btn-mark-here">＋ Mark rock at my location</button>
 </div>
@@ -750,8 +898,22 @@
   <h2 id="modal-title">Mark a rock</h2>
   <div class="coord-readout" id="modal-coords"></div>
   <div class="coord-readout hidden" id="rock-entered-info" style="margin-top:2px;"></div>
+  <div class="coord-readout hidden" id="rock-picked-info" style="margin-top:2px;font-weight:700;"></div>
 
   <div class="field-row">
+    <label>What is it?</label>
+    <div class="kind-options" id="kind-options">
+      <button type="button" class="kind-opt" data-kind="rock">🪨 Rock</button>
+      <button type="button" class="kind-opt" data-kind="wet">💧 Wet spot</button>
+      <button type="button" class="kind-opt" data-kind="washout">🌊 Washout</button>
+      <button type="button" class="kind-opt" data-kind="tile">🕳️ Broken tile</button>
+      <button type="button" class="kind-opt" data-kind="weeds">🌿 Weeds</button>
+      <button type="button" class="kind-opt" data-kind="fence">🚧 Fence</button>
+      <button type="button" class="kind-opt" data-kind="other">📌 Other</button>
+    </div>
+  </div>
+
+  <div class="field-row" id="rock-size-row">
     <label>Size</label>
     <div class="size-options">
       <div class="size-opt" data-size="small"><div class="dot"></div>Small</div>
@@ -768,6 +930,7 @@
     <label>Field</label>
     <input type="text" id="input-field" list="field-suggestions" placeholder="e.g. North 40">
     <datalist id="field-suggestions"></datalist>
+    <div class="auto-hint hidden" id="field-auto-hint"></div>
     <div class="coord-readout" id="field-info-hint" style="margin-top:6px;margin-bottom:0;font-size:14px;font-weight:600;"></div>
   </div>
 
@@ -776,14 +939,212 @@
     <textarea id="input-note" placeholder="e.g. right at the fence line, hits the disc"></textarea>
   </div>
 
+  <div class="field-row">
+    <label>Photo</label>
+    <label class="btn btn-secondary file-input-label" style="text-align:center;display:block;"><span id="rock-photo-pick-text">📷 Add a photo (optional)</span>
+      <input type="file" accept="image/*" id="input-rock-photo">
+    </label>
+    <div id="rock-photo-preview" class="hidden"></div>
+  </div>
+
   <div class="btn-row">
     <button class="btn btn-secondary" id="btn-cancel">Cancel</button>
     <button class="btn btn-primary" id="btn-save">Save rock</button>
   </div>
+  <div class="btn-row hidden" id="picked-row">
+    <button class="btn btn-primary" id="btn-mark-picked">✅ Mark picked</button>
+  </div>
   <div class="btn-row" id="edit-only-row">
-    <button class="btn btn-maps" id="btn-open-gmaps">🧭 Navigate to this rock</button>
+    <button class="btn btn-maps" id="btn-open-gmaps">🧭 Navigate</button>
     <button class="btn btn-danger" id="btn-delete">Delete rock</button>
   </div>
+</div>
+
+<!-- Picking mode panel -->
+<div id="pick-panel">
+  <div class="pick-head"><b>🧭 Picking</b><select id="pick-field" aria-label="Field to pick"></select></div>
+  <div id="pick-count"></div>
+  <div id="pick-target"></div>
+  <div id="pick-photo" class="hidden"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="btn-pick-done">✅ Picked</button>
+    <button class="btn btn-secondary" id="btn-pick-next">➡️ Next closest</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-pick-skip">Skip</button>
+    <button class="btn btn-maps" id="btn-pick-nav">🧭 Navigate</button>
+    <button class="btn btn-secondary" id="btn-pick-exit">Exit</button>
+  </div>
+</div>
+
+<!-- Season menu -->
+<div id="season-menu" class="hidden">
+  <button class="season-opt" data-season="spring">🌱 Spring<small>Rocks, picking, wet spots, field records</small></button>
+  <button class="season-opt" data-season="harvest">🌾 Harvest<small>Log loads, bins — rocks &amp; wet spots still one tap</small></button>
+  <button class="season-opt" data-season="all">🗂️ All<small>Everything, the original layout</small></button>
+</div>
+
+<!-- Chooser (pick a bin / field) -->
+<div class="sheet-backdrop" id="chooser-backdrop"></div>
+<div class="sheet" id="chooser-modal">
+  <div class="sheet-handle"></div>
+  <h2><span id="chooser-title">Choose</span> <button class="icon-btn" id="btn-chooser-close" style="font-size:14px;">✕</button></h2>
+  <div id="chooser-list"></div>
+</div>
+
+<!-- Field record -->
+<div class="sheet-backdrop" id="field-record-backdrop"></div>
+<div class="sheet" id="field-record-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="record-title">📒 Field record</h2>
+  <div id="record-sub"></div>
+  <div class="rec-two">
+    <div class="field-row"><label>Seed variety</label><input type="text" id="input-rec-variety" placeholder="e.g. P22A15E"></div>
+    <div class="field-row"><label>Planted on</label><input type="date" id="input-rec-planted"></div>
+  </div>
+  <div class="rec-two">
+    <div class="field-row"><label>Seeding rate</label><input type="text" id="input-rec-rate" placeholder="e.g. 150k seeds/ac"></div>
+    <div class="field-row"><label>Yield (bu/ac)</label><input type="number" id="input-rec-yield" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 52"><div class="auto-hint" id="rec-yield-hint"></div></div>
+  </div>
+  <div class="rec-section">Fertilizer &amp; spray passes</div>
+  <div id="rec-apps"></div>
+  <button class="btn btn-secondary" id="btn-rec-add-app" style="width:100%;margin-top:6px;">+ Add a pass</button>
+  <div id="rec-app-form" class="hidden">
+    <div class="rec-two">
+      <div class="field-row"><label>Type</label><select id="input-app-type"><option>Fertilizer</option><option selected>Herbicide</option><option>Fungicide</option><option>Insecticide</option><option>Seed treatment</option><option>Other</option></select></div>
+      <div class="field-row"><label>Date</label><input type="date" id="input-app-date"></div>
+    </div>
+    <div class="field-row"><label>Product / blend</label><input type="text" id="input-app-product" placeholder="e.g. Roundup PowerMAX 3, or 11-52-0"></div>
+    <div class="rec-two">
+      <div class="field-row"><label>Rate</label><input type="text" id="input-app-rate" inputmode="decimal" placeholder="e.g. 32"></div>
+      <div class="field-row"><label>Unit</label><select id="input-app-unit"><option>oz/ac</option><option>pt/ac</option><option>qt/ac</option><option>gal/ac</option><option>lb/ac</option><option>ton/ac</option><option>units/ac</option><option value="other">other</option></select></div>
+    </div>
+    <div class="rec-two">
+      <div class="field-row"><label>Applied by</label><input type="text" id="input-app-by"></div>
+      <div class="field-row"><label>Acres</label><input type="text" id="input-app-acres" inputmode="decimal"></div>
+    </div>
+    <div class="field-row"><label>EPA reg # <span style="font-weight:400;text-transform:none;">(restricted-use products)</span></label><input type="text" id="input-app-epa" placeholder="e.g. 524-549"></div>
+    <div class="field-row"><label>Note</label><input type="text" id="input-app-note" placeholder="e.g. windy, 2nd pass on east half"></div>
+    <div class="btn-row" style="margin-top:4px;">
+      <button class="btn btn-secondary" id="btn-app-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-app-save">Add pass</button>
+    </div>
+  </div>
+  <div class="field-row" style="margin-top:14px;"><label>Notes for this year</label><textarea id="input-rec-notes" placeholder="e.g. hail July 12, replanted NW corner"></textarea></div>
+  <div class="rec-section">Other years &amp; rocks</div>
+  <div class="summary-card" id="rec-history"></div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-rec-cancel">Cancel</button>
+    <button class="btn btn-primary" id="btn-rec-save">Save record</button>
+  </div>
+</div>
+
+<!-- Equipment service -->
+<div class="sheet-backdrop" id="service-backdrop"></div>
+<div class="sheet" id="service-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="service-title">🔧 Service</h2>
+  <div class="field-row">
+    <label>Current engine hours</label>
+    <input type="number" id="input-service-hours" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 4210">
+    <div class="auto-hint" id="service-hours-hint"></div>
+  </div>
+  <div id="service-items"></div>
+  <button class="btn btn-secondary" id="btn-service-add-job" style="width:100%;margin-top:4px;">🛠️ Add a job for this machine</button>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-service-cancel">Cancel</button>
+    <button class="btn btn-primary" id="btn-service-save">Save</button>
+  </div>
+</div>
+
+<!-- Parts list -->
+<div class="sheet-backdrop" id="parts-backdrop"></div>
+<div class="sheet" id="parts-modal">
+  <div class="sheet-handle"></div>
+  <h2>🧾 Parts list <button class="icon-btn" id="btn-parts-close" style="font-size:14px;">✕</button></h2>
+  <div class="list-tools"><label><input type="checkbox" id="parts-only-due"> Only what's due soon</label><button type="button" class="gate-link" id="btn-parts-clear" style="margin:0;">Clear list</button></div>
+  <div class="parts-hint">Tick what you need and set how many. 🔍 looks the part up on John Deere's parts site.</div>
+  <div id="parts-list"></div>
+  <div class="parts-add"><input type="text" id="input-parts-extra" placeholder="Add something else (e.g. 5 gal Hy-Gard)"><button class="btn btn-secondary" id="btn-parts-extra-add">+ Add</button></div>
+  <div id="parts-selected-count"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary parts-out" id="btn-parts-copy">📤 Text / share</button>
+    <button class="btn btn-secondary parts-out" id="btn-parts-picture">🖼️ Save picture</button>
+  </div>
+  <div class="btn-row" style="margin-top:8px;">
+    <button class="btn btn-secondary parts-out" id="btn-parts-copytext">📋 Copy</button>
+    <button class="btn btn-secondary parts-out" id="btn-parts-print">🖨️ Print</button>
+  </div>
+</div>
+
+<!-- Jobs list -->
+<div class="sheet-backdrop" id="jobs-backdrop"></div>
+<div class="sheet" id="jobs-modal">
+  <div class="sheet-handle"></div>
+  <h2>🛠️ Jobs list <button class="icon-btn" id="btn-jobs-close" style="font-size:14px;">✕</button></h2>
+  <div class="job-chips" id="jobs-filters">
+    <button class="job-chip" data-f="open">All open</button>
+    <button class="job-chip" data-f="rain">🌧️ Rain day</button>
+    <button class="job-chip" data-f="summer">☀️ Summer</button>
+    <button class="job-chip" data-f="harvest">🌾 Pre-harvest</button>
+    <button class="job-chip" data-f="winter">❄️ Winter</button>
+    <button class="job-chip" data-f="spring">🌱 Pre-planting</button>
+    <button class="job-chip" data-f="done">✅ Done</button>
+  </div>
+  <div class="btn-row" style="margin:0 0 8px;">
+    <button class="btn btn-primary" id="btn-job-add">+ Add job</button>
+    <button class="btn btn-secondary" id="btn-job-ideas">💡 Ideas</button>
+  </div>
+  <div id="jobs-list"></div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-jobs-share">📤 Text / share</button>
+    <button class="btn btn-secondary" id="btn-jobs-picture">🖼️ Picture</button>
+    <button class="btn btn-secondary" id="btn-jobs-print">🖨️ Print</button>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="job-editor-backdrop"></div>
+<div class="sheet" id="job-editor-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="job-editor-title">Add a job</h2>
+  <div class="field-row"><label>What needs doing?</label><input type="text" id="input-job-title" placeholder="e.g. Fix radio in the 8320R"></div>
+  <div class="rec-two">
+    <div class="field-row"><label>Priority</label><select id="input-job-priority"><option value="1">🔴 Urgent</option><option value="2">🟠 Soon</option><option value="3">🟢 When there's time</option></select></div>
+    <div class="field-row"><label>When</label><select id="input-job-when"><option value="anytime">🔧 Anytime</option><option value="rain">🌧️ Rain day</option><option value="summer">☀️ Summer</option><option value="harvest">🌾 Before harvest</option><option value="winter">❄️ Winter project</option><option value="spring">🌱 Before planting</option></select></div>
+  </div>
+  <div class="field-row"><label>Machine (optional)</label><select id="input-job-machine"></select></div>
+  <div class="rec-two">
+    <div class="field-row"><label>Who (optional)</label><input type="text" id="input-job-assigned" list="job-people" placeholder="Anyone"><datalist id="job-people"></datalist></div>
+    <div class="field-row"><label>Status</label><select id="input-job-status"><option value="todo">To do</option><option value="doing">In progress</option><option value="done">Done</option></select></div>
+  </div>
+  <div class="field-row"><label>Notes</label><textarea id="input-job-notes" placeholder="e.g. alternator whines at idle; part # on order"></textarea></div>
+  <div class="coord-readout" id="job-created-info"></div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-job-cancel">Cancel</button>
+    <button class="btn btn-primary" id="btn-job-save">Save job</button>
+  </div>
+  <div class="btn-row hidden" id="job-delete-row"><button class="btn btn-danger" id="btn-job-delete">Delete job</button></div>
+</div>
+
+<div class="sheet-backdrop" id="job-ideas-backdrop"></div>
+<div class="sheet" id="job-ideas-modal">
+  <div class="sheet-handle"></div>
+  <h2>💡 Job ideas <button class="icon-btn" id="btn-ideas-close" style="font-size:14px;">✕</button></h2>
+  <div class="parts-hint">Tick the ones that fit your place, then add them. You can edit or delete them later.</div>
+  <div id="job-ideas-list"></div>
+  <div class="btn-row"><button class="btn btn-primary" id="btn-ideas-add">Add selected to the jobs list</button></div>
+</div>
+
+<!-- Approve users (owner only) -->
+<div class="sheet-backdrop" id="approve-backdrop"></div>
+<div class="sheet" id="approve-modal">
+  <div class="sheet-handle"></div>
+  <h2 style="display:flex;justify-content:space-between;align-items:center;">✅ Approve users <button class="icon-btn" id="btn-close-approve" style="font-size:14px;">✕</button></h2>
+  <div class="rec-section" style="margin-top:4px;">Waiting for you</div>
+  <div id="approve-pending"></div>
+  <div class="rec-section">Approved</div>
+  <div id="approve-members"></div>
+  <div class="coord-readout" style="margin-top:12px;">Removing someone locks them out right away, on every device they use.</div>
 </div>
 
 <!-- List sheet -->
@@ -914,6 +1275,8 @@
   <div class="summary-card" id="field-label-actions-stats"></div>
   <div class="btn-row" style="flex-direction:column;">
     <button class="btn btn-primary" id="btn-label-edit-field">✏️ Edit field details</button>
+    <button class="btn btn-maps" id="btn-label-records">📒 Field records (seed, spray, yield)</button>
+    <button class="btn btn-maps" id="btn-label-pick">🧭 Pick rocks in this field</button>
     <button class="btn btn-maps" id="btn-label-boundary">📐 Boundary</button>
     <button class="btn btn-maps" id="btn-label-navigate-field">🧭 Navigate to this field</button>
     <button class="btn btn-secondary" id="btn-label-mark-rock">🪨 Mark a rock here</button>
@@ -1130,6 +1493,7 @@
       <option value="bins">Bin report</option>
       <option value="bin-loads">Bin load report (who/when)</option>
       <option value="rocks">Rock report</option>
+      <option value="field-records">Field records (seed, spray, yield)</option>
     </select>
   </div>
   <div class="btn-row" style="margin-top:0;">
@@ -1248,6 +1612,7 @@ service cloud.firestore {
   <h2>🚜 Equipment <button class="icon-btn" id="btn-close-equipment-list" style="font-size:14px;">✕</button></h2>
   <div class="btn-row" style="margin-bottom:10px;">
     <button class="btn btn-primary" id="btn-add-equipment">+ Add equipment</button>
+    <button class="btn btn-secondary" id="btn-parts-list">🧾 Parts list</button>
   </div>
   <div id="equipment-list"></div>
 </div>
@@ -1552,6 +1917,7 @@ service cloud.firestore {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script>
@@ -1570,7 +1936,7 @@ service cloud.firestore {
   // one on its next visit.
   var BAKED_IN_FARM_CODE = "Chaplinski";
   var BAKED_IN_FIREBASE_CONFIG = {
-    apiKey: "AIzaSyAhCpI9ojiVWMyERPKQgm9cB4BzmoAFcqk",
+    apiKey: "AIzaSyAhCpI9ojiVWWyERPKQgm9cB4BzmoAFcqk",
     authDomain: "rock-marker-eeb95.firebaseapp.com",
     projectId: "rock-marker-eeb95",
     storageBucket: "rock-marker-eeb95.firebasestorage.app",
@@ -1588,7 +1954,7 @@ service cloud.firestore {
   // plain client-side gate, not real account security) — it's meant to
   // keep casual/accidental visitors out, not to stop someone determined
   // who goes looking at the page source.
-  var ACCESS_CODE = "3308";
+  // (The old 4-digit access code was replaced by the farm sign-in below.)
   var ACCESS_CODE_KEY = "rockMarkerAccessCode_v1";
 
   // Separate, stricter "admin" code required every single time someone
@@ -1604,6 +1970,7 @@ service cloud.firestore {
   // was about to happen — no need to double up with a toast on cancel,
   // since backing out is exactly what "Cancel" means here.
   function checkAdminCode(){
+    if(typeof isOwnerUser === "function" && isOwnerUser(farmUser)) return true; // Jason's own login
     var entered = prompt("Enter the admin code to continue:");
     if(entered === null) return false;
     if(entered.trim() !== ADMIN_CODE){
@@ -1893,13 +2260,14 @@ service cloud.firestore {
         belts = Array.isArray(parsed.belts) ? parsed.belts : [];
         employees = Array.isArray(parsed.employees) ? parsed.employees : [];
         removedRocks = Array.isArray(parsed.removedRocks) ? parsed.removedRocks : [];
+        jobs = Array.isArray(parsed.jobs) ? parsed.jobs : [];
         if(parsed.truckSizes && typeof parsed.truckSizes === "object"){ truckSizes = parsed.truckSizes; }
       }
-    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; equipment = []; belts = []; employees = []; removedRocks = []; }
+    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; equipment = []; belts = []; employees = []; removedRocks = []; jobs = []; }
   }
   function saveData(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, equipment: equipment, belts: belts, employees: employees, truckSizes: truckSizes, removedRocks: removedRocks}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, equipment: equipment, belts: belts, employees: employees, truckSizes: truckSizes, removedRocks: removedRocks, jobs: jobs}));
     }catch(e){
       toast("Couldn't save — your browser storage may be full or blocked.");
     }
@@ -1998,6 +2366,7 @@ service cloud.firestore {
     map.on("click", function(e){
       if(drawingField || drawingBin){ addDrawPoint(e.latlng); }
       else if(droppingPin){ dropWaypoint(e.latlng, true); }
+      else if(picking){ /* picking mode: taps on the map don't start a new marker */ }
       else { openAddModal(e.latlng); }
     });
 
@@ -2078,6 +2447,1121 @@ service cloud.firestore {
     return s.charAt(0).toUpperCase()+s.slice(1);
   }
 
+  // ---------- Field markers: rocks + other things worth marking ----------
+  // Every marker lives in the same "rocks" collection so nothing about
+  // syncing changes — a marker with no `kind` is a rock (all rocks marked
+  // before this existed). `pickedAt` means a rock was picked, or for any
+  // other kind of marker that it was fixed; it's kept (not deleted) so the
+  // history of what came off each field survives.
+  var MARKER_KINDS = [
+    {k:"rock",    icon:"🪨", label:"Rock",         color:"#c9822a"},
+    {k:"wet",     icon:"💧", label:"Wet spot",     color:"#1e88e5"},
+    {k:"washout", icon:"🌊", label:"Washout",      color:"#00838f"},
+    {k:"tile",    icon:"🕳️", label:"Broken tile",  color:"#6d4c41"},
+    {k:"weeds",   icon:"🌿", label:"Weed patch",   color:"#2e7d32"},
+    {k:"fence",   icon:"🚧", label:"Fence damage", color:"#ef6c00"},
+    {k:"other",   icon:"📌", label:"Other",        color:"#6a1b9a"}
+  ];
+  var selectedKind = "rock";
+  var SHOW_PICKED_KEY = "rockMarkerShowPicked_v1";
+  var showPickedMarkers = false;
+  try{ showPickedMarkers = localStorage.getItem(SHOW_PICKED_KEY) === "1"; }catch(e){}
+
+  function markerKindOf(r){ return (r && r.kind) || "rock"; }
+  function markerKindInfo(k){
+    for(var i=0;i<MARKER_KINDS.length;i++){ if(MARKER_KINDS[i].k === k) return MARKER_KINDS[i]; }
+    return MARKER_KINDS[0];
+  }
+  function isRockMarker(r){ return markerKindOf(r) === "rock"; }
+  function isPicked(r){ return !!(r && r.pickedAt); }
+  function doneWord(r){ return isRockMarker(r) ? "picked" : "fixed"; }
+  function activeRocks(){ return rocks.filter(function(r){ return isRockMarker(r) && !isPicked(r); }); }
+  function activeOtherMarkers(){ return rocks.filter(function(r){ return !isRockMarker(r) && !isPicked(r); }); }
+  function markerTitle(r){
+    if(isRockMarker(r)) return r.size === "boulder" ? "FOD" : (sizeLabel(r.size || "medium") + " rock");
+    return markerKindInfo(markerKindOf(r)).label;
+  }
+  function markerIcon(r){
+    var picked = isPicked(r);
+    var target = !!(picking && picking.targetId === r.id);
+    var extra = (picked ? " picked" : "") + (target ? " pick-target" : "");
+    if(isRockMarker(r)){
+      var s = r.size || "medium";
+      var inner = (s === "boulder") ? '<img src="fod-icon.png" alt="FOD">' : '🪨';
+      var px = sizeToPx(s);
+      return L.divIcon({className:"", html:'<div class="rock-pin size-'+s+extra+'">'+inner+'</div>', iconSize:px, iconAnchor:[px[0]/2, px[1]/2]});
+    }
+    var info = markerKindInfo(markerKindOf(r));
+    return L.divIcon({className:"", html:'<div class="rock-pin kind-pin'+extra+'" style="border-color:'+info.color+'">'+info.icon+'</div>', iconSize:[32,32], iconAnchor:[16,16]});
+  }
+  // Which markers belong on the map right now (picking mode shows only the
+  // rocks still to be picked in the chosen field).
+  function markerVisible(r){
+    if(picking){
+      return isRockMarker(r) && !isPicked(r) &&
+        (picking.field === "all" || (r.field || "").trim() === picking.field);
+    }
+    if(isPicked(r) && !showPickedMarkers) return false;
+    return true;
+  }
+
+  // One place that writes a change to a marker, shared or device-only.
+  function updateRock(id, patch, okMsg){
+    if(sharingEnabled){
+      rockDocRef(id).update(patch).then(function(){ if(okMsg) toast(okMsg); }).catch(function(){
+        toast("Couldn't save to the shared map — check your connection.");
+      });
+      // Reflect it right away; the live listener confirms it a moment later.
+      var rs = rocks.find(function(x){ return x.id === id; });
+      if(rs){ Object.keys(patch).forEach(function(k){ rs[k] = patch[k]; }); renderAll(); }
+    } else {
+      var r = rocks.find(function(x){ return x.id === id; });
+      if(r){ Object.keys(patch).forEach(function(k){ r[k] = patch[k]; }); }
+      saveData(); updateFieldOptions(); renderAll();
+      if(okMsg) toast(okMsg);
+    }
+  }
+  function setMarkerPicked(id, picked){
+    var r = rocks.find(function(x){ return x.id === id; });
+    if(!r) return;
+    var word = doneWord(r);
+    if(picked){
+      updateRock(id, {pickedAt:new Date().toISOString(), pickedBy:getDeviceName() || ""}, (isRockMarker(r) ? "Rock" : markerKindInfo(markerKindOf(r)).label) + " marked " + word);
+    } else {
+      updateRock(id, {pickedAt:null, pickedBy:""}, "Marked not " + word);
+    }
+  }
+
+  function selectKind(k){
+    selectedKind = k;
+    document.querySelectorAll("#kind-options .kind-opt").forEach(function(el){
+      el.classList.toggle("selected", el.getAttribute("data-kind") === k);
+    });
+    var isRock = (k === "rock");
+    document.getElementById("rock-size-row").classList.toggle("hidden", !isRock);
+    var info = markerKindInfo(k);
+    var title = document.getElementById("modal-title");
+    title.textContent = (editingId ? "Edit " : "Mark a ") + info.label.toLowerCase();
+    document.getElementById("btn-save").textContent = editingId ? "Save" : ("Save " + info.label.toLowerCase());
+    document.getElementById("btn-delete").textContent = "Delete " + info.label.toLowerCase();
+    updatePickedRow();
+  }
+
+  function updatePickedRow(){
+    var btn = document.getElementById("btn-mark-picked");
+    var info = document.getElementById("rock-picked-info");
+    if(!btn || !info) return;
+    var r = editingId ? rocks.find(function(x){ return x.id === editingId; }) : null;
+    if(!r){ btn.classList.add("hidden"); info.classList.add("hidden"); return; }
+    btn.classList.remove("hidden");
+    var word = (selectedKind === "rock") ? "picked" : "fixed";
+    if(isPicked(r)){
+      btn.textContent = "↩️ Mark not " + word;
+      info.textContent = "✅ " + word.charAt(0).toUpperCase() + word.slice(1) + (r.pickedBy ? " by " + r.pickedBy : "") + " · " + formatLogTimestamp(r.pickedAt);
+      info.classList.remove("hidden");
+    } else {
+      btn.textContent = "✅ Mark " + word;
+      info.classList.add("hidden");
+    }
+  }
+
+  // ---------- Marker photos ----------
+  // Photos are kept OUT of the marker itself (every phone syncs every
+  // marker, so a photo in each one would make the whole map slow) — they
+  // live in their own "rockPhotos" documents and load only when someone
+  // opens that marker. Device-only mode keeps a small copy on the marker.
+  var pendingRockPhoto = null;      // data URL chosen in the open sheet
+  var pendingRockPhotoChanged = false;
+  var rockPhotoCache = {};
+  function rockPhotoDocRef(id){
+    return firestoreDb.collection("farms").doc(farmCode).collection("rockPhotos").doc(id);
+  }
+  function loadRockPhoto(r, cb){
+    if(!r || (!r.hasPhoto && !r.photo)){ cb(null); return; }
+    if(r.photo){ cb(r.photo); return; }
+    if(rockPhotoCache[r.id]){ cb(rockPhotoCache[r.id]); return; }
+    if(!sharingEnabled || !firestoreDb){ cb(null); return; }
+    rockPhotoDocRef(r.id).get().then(function(d){
+      var data = d.exists ? (d.data() || {}).data : null;
+      if(data) rockPhotoCache[r.id] = data;
+      cb(data || null);
+    }).catch(function(){ cb(null); });
+  }
+  function renderRockPhotoPreview(){
+    var wrap = document.getElementById("rock-photo-preview");
+    var pickLabel = document.getElementById("rock-photo-pick-text");
+    if(pendingRockPhoto){
+      wrap.innerHTML = '<img src="'+pendingRockPhoto+'" alt="Photo" id="rock-photo-thumb"><button type="button" class="row-btn" id="btn-rock-photo-remove">✕ Remove</button>';
+      wrap.classList.remove("hidden");
+      pickLabel.textContent = "📷 Replace photo";
+    } else {
+      wrap.innerHTML = "";
+      wrap.classList.add("hidden");
+      pickLabel.textContent = "📷 Add a photo (optional)";
+    }
+  }
+  function handleRockPhotoPicked(e){
+    var f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if(!f) return;
+    toast("Adding photo…", 1200);
+    compressCropPlanPhoto(f, function(dataUrl, err){
+      if(err){ toast(err); return; }
+      pendingRockPhoto = dataUrl; pendingRockPhotoChanged = true;
+      renderRockPhotoPreview();
+    });
+  }
+  function saveRockPhoto(id){
+    if(!pendingRockPhotoChanged) return {};
+    if(sharingEnabled){
+      if(pendingRockPhoto){
+        rockPhotoCache[id] = pendingRockPhoto;
+        rockPhotoDocRef(id).set({data:pendingRockPhoto, savedAt:new Date().toISOString()}).catch(function(){
+          toast("Couldn't upload the photo — check your connection.");
+        });
+        return {hasPhoto:true};
+      }
+      delete rockPhotoCache[id];
+      rockPhotoDocRef(id).delete().catch(function(){});
+      return {hasPhoto:false};
+    }
+    return {photo: pendingRockPhoto || "", hasPhoto: !!pendingRockPhoto};
+  }
+
+  // ---------- Which field am I in? ----------
+  // Inside an outline → that field. Just outside one (standing on the
+  // headland or the field road) → the nearest field within ~100 m.
+  // Otherwise fall back to the last field used, like before.
+  function metersBetween(aLat, aLng, bLat, bLng){
+    var R = 6371000, toR = Math.PI/180;
+    var dLat = (bLat-aLat)*toR, dLng = (bLng-aLng)*toR;
+    var s = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(aLat*toR)*Math.cos(bLat*toR)*Math.sin(dLng/2)*Math.sin(dLng/2);
+    return 2*R*Math.asin(Math.min(1, Math.sqrt(s)));
+  }
+  function bearingWord(aLat, aLng, bLat, bLng){
+    var toR = Math.PI/180;
+    var y = Math.sin((bLng-aLng)*toR)*Math.cos(bLat*toR);
+    var x = Math.cos(aLat*toR)*Math.sin(bLat*toR) - Math.sin(aLat*toR)*Math.cos(bLat*toR)*Math.cos((bLng-aLng)*toR);
+    var deg = (Math.atan2(y, x)/toR + 360) % 360;
+    return ["N","NE","E","SE","S","SW","W","NW"][Math.round(deg/45) % 8];
+  }
+  function distanceToSegmentMeters(lat, lng, a, b){
+    // Flat approximation — plenty accurate across one field.
+    var kx = 111320*Math.cos(lat*Math.PI/180), ky = 110540;
+    var px = (lng-a[1])*kx, py = (lat-a[0])*ky;
+    var vx = (b[1]-a[1])*kx, vy = (b[0]-a[0])*ky;
+    var len2 = vx*vx + vy*vy;
+    var t = len2 ? Math.max(0, Math.min(1, (px*vx + py*vy)/len2)) : 0;
+    var dx = px - t*vx, dy = py - t*vy;
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+  function autoFieldFor(lat, lng){
+    var inside = fieldNameAt(lat, lng);
+    if(inside) return {name:inside, how:"inside"};
+    var best = null, bestD = 100;
+    fields.forEach(function(f){
+      if(!f.points || f.points.length < 3) return;
+      for(var i=0;i<f.points.length;i++){
+        var d = distanceToSegmentMeters(lat, lng, f.points[i], f.points[(i+1) % f.points.length]);
+        if(d < bestD){ bestD = d; best = f.name; }
+      }
+    });
+    if(best) return {name:best, how:"near", meters:bestD};
+    var last = lastUsedField();
+    return last ? {name:last, how:"last"} : {name:"", how:"none"};
+  }
+  function setAutoFieldHint(auto){
+    var el = document.getElementById("field-auto-hint");
+    if(!el) return;
+    var txt = "";
+    if(auto.how === "inside") txt = "📍 Filled in automatically — you're inside " + auto.name;
+    else if(auto.how === "near") txt = "📍 Nearest field (" + Math.round(auto.meters * 1.094) + " yd away) — change it if that's wrong";
+    else if(auto.how === "last") txt = "Not inside a mapped field — using the last field you marked in";
+    el.textContent = txt;
+    el.classList.toggle("hidden", !txt);
+  }
+  // ---------- Picking mode ----------
+  // Shows only the rocks still to be picked in one field, walks you to the
+  // closest one, and marks it picked with one tap before moving on.
+  var picking = null; // {field, targetId, skipped:[], lastPos:{lat,lng}}
+
+  function pickCandidates(){
+    if(!picking) return [];
+    return rocks.filter(function(r){
+      return isRockMarker(r) && !isPicked(r) &&
+        (picking.field === "all" || (r.field || "").trim() === picking.field);
+    });
+  }
+  function startPicking(field){
+    var f = field || (currentFieldFilter !== "all" ? currentFieldFilter : null);
+    if(!f){
+      var pos = null;
+      // Default to the field you're standing in when we already know it.
+      if(youAreHereMarker){ var ll = youAreHereMarker.getLatLng(); var a = autoFieldFor(ll.lat, ll.lng); if(a.how === "inside" && activeRocks().some(function(r){ return (r.field||"").trim() === a.name; })) pos = a.name; }
+      f = pos || "all";
+    }
+    picking = {field:f, targetId:null, skipped:[], lastPos:null};
+    document.body.classList.add("picking-on");
+    hideSheet("list-drawer", "list-backdrop");
+    populatePickFieldSelect();
+    renderAll();
+    var cands = pickCandidates();
+    if(cands.length){
+      var bounds = L.latLngBounds(cands.map(function(r){ return [r.lat, r.lng]; }));
+      map.fitBounds(bounds, {padding:[60,60], maxZoom:18});
+    }
+    updatePickPanel();
+    pickNextClosest();
+  }
+  function stopPicking(){
+    picking = null;
+    document.body.classList.remove("picking-on");
+    renderAll();
+    positionTotalsBadges();
+  }
+  function populatePickFieldSelect(){
+    var sel = document.getElementById("pick-field");
+    var counts = {};
+    activeRocks().forEach(function(r){ var k = (r.field || "").trim() || "(no field)"; counts[k] = (counts[k]||0) + 1; });
+    var names = Object.keys(counts).sort();
+    if(picking && picking.field !== "all" && names.indexOf(picking.field) === -1) names.unshift(picking.field);
+    sel.innerHTML = '<option value="all">All fields ('+activeRocks().length+')</option>' + names.map(function(n){
+      return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+' ('+(counts[n]||0)+')</option>';
+    }).join("");
+    sel.value = picking ? picking.field : "all";
+  }
+  function pickHere(cb){
+    if(!navigator.geolocation){ var c = map.getCenter(); cb({lat:c.lat, lng:c.lng}, false); return; }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var ll = L.latLng(pos.coords.latitude, pos.coords.longitude);
+      if(youAreHereMarker){ map.removeLayer(youAreHereMarker); }
+      youAreHereMarker = L.marker(ll, {icon: L.divIcon({className:"", html:'<div class="you-are-here"></div>', iconSize:[16,16], iconAnchor:[8,8]})}).addTo(map);
+      cb({lat:ll.lat, lng:ll.lng}, true);
+    }, function(){
+      var c = map.getCenter(); cb({lat:c.lat, lng:c.lng}, false);
+    }, {enableHighAccuracy:true, timeout:8000, maximumAge:5000});
+  }
+  function pickNextClosest(){
+    if(!picking) return;
+    var cands = pickCandidates();
+    if(!cands.length){ picking.targetId = null; renderAll(); updatePickPanel(); return; }
+    document.getElementById("pick-target").textContent = "Finding the closest rock…";
+    pickHere(function(here, fromGps){
+      if(!picking) return;
+      picking.lastPos = here; picking.fromGps = fromGps;
+      var pool = cands.filter(function(r){ return picking.skipped.indexOf(r.id) === -1 && r.id !== picking.targetId; });
+      if(!pool.length){ picking.skipped = []; pool = cands.filter(function(r){ return r.id !== picking.targetId; }); }
+      if(!pool.length) pool = cands;
+      pool.sort(function(a, b){ return metersBetween(here.lat, here.lng, a.lat, a.lng) - metersBetween(here.lat, here.lng, b.lat, b.lng); });
+      picking.targetId = pool[0].id;
+      renderAll();
+      map.setView([pool[0].lat, pool[0].lng], Math.max(map.getZoom(), 18));
+      updatePickPanel();
+    });
+  }
+  function updatePickPanel(){
+    if(!picking) return;
+    var cands = pickCandidates();
+    var where = picking.field === "all" ? "all fields" : picking.field;
+    document.getElementById("pick-count").textContent = cands.length + (cands.length === 1 ? " rock" : " rocks") + " left in " + where;
+    var t = picking.targetId ? rocks.find(function(x){ return x.id === picking.targetId; }) : null;
+    var photoEl = document.getElementById("pick-photo");
+    photoEl.innerHTML = ""; photoEl.classList.add("hidden");
+    var btnPicked = document.getElementById("btn-pick-done");
+    var btnSkip = document.getElementById("btn-pick-skip");
+    var btnNav = document.getElementById("btn-pick-nav");
+    if(!t || isPicked(t)){
+      document.getElementById("pick-target").innerHTML = cands.length ? "Tap <b>Next closest</b> to find a rock." : "🎉 All rocks picked here.";
+      btnPicked.disabled = true; btnSkip.disabled = !cands.length; btnNav.disabled = true;
+      return;
+    }
+    btnPicked.disabled = false; btnSkip.disabled = false; btnNav.disabled = false;
+    var bits = ["<b>" + escapeHtml(markerTitle(t)) + "</b>"];
+    if(picking.lastPos){
+      var m = metersBetween(picking.lastPos.lat, picking.lastPos.lng, t.lat, t.lng);
+      var yd = m * 1.094;
+      bits.push((yd >= 1760 ? (yd/1760).toFixed(1) + " mi " : Math.round(yd) + " yd ") + bearingWord(picking.lastPos.lat, picking.lastPos.lng, t.lat, t.lng) + (picking.fromGps ? "" : " of map center"));
+    }
+    if(picking.field === "all" && t.field) bits.push(escapeHtml(t.field));
+    var html = bits.join(" · ");
+    if(t.note) html += '<div class="pick-note">' + escapeHtml(t.note) + '</div>';
+    document.getElementById("pick-target").innerHTML = html;
+    var targetId = t.id;
+    loadRockPhoto(t, function(data){
+      if(!data || !picking || picking.targetId !== targetId) return;
+      photoEl.innerHTML = '<img src="'+data+'" alt="Rock photo">';
+      photoEl.classList.remove("hidden");
+      photoEl.onclick = function(){ openPhotoViewerForFiles([{id:"rp", kind:"image", name:"Rock photo", pages:[data]}], "Rock photo", 0); };
+    });
+  }
+  function pickMarkDone(){
+    if(!picking || !picking.targetId) return;
+    var id = picking.targetId;
+    setMarkerPicked(id, true);
+    picking.targetId = null;
+    populatePickFieldSelect();
+    pickNextClosest();
+  }
+  function pickSkip(){
+    if(!picking) return;
+    if(picking.targetId) picking.skipped.push(picking.targetId);
+    pickNextClosest();
+  }
+  // ---------- Field records (one year's record per field) ----------
+  // Stored right on that year's field document (fields are already kept
+  // per crop year), so each year's seed, planting date, passes and yield
+  // stay with that year and a new year starts clean.
+  var APP_TYPES = ["Fertilizer","Herbicide","Fungicide","Insecticide","Seed treatment","Other"];
+  var APP_UNITS = ["oz/ac","pt/ac","qt/ac","gal/ac","lb/ac","ton/ac","units/ac","other"];
+  var recordFieldId = null;
+  var recordApps = [];        // working copy of this field's passes
+  var editingAppId = null;
+
+  function fieldAppsOf(f){ return (f && Array.isArray(f.applications)) ? f.applications : []; }
+  function openFieldRecord(fieldId){
+    var f = fields.find(function(x){ return x.id === fieldId; });
+    if(!f) return;
+    recordFieldId = fieldId;
+    recordApps = JSON.parse(JSON.stringify(fieldAppsOf(f)));
+    editingAppId = null;
+    var acres = polygonAreaAcres(f.points);
+    document.getElementById("record-title").textContent = "📒 " + (f.name || "Field") + " — " + currentYear;
+    document.getElementById("record-sub").innerHTML =
+      (f.crop && CROP_ICONS[f.crop] ? CROP_ICONS[f.crop] + " " : "") + escapeHtml([(f.crop || "No crop set"), acres.toFixed(1) + " ac", harvestStatusOf(f)].join(" · "));
+    document.getElementById("input-rec-variety").value = f.seedVariety || "";
+    document.getElementById("input-rec-planted").value = f.plantedOn || "";
+    document.getElementById("input-rec-rate").value = f.seedingRate || "";
+    document.getElementById("input-rec-yield").value = (typeof f.yieldBuAc === "number") ? f.yieldBuAc : "";
+    document.getElementById("input-rec-notes").value = f.recordNotes || "";
+    updateRecordYieldHint();
+    hideAppForm();
+    renderRecordApps();
+    renderRecordHistory(f);
+    showSheet("field-record-modal", "field-record-backdrop");
+  }
+  function closeFieldRecord(){
+    hideSheet("field-record-modal", "field-record-backdrop");
+    recordFieldId = null;
+  }
+  function updateRecordYieldHint(){
+    var f = fields.find(function(x){ return x.id === recordFieldId; });
+    var y = parseFloat(document.getElementById("input-rec-yield").value);
+    var el = document.getElementById("rec-yield-hint");
+    if(f && !isNaN(y) && y > 0){
+      var ac = polygonAreaAcres(f.points);
+      el.textContent = "≈ " + Math.round(y * ac).toLocaleString() + " bu total on " + ac.toFixed(1) + " ac";
+    } else { el.textContent = ""; }
+  }
+  function appLine(a){
+    var rate = [a.rate, a.unit && a.unit !== "other" ? a.unit : ""].filter(Boolean).join(" ");
+    return [a.date ? new Date(a.date + "T12:00:00").toLocaleDateString() : "No date", a.type, a.product, rate].filter(Boolean).join(" · ");
+  }
+  function renderRecordApps(){
+    var el = document.getElementById("rec-apps");
+    if(!recordApps.length){ el.innerHTML = '<div class="rec-empty">No passes logged yet this year.</div>'; return; }
+    var sorted = recordApps.slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); });
+    el.innerHTML = sorted.map(function(a){
+      var sub = [a.appliedBy ? "by " + a.appliedBy : "", a.acres ? a.acres + " ac" : "", a.epa ? "EPA " + a.epa : "", a.note || ""].filter(Boolean).join(" · ");
+      return '<div class="rock-row" data-app="'+escapeHtml(a.id)+'"><div class="rock-info"><div class="r1">'+escapeHtml(appLine(a))+'</div>'+(sub ? '<div class="r2">'+escapeHtml(sub)+'</div>' : '')+'</div>'+
+        '<div class="rock-actions"><button class="row-btn" data-action="edit-app">✏️</button><button class="row-btn" data-action="del-app">🗑️</button></div></div>';
+    }).join("");
+  }
+  function showAppForm(a){
+    editingAppId = a ? a.id : null;
+    var f = fields.find(function(x){ return x.id === recordFieldId; });
+    document.getElementById("input-app-type").value = a ? a.type : "Herbicide";
+    document.getElementById("input-app-product").value = a ? (a.product || "") : "";
+    document.getElementById("input-app-rate").value = a ? (a.rate || "") : "";
+    document.getElementById("input-app-unit").value = a ? (a.unit || "oz/ac") : "oz/ac";
+    var today = new Date(); var iso = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0");
+    document.getElementById("input-app-date").value = a ? (a.date || "") : iso;
+    document.getElementById("input-app-by").value = a ? (a.appliedBy || "") : (getDeviceName() || "");
+    document.getElementById("input-app-acres").value = a ? (a.acres || "") : (f ? polygonAreaAcres(f.points).toFixed(1) : "");
+    document.getElementById("input-app-epa").value = a ? (a.epa || "") : "";
+    document.getElementById("input-app-note").value = a ? (a.note || "") : "";
+    document.getElementById("rec-app-form").classList.remove("hidden");
+    document.getElementById("btn-rec-add-app").classList.add("hidden");
+    document.getElementById("btn-app-save").textContent = a ? "Update pass" : "Add pass";
+    document.getElementById("input-app-product").focus();
+  }
+  function hideAppForm(){
+    document.getElementById("rec-app-form").classList.add("hidden");
+    document.getElementById("btn-rec-add-app").classList.remove("hidden");
+    editingAppId = null;
+  }
+  function saveAppFromForm(){
+    var product = document.getElementById("input-app-product").value.trim();
+    if(!product){ toast("Enter the product or blend."); return; }
+    var a = {
+      id: editingAppId || ("a" + Date.now() + "_" + Math.floor(Math.random()*1000)),
+      type: document.getElementById("input-app-type").value,
+      product: product,
+      rate: document.getElementById("input-app-rate").value.trim(),
+      unit: document.getElementById("input-app-unit").value,
+      date: document.getElementById("input-app-date").value,
+      appliedBy: document.getElementById("input-app-by").value.trim(),
+      acres: document.getElementById("input-app-acres").value.trim(),
+      epa: document.getElementById("input-app-epa").value.trim(),
+      note: document.getElementById("input-app-note").value.trim()
+    };
+    var idx = recordApps.findIndex(function(x){ return x.id === a.id; });
+    if(idx >= 0) recordApps[idx] = a; else recordApps.push(a);
+    hideAppForm();
+    renderRecordApps();
+  }
+  function saveFieldRecord(){
+    var f = fields.find(function(x){ return x.id === recordFieldId; });
+    if(!f){ closeFieldRecord(); return; }
+    if(!document.getElementById("rec-app-form").classList.contains("hidden") && document.getElementById("input-app-product").value.trim()){
+      saveAppFromForm(); // don't lose a pass that was typed but not added yet
+    }
+    var y = parseFloat(document.getElementById("input-rec-yield").value);
+    var patch = {
+      seedVariety: document.getElementById("input-rec-variety").value.trim(),
+      plantedOn: document.getElementById("input-rec-planted").value,
+      seedingRate: document.getElementById("input-rec-rate").value.trim(),
+      yieldBuAc: (!isNaN(y) && y >= 0) ? y : null,
+      recordNotes: document.getElementById("input-rec-notes").value.trim(),
+      applications: recordApps
+    };
+    if(sharingEnabled){
+      fieldDocRef(f.id).update(patch).catch(function(){ toast("Couldn't save to the shared map — check your connection."); });
+    }
+    Object.keys(patch).forEach(function(k){ f[k] = patch[k]; });
+    if(!sharingEnabled){ saveData(); renderAll(); }
+    toast("Field record saved");
+    closeFieldRecord();
+  }
+  // Other years' records for the same field (matched by name, the way the
+  // rest of the app matches fields across years).
+  function renderRecordHistory(f){
+    var el = document.getElementById("rec-history");
+    var name = (f.name || "").trim();
+    var rows = [];
+    function rowHtml(year, fx){
+      var bits = [fx.crop || "No crop", fx.seedVariety || "", (typeof fx.yieldBuAc === "number" ? fx.yieldBuAc + " bu/ac" : ""), (fieldAppsOf(fx).length ? fieldAppsOf(fx).length + " passes" : "")].filter(Boolean);
+      return '<div class="summary-row" style="font-size:14px;"><span><b>'+year+'</b></span><span>'+escapeHtml(bits.join(" · "))+'</span></div>';
+    }
+    var picked = rocks.filter(function(r){ return isRockMarker(r) && isPicked(r) && (r.field||"").trim() === name; });
+    var pickedByYear = {};
+    picked.forEach(function(r){ var yy = (r.pickedAt || "").slice(0,4); pickedByYear[yy] = (pickedByYear[yy]||0) + 1; });
+    var rockLine = Object.keys(pickedByYear).sort().reverse().map(function(yy){ return pickedByYear[yy] + " picked in " + yy; }).join(" · ");
+    var left = rocks.filter(function(r){ return isRockMarker(r) && !isPicked(r) && (r.field||"").trim() === name; }).length;
+    var rockHtml = '<div class="summary-row" style="font-size:14px;"><span>🪨 Rocks</span><span>'+left+' left'+(rockLine ? ' · ' + escapeHtml(rockLine) : '')+'</span></div>';
+    if(!sharingEnabled || !firestoreDb){
+      var other = [];
+      try{
+        var blob = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        YEARS.forEach(function(yr){
+          if(yr === currentYear) return;
+          var list = blob["fields_" + yr];
+          var m = Array.isArray(list) ? list.find(function(x){ return (x.name||"").trim() === name; }) : null;
+          if(m) other.push(rowHtml(yr, m));
+        });
+      }catch(e){}
+      el.innerHTML = rockHtml + (other.length ? other.join("") : '<div class="rec-empty">No other years recorded yet.</div>');
+      return;
+    }
+    el.innerHTML = rockHtml + '<div class="rec-empty">Loading other years…</div>';
+    var years = YEARS.filter(function(yr){ return yr !== currentYear; });
+    var pending = years.length, found = {};
+    if(!pending){ el.innerHTML = rockHtml + '<div class="rec-empty">No other years recorded yet.</div>'; return; }
+    years.forEach(function(yr){
+      firestoreDb.collection("farms").doc(farmCode).collection(fieldsCollectionName(yr)).where("name", "==", f.name || "").limit(1).get().then(function(snap){
+        if(!snap.empty) found[yr] = snap.docs[0].data();
+      }).catch(function(){}).then(function(){
+        pending--;
+        if(pending === 0 && recordFieldId === f.id){
+          var ys = Object.keys(found).sort().reverse();
+          el.innerHTML = rockHtml + (ys.length ? ys.map(function(yr){ return rowHtml(yr, found[yr]); }).join("") : '<div class="rec-empty">No other years recorded yet.</div>');
+        }
+      });
+    });
+  }
+
+  function buildFieldRecordsReportHtml(){
+    var html = '<div class="report-section"><h3>📒 Field Records</h3>';
+    var list = fields.slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); });
+    if(!list.length){ return html + '<div class="report-empty">No fields yet.</div></div>'; }
+    var rows = list.map(function(f){
+      var ac = polygonAreaAcres(f.points);
+      var y = (typeof f.yieldBuAc === "number") ? f.yieldBuAc : null;
+      var apps = fieldAppsOf(f).slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); });
+      var appsHtml = apps.length ? apps.map(function(a){
+        return escapeHtml(appLine(a) + (a.appliedBy ? " · by " + a.appliedBy : "") + (a.epa ? " · EPA " + a.epa : ""));
+      }).join("<br>") : "—";
+      return '<tr><td><b>'+escapeHtml(f.name||"")+'</b><br>'+ac.toFixed(1)+' ac</td><td>'+escapeHtml(f.crop||"—")+'</td><td>'+escapeHtml(f.seedVariety||"—")+(f.seedingRate ? '<br>'+escapeHtml(f.seedingRate) : '')+'</td><td>'+(f.plantedOn ? new Date(f.plantedOn+"T12:00:00").toLocaleDateString() : "—")+'</td><td>'+appsHtml+'</td><td>'+(y !== null ? y + ' bu/ac<br>≈' + Math.round(y*ac).toLocaleString() + ' bu' : "—")+'</td></tr>';
+    }).join("");
+    return html + '<table class="report-table"><thead><tr><th>Field</th><th>Crop</th><th>Variety</th><th>Planted</th><th>Passes (fertilizer / spray)</th><th>Yield</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  // ---------- Equipment service by engine hours ----------
+  // Anyone can log hours and service (no admin code — the people running
+  // the equipment are the ones who know the hours); editing the machine's
+  // details and part numbers still needs the admin code like before.
+  var SERVICE_ITEMS = [
+    {k:"oil",       label:"Engine oil & filter", part:"oilFilter",       def:250},
+    {k:"fuel",      label:"Fuel filter",         part:"fuelFilter",      def:500},
+    {k:"air",       label:"Air filter",          part:"airFilter",       def:500},
+    {k:"hydraulic", label:"Hydraulic filter",    part:"hydraulicFilter", def:1000},
+    {k:"cabin",     label:"Cabin filter",        part:"cabinFilter",     def:500}
+  ];
+  var DUE_SOON_HRS = 25;
+  var serviceEquipId = null;
+  var serviceDraft = null;
+
+  function equipService(e){ return (e && e.service && typeof e.service === "object") ? e.service : {}; }
+  function serviceStatus(e, item){
+    var s = equipService(e)[item.k] || {};
+    var interval = parseFloat(s.interval) || item.def;
+    var hours = parseFloat(e.hours);
+    if(isNaN(hours)) return {state:"nohours", interval:interval};
+    if(s.lastAt === undefined || s.lastAt === null || s.lastAt === "") return {state:"unknown", interval:interval};
+    var left = (parseFloat(s.lastAt) + interval) - hours;
+    return {state: left < 0 ? "overdue" : (left <= DUE_SOON_HRS ? "soon" : "ok"), left:left, interval:interval, lastAt:parseFloat(s.lastAt), lastDate:s.lastDate};
+  }
+  // One short line for the equipment list: the most urgent thing.
+  function serviceSummary(e){
+    if(isNaN(parseFloat(e.hours))) return "";
+    var worst = null;
+    SERVICE_ITEMS.forEach(function(it){
+      var st = serviceStatus(e, it);
+      if(st.state === "overdue" || st.state === "soon"){
+        if(!worst || st.left < worst.st.left) worst = {it:it, st:st};
+      }
+    });
+    var hrs = Math.round(parseFloat(e.hours)).toLocaleString() + " hrs";
+    if(!worst) return "🔧 " + hrs + " · service up to date";
+    return (worst.st.state === "overdue"
+      ? "⚠️ " + worst.it.label + " overdue by " + Math.round(-worst.st.left) + " hrs"
+      : "🔧 " + worst.it.label + " due in " + Math.round(worst.st.left) + " hrs") + " · " + hrs;
+  }
+  function openServiceSheet(equipId){
+    var e = equipment.find(function(x){ return x.id === equipId; });
+    if(!e) return;
+    serviceEquipId = equipId;
+    serviceDraft = {hours: e.hours, service: JSON.parse(JSON.stringify(equipService(e))), log: Array.isArray(e.serviceLog) ? e.serviceLog.slice() : []};
+    document.getElementById("service-title").textContent = "🔧 " + (e.name || "Equipment");
+    document.getElementById("input-service-hours").value = (e.hours !== undefined && e.hours !== null && e.hours !== "") ? e.hours : "";
+    document.getElementById("service-hours-hint").textContent = e.hoursUpdatedAt ? ("Last entered " + formatLogTimestamp(e.hoursUpdatedAt) + (e.hoursUpdatedBy ? " by " + e.hoursUpdatedBy : "")) : "Enter the hour meter reading.";
+    renderServiceItems();
+    showSheet("service-modal", "service-backdrop");
+  }
+  function closeServiceSheet(){
+    hideSheet("service-modal", "service-backdrop");
+    serviceEquipId = null; serviceDraft = null;
+  }
+  function draftEquip(){
+    var e = equipment.find(function(x){ return x.id === serviceEquipId; }) || {};
+    var h = parseFloat(document.getElementById("input-service-hours").value);
+    return Object.assign({}, e, {hours: isNaN(h) ? e.hours : h, service: serviceDraft.service});
+  }
+  function renderServiceItems(){
+    var e = draftEquip();
+    var el = document.getElementById("service-items");
+    el.innerHTML = SERVICE_ITEMS.map(function(it){
+      var st = serviceStatus(e, it);
+      var s = serviceDraft.service[it.k] || {};
+      var status;
+      if(st.state === "nohours") status = '<span class="svc-muted">Enter hours above</span>';
+      else if(st.state === "unknown") status = '<span class="svc-muted">Tap "Done now" after the next service</span>';
+      else if(st.state === "overdue") status = '<span class="svc-bad">⚠️ Overdue by ' + Math.round(-st.left) + ' hrs</span>';
+      else if(st.state === "soon") status = '<span class="svc-warn">Due in ' + Math.round(st.left) + ' hrs</span>';
+      else status = '<span class="svc-ok">✓ Due in ' + Math.round(st.left) + ' hrs</span>';
+      var last = (st.lastAt !== undefined && !isNaN(st.lastAt)) ? ("Last done at " + Math.round(st.lastAt).toLocaleString() + " hrs" + (st.lastDate ? " · " + new Date(st.lastDate).toLocaleDateString() : "")) : "";
+      var partLink = e[it.part] ? (' · Part: <a href="'+deereLookupUrl(e[it.part])+'" target="_blank" rel="noopener">'+escapeHtml(e[it.part])+' 🔍</a>') : "";
+      return '<div class="svc-item" data-k="'+it.k+'">'+
+        '<div class="svc-top"><b>'+it.label+'</b>'+status+'</div>'+
+        '<div class="svc-sub">'+escapeHtml(last)+partLink+'</div>'+
+        '<div class="svc-controls"><label>Every <input type="number" inputmode="numeric" min="1" class="svc-interval" value="'+(s.interval || it.def)+'"> hrs</label>'+
+        '<button type="button" class="row-btn" data-action="done-now">✅ Done now</button></div>'+
+      '</div>';
+    }).join("");
+  }
+  function serviceDoneNow(k){
+    var h = parseFloat(document.getElementById("input-service-hours").value);
+    if(isNaN(h)){ toast("Enter the current hours first."); document.getElementById("input-service-hours").focus(); return; }
+    var s = serviceDraft.service[k] || {};
+    s.lastAt = h; s.lastDate = new Date().toISOString();
+    serviceDraft.service[k] = s;
+    var it = SERVICE_ITEMS.find(function(x){ return x.k === k; });
+    serviceDraft.log.push({item:k, label:it ? it.label : k, hours:h, date:s.lastDate, by:getDeviceName() || ""});
+    renderServiceItems();
+  }
+  function saveServiceSheet(){
+    var e = equipment.find(function(x){ return x.id === serviceEquipId; });
+    if(!e){ closeServiceSheet(); return; }
+    document.querySelectorAll("#service-items .svc-item").forEach(function(row){
+      var k = row.getAttribute("data-k");
+      var v = parseFloat(row.querySelector(".svc-interval").value);
+      var s = serviceDraft.service[k] || {};
+      if(!isNaN(v) && v > 0) s.interval = v;
+      serviceDraft.service[k] = s;
+    });
+    var h = parseFloat(document.getElementById("input-service-hours").value);
+    var patch = {service: serviceDraft.service, serviceLog: serviceDraft.log.slice(-100)};
+    if(!isNaN(h) && h !== parseFloat(e.hours)){
+      patch.hours = h; patch.hoursUpdatedAt = new Date().toISOString(); patch.hoursUpdatedBy = getDeviceName() || "";
+    }
+    if(sharingEnabled){
+      equipmentDocRef(e.id).update(patch).catch(function(){ toast("Couldn't save to the shared map — check your connection."); });
+    }
+    Object.keys(patch).forEach(function(k){ e[k] = patch[k]; });
+    if(!sharingEnabled) saveData();
+    renderEquipmentList();
+    toast("Service saved");
+    closeServiceSheet();
+  }
+
+  // Pre-season parts list: every filter part number across the fleet,
+  // grouped so you can see how many of each to order.
+  function buildPartsListText(onlyDue){
+    var byPart = {};
+    equipment.forEach(function(e){
+      SERVICE_ITEMS.forEach(function(it){
+        var p = (e[it.part] || "").trim();
+        if(!p) return;
+        if(onlyDue){ var st = serviceStatus(e, it); if(st.state !== "overdue" && st.state !== "soon") return; }
+        var key = p.toUpperCase();
+        if(!byPart[key]) byPart[key] = {part:p, what:it.label, machines:[]};
+        byPart[key].machines.push(e.name || "Equipment");
+      });
+      if(!onlyDue && (e.wiperBlade || "").trim()){
+        var wk = "WIPER " + e.wiperBlade.trim().toUpperCase();
+        if(!byPart[wk]) byPart[wk] = {part:e.wiperBlade.trim(), what:"Wiper blade", machines:[]};
+        byPart[wk].machines.push(e.name || "Equipment");
+      }
+    });
+    return Object.keys(byPart).sort(function(a,b){ return byPart[a].what.localeCompare(byPart[b].what) || a.localeCompare(b); }).map(function(k){ return byPart[k]; });
+  }
+  // ---------- Parts list → shopping list ----------
+  // Tick the parts you need (and how many), add anything else by hand, then
+  // text it, copy it, print it, or save it as a picture. The picks are
+  // remembered on this phone until you clear them.
+  var PARTS_PICK_KEY = "rockMarkerPartsPicks_v1";
+  var partsPicks = {};   // key -> {qty, checked}
+  var partsExtras = [];  // [{id, name, qty}]
+  try{
+    var pp = JSON.parse(localStorage.getItem(PARTS_PICK_KEY) || "{}");
+    partsPicks = pp.picks || {}; partsExtras = Array.isArray(pp.extras) ? pp.extras : [];
+  }catch(e){}
+  function savePartsPicks(){
+    try{ localStorage.setItem(PARTS_PICK_KEY, JSON.stringify({picks:partsPicks, extras:partsExtras})); }catch(e){}
+  }
+  function partKey(p){ return (p.what + "|" + p.part).toUpperCase(); }
+  function deereLookupUrl(part){
+    return "https://partscatalog.deere.com/jdrc/search/type/parts/term/" + encodeURIComponent(String(part).replace(/\s+/g, ""));
+  }
+  function webLookupUrl(part, what){
+    return "https://www.google.com/search?q=" + encodeURIComponent(part + " " + (what || ""));
+  }
+  function openPartsList(){
+    renderPartsList();
+    showSheet("parts-modal", "parts-backdrop");
+  }
+  function renderPartsList(){
+    var onlyDue = document.getElementById("parts-only-due").checked;
+    var items = buildPartsListText(onlyDue);
+    var el = document.getElementById("parts-list");
+    var rows = items.map(function(p){
+      var k = partKey(p);
+      var pick = partsPicks[k] || {};
+      var qty = pick.qty || p.machines.length;
+      return '<div class="part-row'+(pick.checked ? ' picked' : '')+'" data-key="'+escapeHtml(k)+'">'+
+        '<label class="part-check"><input type="checkbox" class="part-cb"'+(pick.checked ? ' checked' : '')+'></label>'+
+        '<div class="part-info"><div class="part-num">'+escapeHtml(p.part)+'</div>'+
+          '<div class="part-sub">'+escapeHtml(p.what)+' · '+escapeHtml(p.machines.join(", "))+'</div>'+
+          '<div class="part-links"><a href="'+deereLookupUrl(p.part)+'" target="_blank" rel="noopener">🔍 John Deere</a><a href="'+webLookupUrl(p.part, p.what)+'" target="_blank" rel="noopener">🌐 Web</a></div></div>'+
+        '<input type="number" class="part-qty" min="1" inputmode="numeric" value="'+qty+'" aria-label="Quantity">'+
+      '</div>';
+    }).join("");
+    var extrasHtml = partsExtras.map(function(x){
+      return '<div class="part-row picked" data-extra="'+escapeHtml(x.id)+'">'+
+        '<label class="part-check"><input type="checkbox" class="part-cb" checked disabled></label>'+
+        '<div class="part-info"><div class="part-num">'+escapeHtml(x.name)+'</div><div class="part-sub">Added by hand</div></div>'+
+        '<input type="number" class="part-qty" min="1" inputmode="numeric" value="'+(x.qty || 1)+'" aria-label="Quantity">'+
+        '<button type="button" class="row-btn" data-act="del-extra" title="Remove">✕</button>'+
+      '</div>';
+    }).join("");
+    el.innerHTML = (rows || '<div id="empty-list">' + (onlyDue ? "Nothing is due soon." : "No filter part numbers entered yet.") + '</div>') + extrasHtml;
+    updatePartsCount();
+  }
+  function selectedPartsLines(){
+    var onlyDue = document.getElementById("parts-only-due").checked;
+    var lines = [];
+    buildPartsListText(false).forEach(function(p){
+      var pick = partsPicks[partKey(p)];
+      if(pick && pick.checked){ lines.push({qty: pick.qty || p.machines.length, name: p.part, sub: p.what + " — " + p.machines.join(", ")}); }
+    });
+    partsExtras.forEach(function(x){ lines.push({qty: x.qty || 1, name: x.name, sub: ""}); });
+    return lines;
+  }
+  function updatePartsCount(){
+    var n = selectedPartsLines().length;
+    var el = document.getElementById("parts-selected-count");
+    el.textContent = n ? (n + (n === 1 ? " item" : " items") + " on the shopping list") : "Tick the parts you need to build a shopping list";
+    document.querySelectorAll(".parts-out").forEach(function(b){ b.disabled = !n; });
+  }
+  function shoppingListText(){
+    var lines = selectedPartsLines();
+    var d = new Date().toLocaleDateString();
+    return "Chaplinski Farms — parts to get (" + d + ")\n" + lines.map(function(l){
+      return "☐ " + l.qty + " x " + l.name + (l.sub ? "  (" + l.sub + ")" : "");
+    }).join("\n");
+  }
+  function shareShoppingList(){
+    var text = shoppingListText();
+    if(navigator.share){ navigator.share({title:"Parts to get", text:text}).catch(function(){}); return; }
+    copyText(text, "Shopping list copied — paste it into a text or email");
+  }
+  function copyText(text, okMsg){
+    function fallback(){
+      var ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); toast(okMsg); }catch(e){ toast("Couldn't copy."); }
+      document.body.removeChild(ta);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){ toast(okMsg); }, fallback); }
+    else fallback();
+  }
+  function printLines(title, htmlBody){
+    var w = window.open("", "_blank");
+    if(!w){ toast("Allow pop-ups to print."); return; }
+    w.document.write('<html><head><title>'+escapeHtml(title)+'</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:15px}h2{margin:0 0 4px}table{border-collapse:collapse;width:100%;margin-top:12px}td,th{border:1px solid #999;padding:7px 8px;text-align:left;vertical-align:top}.box{width:22px}</style></head><body>' + htmlBody + '</body></html>');
+    w.document.close(); w.focus(); setTimeout(function(){ w.print(); }, 300);
+  }
+  function printShoppingList(){
+    var lines = selectedPartsLines();
+    printLines("Parts to get", '<h2>Chaplinski Farms — parts to get</h2><div>' + new Date().toLocaleDateString() + '</div><table><tr><th class="box">✓</th><th>Qty</th><th>Part</th><th>For</th></tr>' +
+      lines.map(function(l){ return '<tr><td class="box">☐</td><td><b>'+l.qty+'</b></td><td><b>'+escapeHtml(l.name)+'</b></td><td>'+escapeHtml(l.sub)+'</td></tr>'; }).join("") + '</table>');
+  }
+  // Draws the list onto a picture so it can go straight into Photos or a text.
+  function listToPicture(title, lines, fileName){
+    var W = 1080, pad = 60, lineH = 58, subH = 40;
+    var height = pad * 2 + 130 + lines.reduce(function(s, l){ return s + lineH + (l.sub ? subH : 0) + 14; }, 0);
+    var c = document.createElement("canvas"); c.width = W; c.height = Math.max(height, 400);
+    var g = c.getContext("2d");
+    g.fillStyle = "#faf7ef"; g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = "#274a24"; g.font = "bold 50px Arial"; g.fillText(title, pad, pad + 40);
+    g.fillStyle = "#20261f"; g.font = "30px Arial"; g.fillText("Chaplinski Farms · " + new Date().toLocaleDateString(), pad, pad + 90);
+    var y = pad + 160;
+    function fit(text, font, maxW){ g.font = font; if(g.measureText(text).width <= maxW) return text; while(text.length > 3 && g.measureText(text + "…").width > maxW){ text = text.slice(0, -1); } return text + "…"; }
+    lines.forEach(function(l){
+      g.strokeStyle = "#20261f"; g.lineWidth = 3; g.strokeRect(pad, y - 36, 34, 34);
+      g.fillStyle = "#20261f";
+      g.fillText(fit((l.qty ? l.qty + " × " : "") + l.name, "bold 40px Arial", W - pad * 2 - 60), pad + 56, y);
+      y += lineH - 10;
+      if(l.sub){ g.fillStyle = "#3a3f38"; g.fillText(fit(l.sub, "28px Arial", W - pad * 2 - 60), pad + 56, y); y += subH; }
+      y += 24;
+    });
+    c.toBlob(function(blob){
+      if(!blob){ toast("Couldn't make the picture."); return; }
+      var file = null;
+      try{ file = new File([blob], fileName, {type:"image/png"}); }catch(e){}
+      if(file && navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({files:[file], title:title}).catch(function(){});
+      } else {
+        var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fileName;
+        document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        toast("Picture saved to your downloads");
+      }
+    }, "image/png");
+  }
+  function addPartsExtra(){
+    var nameEl = document.getElementById("input-parts-extra");
+    var name = nameEl.value.trim();
+    if(!name){ nameEl.focus(); return; }
+    partsExtras.push({id:"x" + Date.now(), name:name, qty:1});
+    nameEl.value = "";
+    savePartsPicks(); renderPartsList();
+  }
+  function clearShoppingList(){
+    if(!confirm("Clear the shopping list?")) return;
+    partsPicks = {}; partsExtras = []; savePartsPicks(); renderPartsList();
+  }
+
+  // ---------- Jobs list (priority to-do list for the shop & crew) ----------
+  var JOB_PRIORITIES = {1:{label:"Urgent", cls:"p1"}, 2:{label:"Soon", cls:"p2"}, 3:{label:"When there's time", cls:"p3"}};
+  var JOB_WHEN = {
+    anytime:{icon:"🔧", label:"Anytime"},
+    rain:{icon:"🌧️", label:"Rain day"},
+    summer:{icon:"☀️", label:"Summer (crop growing)"},
+    winter:{icon:"❄️", label:"Winter project"},
+    harvest:{icon:"🌾", label:"Before harvest"},
+    spring:{icon:"🌱", label:"Before planting"}
+  };
+  var JOB_IDEAS = {
+    rain: ["Grease every machine (all zerks)", "Check & top off fluids — engine, hydraulic, coolant", "Check tire pressure on tractors, trucks & carts",
+           "Blow out radiators, coolers & cab filters", "Replace burnt-out lights & bulbs", "Organize shop & parts shelves",
+           "Inventory filters & belts on hand (update the parts list)", "Update equipment hours in the app", "Clean out cabs & wash windows"],
+    summer: ["Sweep & clean bins; check floors & aeration fans", "Service grain dryer — burners, sensors, safety switches",
+             "Check augers, grain leg belts & bearings", "Spray weeds around bins & the yard", "Pick rocks (use Picking mode)",
+             "Fix fences & field approaches", "Mow ditches & field edges", "Grain trucks: brakes, tarps, lights, DOT inspection",
+             "Check fire extinguishers in every machine"],
+    harvest: ["Full combine service — sieves, concaves, chains, belts", "Check header knife sections & guards", "Service grain cart & truck tires",
+              "Test bin level indicators & moisture tester", "Stock up on filters, belts & shear bolts"],
+    winter: ["Service tractors — oil & filters before spring", "Planter / seeder rebuild — meters, disc openers, chains", "Sprayer — nozzles, hoses, pump; calibrate",
+             "Test batteries & keep them charged", "Paint & rust repair", "Shop projects — welding & fabrication",
+             "Order seed, fertilizer & parts early", "Review field records & plan next crop year"],
+    spring: ["Calibrate planter & sprayer", "Check GPS / auto-steer & update displays", "Walk fields for washouts & wet spots", "Set up the fill station & tender"]
+  };
+  var jobs = [];
+  var jobsFilter = "open";
+  var editingJobId = null;
+
+  function jobDocRef(id){ return firestoreDb.collection("farms").doc(farmCode).collection("jobs").doc(id); }
+  function saveJob(job, isNew){
+    if(sharingEnabled){
+      var data = Object.assign({}, job); delete data.id;
+      (isNew ? jobDocRef(job.id).set(data) : jobDocRef(job.id).update(data)).catch(function(){ toast("Couldn't save to the shared map — check your connection."); });
+    }
+    var i = jobs.findIndex(function(x){ return x.id === job.id; });
+    if(i >= 0) jobs[i] = job; else jobs.push(job);
+    if(!sharingEnabled) saveData();
+    renderJobsList(); updateJobsBadge();
+  }
+  function deleteJob(id){
+    if(sharingEnabled){ jobDocRef(id).delete().catch(function(){ toast("Couldn't delete — check your connection."); }); }
+    jobs = jobs.filter(function(x){ return x.id !== id; });
+    if(!sharingEnabled) saveData();
+    renderJobsList(); updateJobsBadge();
+  }
+  function openJobs(){
+    renderJobsList();
+    showSheet("jobs-modal", "jobs-backdrop");
+  }
+  function filteredJobs(){
+    return jobs.filter(function(j){
+      if(jobsFilter === "done") return j.status === "done";
+      if(j.status === "done") return false;
+      if(jobsFilter === "open") return true;
+      return (j.when || "anytime") === jobsFilter || (j.when || "anytime") === "anytime";
+    }).sort(function(a, b){
+      if(jobsFilter === "done") return (b.doneAt || "").localeCompare(a.doneAt || "");
+      return (a.priority || 3) - (b.priority || 3) || (a.createdAt || "").localeCompare(b.createdAt || "");
+    });
+  }
+  function jobMachineName(j){
+    if(!j.machineId) return "";
+    var e = equipment.find(function(x){ return x.id === j.machineId; });
+    return e ? (e.name || "") : (j.machineName || "");
+  }
+  function renderJobsList(){
+    document.querySelectorAll("#jobs-filters .job-chip").forEach(function(c){ c.classList.toggle("active", c.getAttribute("data-f") === jobsFilter); });
+    var el = document.getElementById("jobs-list");
+    if(!el) return;
+    var list = filteredJobs();
+    if(!list.length){
+      el.innerHTML = '<div id="empty-list">' + (jobsFilter === "done" ? "Nothing finished yet." : (jobs.some(function(j){ return j.status !== "done"; }) ? "Nothing for this time of year." : 'No jobs yet. Tap "+ Add job", or "💡 Ideas" for a starter list.')) + '</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(j){
+      var pr = JOB_PRIORITIES[j.priority || 3] || JOB_PRIORITIES[3];
+      var w = JOB_WHEN[j.when || "anytime"] || JOB_WHEN.anytime;
+      var bits = [w.icon + " " + w.label];
+      var m = jobMachineName(j); if(m) bits.push("🚜 " + m);
+      if(j.assignedTo) bits.push("👤 " + j.assignedTo);
+      if(j.status === "doing") bits.push("⏳ In progress");
+      if(j.status === "done") bits.push("✅ " + (j.doneBy ? j.doneBy + " · " : "") + (j.doneAt ? new Date(j.doneAt).toLocaleDateString() : ""));
+      return '<div class="job-row '+pr.cls+(j.status === "done" ? ' done' : '')+'" data-id="'+escapeHtml(j.id)+'">'+
+        '<label class="part-check"><input type="checkbox" class="job-cb"'+(j.status === "done" ? ' checked' : '')+' aria-label="Done"></label>'+
+        '<div class="job-info" data-act="edit"><div class="job-title">'+escapeHtml(j.title)+'</div>'+
+          '<div class="job-sub"><span class="job-pr '+pr.cls+'">'+pr.label+'</span> '+escapeHtml(bits.join(" · "))+'</div>'+
+          (j.notes ? '<div class="job-notes">'+escapeHtml(j.notes)+'</div>' : '')+'</div>'+
+      '</div>';
+    }).join("");
+  }
+  function updateJobsBadge(){
+    var urgent = jobs.filter(function(j){ return j.status !== "done" && (j.priority || 3) === 1; }).length;
+    var open = jobs.filter(function(j){ return j.status !== "done"; }).length;
+    var b = document.getElementById("jobs-count");
+    if(b){ b.textContent = open; b.classList.toggle("hidden", !open); b.classList.toggle("urgent", !!urgent); }
+  }
+  function openJobEditor(j, preset){
+    editingJobId = j ? j.id : null;
+    document.getElementById("job-editor-title").textContent = j ? "Edit job" : "Add a job";
+    var sel = document.getElementById("input-job-machine");
+    sel.innerHTML = '<option value="">— No machine —</option>' + equipment.slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); }).map(function(e){
+      return '<option value="'+escapeHtml(e.id)+'">'+escapeHtml(e.name || "Equipment")+'</option>';
+    }).join("");
+    document.getElementById("input-job-title").value = j ? j.title : ((preset && preset.title) || "");
+    document.getElementById("input-job-priority").value = String(j ? (j.priority || 3) : ((preset && preset.priority) || 2));
+    document.getElementById("input-job-when").value = j ? (j.when || "anytime") : ((preset && preset.when) || (jobsFilter !== "open" && jobsFilter !== "done" ? jobsFilter : "anytime"));
+    sel.value = j ? (j.machineId || "") : ((preset && preset.machineId) || "");
+    document.getElementById("input-job-assigned").value = j ? (j.assignedTo || "") : "";
+    document.getElementById("input-job-status").value = j ? (j.status || "todo") : "todo";
+    document.getElementById("input-job-notes").value = j ? (j.notes || "") : "";
+    document.getElementById("job-created-info").textContent = j && j.createdBy ? ("Added by " + j.createdBy + (j.createdAt ? " · " + new Date(j.createdAt).toLocaleDateString() : "")) : "";
+    document.getElementById("job-delete-row").classList.toggle("hidden", !j);
+    var names = {};
+    (typeof farmMembers !== "undefined" ? farmMembers : []).forEach(function(m){ if(m.name) names[m.name] = 1; });
+    employees.forEach(function(e){ var n = ((e.firstName||"") + " " + (e.lastName||"")).trim(); if(n) names[n] = 1; });
+    if(getDeviceName()) names[getDeviceName()] = 1;
+    document.getElementById("job-people").innerHTML = Object.keys(names).sort().map(function(n){ return '<option value="'+escapeHtml(n)+'">'; }).join("");
+    showSheet("job-editor-modal", "job-editor-backdrop");
+    setTimeout(function(){ if(!j) document.getElementById("input-job-title").focus(); }, 250);
+  }
+  function closeJobEditor(){ hideSheet("job-editor-modal", "job-editor-backdrop"); editingJobId = null; }
+  function saveJobFromForm(){
+    var title = document.getElementById("input-job-title").value.trim();
+    if(!title){ toast("What's the job?"); return; }
+    var existing = editingJobId ? jobs.find(function(x){ return x.id === editingJobId; }) : null;
+    var status = document.getElementById("input-job-status").value;
+    var machineId = document.getElementById("input-job-machine").value;
+    var mach = equipment.find(function(e){ return e.id === machineId; });
+    var job = Object.assign({}, existing || {
+      id: "j" + Date.now() + "_" + Math.floor(Math.random()*1000),
+      createdAt: new Date().toISOString(), createdBy: getDeviceName() || ""
+    }, {
+      title: title,
+      priority: parseInt(document.getElementById("input-job-priority").value, 10) || 3,
+      when: document.getElementById("input-job-when").value,
+      machineId: machineId, machineName: mach ? (mach.name || "") : "",
+      assignedTo: document.getElementById("input-job-assigned").value.trim(),
+      notes: document.getElementById("input-job-notes").value.trim(),
+      status: status
+    });
+    if(status === "done" && !(existing && existing.status === "done")){ job.doneAt = new Date().toISOString(); job.doneBy = getDeviceName() || ""; }
+    if(status !== "done"){ job.doneAt = ""; job.doneBy = ""; }
+    saveJob(job, !existing);
+    toast(existing ? "Job updated" : "Job added");
+    closeJobEditor();
+  }
+  function toggleJobDone(id, done){
+    var j = jobs.find(function(x){ return x.id === id; });
+    if(!j) return;
+    var job = Object.assign({}, j, done ? {status:"done", doneAt:new Date().toISOString(), doneBy:getDeviceName() || ""} : {status:"todo", doneAt:"", doneBy:""});
+    saveJob(job, false);
+    if(done) toast("Nice — marked done");
+  }
+  function openJobIdeas(){
+    var el = document.getElementById("job-ideas-list");
+    var existing = {}; jobs.forEach(function(j){ if(j.status !== "done") existing[(j.title||"").toLowerCase()] = 1; });
+    el.innerHTML = ["rain","summer","harvest","winter","spring"].map(function(w){
+      return '<div class="rec-section">'+JOB_WHEN[w].icon+' '+JOB_WHEN[w].label+'</div>' + JOB_IDEAS[w].map(function(t, i){
+        var have = existing[t.toLowerCase()];
+        return '<label class="idea-row'+(have ? ' have' : '')+'"><input type="checkbox" data-when="'+w+'" data-i="'+i+'"'+(have ? ' disabled' : '')+'> '+escapeHtml(t)+(have ? ' <span class="idea-have">already on the list</span>' : '')+'</label>';
+      }).join("");
+    }).join("");
+    showSheet("job-ideas-modal", "job-ideas-backdrop");
+  }
+  function addSelectedIdeas(){
+    var boxes = document.querySelectorAll("#job-ideas-list input:checked:not(:disabled)");
+    if(!boxes.length){ toast("Tick the ideas you want to add."); return; }
+    boxes.forEach(function(b, k){
+      var w = b.getAttribute("data-when"), t = JOB_IDEAS[w][parseInt(b.getAttribute("data-i"), 10)];
+      saveJob({id:"j" + Date.now() + "_" + k + "_" + Math.floor(Math.random()*1000), title:t, priority:3, when:w, machineId:"", machineName:"", assignedTo:"", notes:"", status:"todo", createdAt:new Date().toISOString(), createdBy:getDeviceName() || ""}, true);
+    });
+    toast("Added " + boxes.length + (boxes.length === 1 ? " job" : " jobs"));
+    hideSheet("job-ideas-modal", "job-ideas-backdrop");
+  }
+  function jobsAsLines(){
+    return filteredJobs().map(function(j){
+      var pr = (JOB_PRIORITIES[j.priority || 3] || JOB_PRIORITIES[3]).label;
+      var m = jobMachineName(j);
+      return {qty:"", name:j.title, sub:[pr, m, j.assignedTo ? "for " + j.assignedTo : "", j.notes].filter(Boolean).join(" · ")};
+    });
+  }
+  function jobsFilterLabel(){ return jobsFilter === "open" ? "All open jobs" : (jobsFilter === "done" ? "Finished jobs" : JOB_WHEN[jobsFilter].label + " jobs"); }
+  function shareJobs(){
+    var lines = jobsAsLines();
+    if(!lines.length){ toast("Nothing in this list to share."); return; }
+    var text = "Chaplinski Farms — " + jobsFilterLabel() + "\n" + lines.map(function(l){ return "☐ " + l.name + (l.sub ? "  (" + l.sub + ")" : ""); }).join("\n");
+    if(navigator.share){ navigator.share({title:"Jobs list", text:text}).catch(function(){}); }
+    else copyText(text, "Jobs list copied — paste it into a text");
+  }
+  function printJobs(){
+    var lines = jobsAsLines();
+    printLines("Jobs list", '<h2>Chaplinski Farms — ' + escapeHtml(jobsFilterLabel()) + '</h2><div>' + new Date().toLocaleDateString() + '</div><table><tr><th class="box">✓</th><th>Job</th><th>Details</th></tr>' +
+      lines.map(function(l){ return '<tr><td class="box">☐</td><td><b>'+escapeHtml(l.name)+'</b></td><td>'+escapeHtml(l.sub)+'</td></tr>'; }).join("") + '</table>');
+  }
+  function openJobCountFor(equipId){
+    return jobs.filter(function(j){ return j.status !== "done" && j.machineId === equipId; }).length;
+  }
+
+  // ---------- Season views ----------
+  // Same map and data — the season only changes which buttons and cards
+  // are out front. Remembered per device. "All" is the original layout.
+  var SEASON_KEY = "rockMarkerSeason_v1";
+  var SEASONS = {
+    all:     {icon:"🗂️", label:"All"},
+    spring:  {icon:"🌱", label:"Spring"},
+    harvest: {icon:"🌾", label:"Harvest"}
+  };
+  var currentSeason = "all";
+  try{ var sv = localStorage.getItem(SEASON_KEY); if(SEASONS[sv]) currentSeason = sv; }catch(e){}
+
+  function applySeason(s){
+    if(!SEASONS[s]) s = "all";
+    currentSeason = s;
+    try{ localStorage.setItem(SEASON_KEY, s); }catch(e){}
+    document.body.setAttribute("data-season", s);
+    var chip = document.getElementById("btn-season");
+    if(chip){
+      chip.innerHTML = SEASONS[s].icon + '<span class="season-label"> ' + SEASONS[s].label + '</span> ▾';
+      chip.title = "View: " + SEASONS[s].label;
+    }
+    var main = document.getElementById("btn-mark-here");
+    if(main) main.textContent = (s === "harvest") ? "＋ Log a load" : "＋ Mark rock at my location";
+    document.querySelectorAll("#season-menu .season-opt").forEach(function(el){
+      el.classList.toggle("selected", el.getAttribute("data-season") === s);
+    });
+    positionTotalsBadges();
+  }
+  function toggleSeasonMenu(show){
+    var m = document.getElementById("season-menu");
+    var on = (show === undefined) ? m.classList.contains("hidden") : show;
+    m.classList.toggle("hidden", !on);
+  }
+
+  // ---------- Simple chooser sheet (pick a bin / pick a field) ----------
+  var chooserOnPick = null;
+  function openChooser(title, items, onPick){
+    chooserOnPick = onPick;
+    document.getElementById("chooser-title").textContent = title;
+    var el = document.getElementById("chooser-list");
+    el.innerHTML = items.length ? items.map(function(it, i){
+      return '<button type="button" class="chooser-item" data-i="'+i+'"><span>'+it.html+'</span>'+(it.subHtml ? '<span class="chooser-sub">'+it.subHtml+'</span>' : (it.sub ? '<span class="chooser-sub">'+escapeHtml(it.sub)+'</span>' : ''))+'</button>';
+    }).join("") : '<div id="empty-list">Nothing here yet.</div>';
+    el.onclick = function(ev){
+      var b = ev.target.closest(".chooser-item");
+      if(!b) return;
+      var it = items[parseInt(b.getAttribute("data-i"), 10)];
+      closeChooser();
+      if(chooserOnPick && it) chooserOnPick(it.value);
+    };
+    showSheet("chooser-modal", "chooser-backdrop");
+  }
+  function closeChooser(){ hideSheet("chooser-modal", "chooser-backdrop"); }
+
+  // Harvest: log a truck load into a bin in two taps.
+  function startLogLoad(){
+    if(!bins.length){ toast("No bins yet — outline one from the list (📋 → Bins)."); return; }
+    var items = bins.slice().sort(function(a,b){ return binSortRank(a.name) - binSortRank(b.name) || (a.name||"").localeCompare(b.name||"", undefined, {numeric:true}); }).map(function(b){
+      var holdingHtml = (b.currentCrop && b.currentBu > 0)
+        ? ((CROP_ICONS[b.currentCrop] ? CROP_ICONS[b.currentCrop] + " " : "") + escapeHtml(b.currentCrop + " · ≈" + Math.round(b.currentBu).toLocaleString() + " bu"))
+        : "Empty";
+      return {value:b.id, html:"🛢 <b>" + escapeHtml(b.name || "Bin") + "</b>", subHtml:holdingHtml};
+    });
+    openChooser("Log a load into which bin?", items, function(binId){
+      binActionsBinId = binId;
+      openBinLogModal();
+    });
+  }
+  // Field records: field you're standing in first, then the rest A–Z.
+  function chooseFieldForRecord(){
+    var list = fields.filter(function(f){ return f.name; }).slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); });
+    if(!list.length){ toast("Outline a field first (📐)."); return; }
+    function show(hereName){
+      var items = list.map(function(f){
+        var n = fieldAppsOf(f).length;
+        return {value:f.id, html:(f.name === hereName ? "📍 " : "") + "<b>" + escapeHtml(f.name) + "</b>", sub:[f.crop || "No crop", f.seedVariety || "", n ? n + " passes" : ""].filter(Boolean).join(" · ")};
+      });
+      if(hereName){ items.sort(function(a,b){ return (b.html.indexOf("📍") === 0) - (a.html.indexOf("📍") === 0); }); }
+      openChooser("📒 Field records — which field?", items, openFieldRecord);
+    }
+    if(youAreHereMarker){ var ll = youAreHereMarker.getLatLng(); show(fieldNameAt(ll.lat, ll.lng)); }
+    else show(null);
+  }
+
   // ---------- Rendering ----------
   // A rock's field name is stored as plain text at the moment it's marked.
   // If a field gets renamed, saveFieldFromForm() cascades that rename onto
@@ -2113,13 +3597,14 @@ service cloud.firestore {
     reconcileRockFieldNames();
     rockLayerGroup.clearLayers();
     var filtered = rocks.filter(function(r){
-      return currentFieldFilter === "all" || (r.field || "(no field)") === currentFieldFilter;
+      return (currentFieldFilter === "all" || picking || (r.field || "(no field)") === currentFieldFilter) && markerVisible(r);
     });
     filtered.forEach(function(r){
-      var m = L.marker([r.lat, r.lng], {icon: rockIcon(r.size)});
+      var m = L.marker([r.lat, r.lng], {icon: markerIcon(r), zIndexOffset: (picking && picking.targetId === r.id) ? 1000 : 0});
       m.on("click", function(ev){
         L.DomEvent.stopPropagation(ev);
         if(droppingPin){ dropWaypoint(ev.latlng, true); return; }
+        if(picking){ picking.targetId = r.id; renderAll(); updatePickPanel(); return; }
         openEditModal(r);
       });
       m.addTo(rockLayerGroup);
@@ -2179,14 +3664,21 @@ service cloud.firestore {
         statsBits.push(polygonAreaAcres(matchedField.points).toFixed(1) + " ac");
       }
       if(matchedField && matchedField.crop){ statsBits.push(matchedField.crop); }
-      statsBits.push(filtered.length + (filtered.length===1 ? " rock" : " rocks"));
+      var fRocks = filtered.filter(function(r){ return isRockMarker(r) && !isPicked(r); }).length;
+      var fOther = filtered.filter(function(r){ return !isRockMarker(r) && !isPicked(r); }).length;
+      statsBits.push(fRocks + (fRocks===1 ? " rock" : " rocks"));
+      if(fOther) statsBits.push(fOther + (fOther===1 ? " other marker" : " other markers"));
       badge.innerHTML = '<div class="field-name-line">'+escapeHtml(currentFieldFilter)+'</div>'+
         '<div class="field-stats-line">'+escapeHtml(statsBits.join(" · "))+'</div>';
       return;
     }
 
-    var byField = {}; // field name -> rock count
-    rocks.forEach(function(r){
+    var byField = {}; // field name -> rock count (rocks still to pick)
+    var liveRocks = activeRocks();
+    var otherCount = activeOtherMarkers().length;
+    var thisYear = String(new Date().getFullYear());
+    var pickedThisYear = rocks.filter(function(r){ return isRockMarker(r) && isPicked(r) && (r.pickedAt||"").slice(0,4) === thisYear; }).length;
+    liveRocks.forEach(function(r){
       var key = (r.field && r.field.trim()) ? r.field.trim() : "(no field)";
       byField[key] = (byField[key] || 0) + 1;
     });
@@ -2200,7 +3692,7 @@ service cloud.firestore {
         '<span class="fb-title">Rocks</span>'+
         '<span class="fb-chevron">'+(rockBadgeCollapsed ? "▸ tap for more" : "▾ tap to collapse")+'</span>'+
       '</div>'+
-      '<div class="fb-total">'+rocks.length+(rocks.length===1 ? " rock" : " rocks")+'</div>';
+      '<div class="fb-total">'+liveRocks.length+(liveRocks.length===1 ? " rock" : " rocks")+'</div>';
 
     if(rockBadgeCollapsed || fieldNames.length === 0){
       badge.classList.add("collapsed");
@@ -2217,7 +3709,10 @@ service cloud.firestore {
           : '<span class="cb-field-name">'+escapeHtml(name)+'</span>';
         return '<div class="cb-row">'+nameSpan+'<span class="cb-count">'+byField[name]+'</span></div>';
       }).join("");
-      badge.innerHTML = header + rowsHtml;
+      var extraHtml = '';
+      if(pickedThisYear) extraHtml += '<div class="cb-row"><span class="cb-field-name">✅ Picked in '+thisYear+'</span><span class="cb-count">'+pickedThisYear+'</span></div>';
+      if(otherCount) extraHtml += '<div class="cb-row"><span class="cb-field-name">💧 Other markers</span><span class="cb-count">'+otherCount+'</span></div>';
+      badge.innerHTML = header + rowsHtml + extraHtml;
     }
 
     var toggleEl = document.getElementById("cb-toggle");
@@ -2474,21 +3969,27 @@ service cloud.firestore {
   function renderList(){
     var listEl = document.getElementById("rock-list");
     var filtered = rocks.filter(function(r){
-      return currentFieldFilter === "all" || (r.field || "(no field)") === currentFieldFilter;
-    }).slice().sort(function(a,b){ return b.createdAt.localeCompare(a.createdAt); });
+      return (currentFieldFilter === "all" || (r.field || "(no field)") === currentFieldFilter) && (showPickedMarkers || !isPicked(r));
+    }).slice().sort(function(a,b){ return (b.createdAt||"").localeCompare(a.createdAt||""); });
 
+    var toolsHtml = '<div class="list-tools"><label><input type="checkbox" id="chk-show-picked"'+(showPickedMarkers ? ' checked' : '')+'> Show picked / fixed</label>'+
+      (activeRocks().length ? '<button class="btn btn-primary" id="btn-list-picking">🧭 Picking mode</button>' : '')+'</div>';
     if(filtered.length === 0){
-      listEl.innerHTML = '<div id="empty-list">No rocks marked yet.</div>';
+      listEl.innerHTML = toolsHtml + '<div id="empty-list">Nothing marked yet.</div>';
       return;
     }
-    listEl.innerHTML = filtered.map(function(r){
+    listEl.innerHTML = toolsHtml + filtered.map(function(r){
       var dateStr = new Date(r.createdAt).toLocaleDateString();
       var noteBit = r.note ? " — " + escapeHtml(r.note) : "";
-      return '<div class="rock-row" data-id="'+r.id+'">'+
-        '<div class="rock-dot" style="background:'+sizeColor(r.size)+'"></div>'+
+      var rock = isRockMarker(r);
+      var info = markerKindInfo(markerKindOf(r));
+      var pickedBit = isPicked(r) ? " · ✅ " + doneWord(r) + " " + new Date(r.pickedAt).toLocaleDateString() : "";
+      var photoBit = (r.hasPhoto || r.photo) ? " 📷" : "";
+      return '<div class="rock-row'+(isPicked(r) ? ' is-picked' : '')+'" data-id="'+r.id+'">'+
+        (rock ? '<div class="rock-dot" style="background:'+sizeColor(r.size)+'"></div>' : '<div class="rock-dot" style="background:none;font-size:15px;line-height:16px;text-align:center;">'+info.icon+'</div>')+
         '<div class="rock-info">'+
-          '<div class="r1">'+sizeLabel(r.size)+' · '+escapeHtml(r.field || "No field")+'</div>'+
-          '<div class="r2">'+dateStr+noteBit+'</div>'+
+          '<div class="r1">'+escapeHtml(markerTitle(r))+' · '+escapeHtml(r.field || "No field")+photoBit+'</div>'+
+          '<div class="r2">'+dateStr+pickedBit+noteBit+'</div>'+
         '</div>'+
         '<div class="rock-actions">'+
           '<button class="row-btn" data-action="goto">🎯</button>'+
@@ -2859,7 +4360,7 @@ service cloud.firestore {
       if(bannerOn){ installBanner.style.right = rightPx ? rightPx + "px" : ""; }
       var baseTop = bannerOn ? Math.max(120, installBanner.getBoundingClientRect().bottom + 8) : 64;
       var cursorTop = baseTop, lastBottom = baseTop;
-      var list = [[fb,100],[bb,90],[cb,80]].filter(function(pair){ return pair[0] && !pair[0].classList.contains("hidden"); });
+      var list = [[fb,100],[bb,90],[cb,80]].filter(function(pair){ return pair[0] && !pair[0].classList.contains("hidden") && getComputedStyle(pair[0]).display !== "none"; });
       list.forEach(function(pair, i){
         var el = pair[0];
         el.style.right = rightPx ? rightPx + "px" : "";
@@ -2880,8 +4381,8 @@ service cloud.firestore {
     // Normal layout: badges stacked above the round-button column.
     var obstacleTop = window.innerHeight - 12;
     var firstFab = null;
-    if(fabs){
-      firstFab = fabs.querySelector(".fab-small:not(.hidden)");
+    if(fabs && fabs.offsetParent !== null){
+      firstFab = Array.prototype.filter.call(fabs.querySelectorAll(".fab-small"), function(b){ return b.offsetParent !== null; })[0] || null;
       var r = (firstFab || fabs).getBoundingClientRect();
       if(r.top > 0 && r.top < obstacleTop){ obstacleTop = r.top; }
     }
@@ -3065,16 +4566,21 @@ service cloud.firestore {
     if(fodHint) fodHint.classList.toggle("hidden", s !== "boulder");
   }
 
-  function openAddModal(latlng){
+  function openAddModal(latlng, kind){
     editingId = null;
     pendingLatLng = latlng;
-    document.getElementById("modal-title").textContent = "Mark a rock";
     document.getElementById("modal-coords").textContent = latlng.lat.toFixed(6) + ", " + latlng.lng.toFixed(6);
-    document.getElementById("input-field").value = fieldNameAt(latlng.lat, latlng.lng) || lastUsedField();
+    var auto = autoFieldFor(latlng.lat, latlng.lng);
+    document.getElementById("input-field").value = auto.name;
+    setAutoFieldHint(auto);
+    pendingRockPhoto = null; pendingRockPhotoChanged = false; renderRockPhotoPreview();
+    selectKind(kind || "rock");
     document.getElementById("input-note").value = "";
     selectSize("medium");
     document.getElementById("edit-only-row").classList.add("hidden");
+    document.getElementById("picked-row").classList.add("hidden");
     document.getElementById("rock-entered-info").classList.add("hidden");
+    updatePickedRow();
     updateFieldInfoHint();
     showSheet("rock-modal", "modal-backdrop");
   }
@@ -3082,12 +4588,20 @@ service cloud.firestore {
   function openEditModal(rock){
     editingId = rock.id;
     pendingLatLng = {lat:rock.lat, lng:rock.lng};
-    document.getElementById("modal-title").textContent = "Edit rock";
     document.getElementById("modal-coords").textContent = rock.lat.toFixed(6) + ", " + rock.lng.toFixed(6);
+    setAutoFieldHint({how:"none"});
+    selectKind(markerKindOf(rock));
+    pendingRockPhoto = rock.photo || null; pendingRockPhotoChanged = false; renderRockPhotoPreview();
+    if(rock.hasPhoto && !rock.photo){
+      var openedId = rock.id;
+      loadRockPhoto(rock, function(data){ if(data && editingId === openedId && !pendingRockPhotoChanged){ pendingRockPhoto = data; renderRockPhotoPreview(); } });
+    }
     document.getElementById("input-field").value = rock.field || "";
     document.getElementById("input-note").value = rock.note || "";
     selectSize(rock.size || "medium");
     document.getElementById("edit-only-row").classList.remove("hidden");
+    document.getElementById("picked-row").classList.remove("hidden");
+    updatePickedRow();
 
     var infoEl = document.getElementById("rock-entered-info");
     if(rock.enteredBy || rock.createdAt){
@@ -3408,12 +4922,14 @@ service cloud.firestore {
     } else {
       harvestLine = HARVEST_ICONS[hStatus]+' Not harvested — '+acres.toFixed(1)+' ac';
     }
-    var rockCount = rocks.filter(function(r){ return (r.field || "").trim() === (f.name || "").trim(); }).length;
+    var rockCount = activeRocks().filter(function(r){ return (r.field || "").trim() === (f.name || "").trim(); }).length;
 
     document.getElementById("field-label-actions-stats").innerHTML =
       '<div class="summary-row summary-total"><span>'+cropLine+'</span><span>'+acres.toFixed(1)+' acres</span></div>'+
       '<div class="summary-row"><span>'+harvestLine+'</span></div>'+
-      '<div class="summary-row"><span>🪨 Rocks in this field</span><span>'+rockCount+'</span></div>';
+      '<div class="summary-row"><span>🪨 Rocks left to pick</span><span>'+rockCount+'</span></div>'+
+      ((f.seedVariety || f.plantedOn || fieldAppsOf(f).length || typeof f.yieldBuAc === "number")
+        ? '<div class="summary-row" style="font-size:14px;"><span>📒 '+escapeHtml([f.seedVariety, f.plantedOn ? "planted " + new Date(f.plantedOn+"T12:00:00").toLocaleDateString() : "", fieldAppsOf(f).length ? fieldAppsOf(f).length + " passes" : "", typeof f.yieldBuAc === "number" ? f.yieldBuAc + " bu/ac" : ""].filter(Boolean).join(" · "))+'</span></div>' : '');
 
     showSheet("field-label-actions-modal", "field-label-actions-backdrop");
   }
@@ -4102,10 +5618,11 @@ service cloud.firestore {
 
   function buildRockReportHtml(){
     var html = '<div class="report-section"><h3>🪨 Rock Report</h3>';
-    if(rocks.length === 0){
-      html += '<div class="report-empty">No rocks have been marked yet.</div>';
+    var liveRocks = activeRocks();
+    if(liveRocks.length === 0){
+      html += '<div class="report-empty">No rocks left to pick.</div>';
     } else {
-      var sorted = rocks.slice().sort(function(a,z){
+      var sorted = liveRocks.slice().sort(function(a,z){
         var fa = (a.field||"").localeCompare(z.field||"");
         if(fa !== 0) return fa;
         return (a.createdAt||"").localeCompare(z.createdAt||"");
@@ -4120,10 +5637,42 @@ service cloud.firestore {
       var sizeSummary = sizeOrder.filter(function(s){ return bySize[s]; }).map(function(s){
         return rockSizeLabel(s) + ": " + bySize[s];
       }).join(" · ");
-      html += '<div class="report-meta">'+rocks.length+' '+(rocks.length === 1 ? "rock" : "rocks")+' currently marked'+(sizeSummary ? (' · '+escapeHtml(sizeSummary)) : '')+'</div>'+
+      html += '<div class="report-meta">'+liveRocks.length+' '+(liveRocks.length === 1 ? "rock" : "rocks")+' still to pick'+(sizeSummary ? (' · '+escapeHtml(sizeSummary)) : '')+'</div>'+
         '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Date marked</th></tr></thead><tbody>'+
         rows+
         '</tbody></table>';
+    }
+    // Picked history: how many came off each field, by year.
+    var pickedRocks = rocks.filter(function(r){ return isRockMarker(r) && isPicked(r); });
+    if(pickedRocks.length){
+      var byFieldYear = {}, yearsSeen = {};
+      pickedRocks.forEach(function(r){
+        var fName = (r.field || "").trim() || "(no field)";
+        var yy = (r.pickedAt || "").slice(0,4) || "?";
+        yearsSeen[yy] = true;
+        byFieldYear[fName] = byFieldYear[fName] || {};
+        byFieldYear[fName][yy] = (byFieldYear[fName][yy] || 0) + 1;
+      });
+      var yrs = Object.keys(yearsSeen).sort();
+      var fNames = Object.keys(byFieldYear).sort(function(a,b){
+        var ta = yrs.reduce(function(s2,y){ return s2 + (byFieldYear[a][y]||0); }, 0), tb = yrs.reduce(function(s2,y){ return s2 + (byFieldYear[b][y]||0); }, 0);
+        return tb - ta;
+      });
+      html += '<div class="summary-subtitle" style="margin-top:14px;">Rocks picked, by field</div>'+
+        '<table class="report-table"><thead><tr><th>Field</th>'+yrs.map(function(y){ return '<th>'+y+'</th>'; }).join("")+'<th>Total</th></tr></thead><tbody>'+
+        fNames.map(function(n){
+          var tot = 0;
+          return '<tr><td>'+escapeHtml(n)+'</td>'+yrs.map(function(y){ var c = byFieldYear[n][y]||0; tot += c; return '<td>'+(c||"")+'</td>'; }).join("")+'<td><b>'+tot+'</b></td></tr>';
+        }).join("")+'</tbody></table>';
+    }
+    var others = rocks.filter(function(r){ return !isRockMarker(r); });
+    if(others.length){
+      html += '<div class="summary-subtitle" style="margin-top:14px;">Other field markers</div>'+
+        '<table class="report-table"><thead><tr><th>Type</th><th>Field</th><th>Note</th><th>Marked</th><th>Fixed</th></tr></thead><tbody>'+
+        others.slice().sort(function(a,z){ return (a.field||"").localeCompare(z.field||""); }).map(function(r){
+          var info = markerKindInfo(markerKindOf(r));
+          return '<tr><td>'+info.icon+' '+escapeHtml(info.label)+'</td><td>'+escapeHtml(r.field||"—")+'</td><td>'+escapeHtml(r.note||"")+'</td><td>'+escapeHtml(r.createdAt ? formatLogTimestamp(r.createdAt) : "—")+'</td><td>'+escapeHtml(r.pickedAt ? formatLogTimestamp(r.pickedAt) + (r.pickedBy ? " · " + r.pickedBy : "") : "—")+'</td></tr>';
+        }).join("")+'</tbody></table>';
     }
     if(removedRocks.length > 0){
       var sortedRemoved = removedRocks.slice().sort(function(a,z){ return (z.removedAt||"").localeCompare(a.removedAt||""); });
@@ -4131,7 +5680,7 @@ service cloud.firestore {
         var removedWhen = r.removedAt ? formatLogTimestamp(r.removedAt) : "—";
         return '<tr><td>'+escapeHtml(r.field || "—")+'</td><td>'+escapeHtml(rockSizeLabel(r.size))+'</td><td>'+escapeHtml(r.note || "")+'</td><td>'+escapeHtml(r.enteredBy || "—")+'</td><td>'+escapeHtml(r.removedBy || "—")+'</td><td>'+escapeHtml(removedWhen)+'</td></tr>';
       }).join("");
-      html += '<div class="summary-subtitle" style="margin-top:14px;">Removed rocks</div>'+
+      html += '<div class="summary-subtitle" style="margin-top:14px;">Deleted markers</div>'+
         '<table class="report-table"><thead><tr><th>Field</th><th>Size</th><th>Note</th><th>Entered by</th><th>Removed by</th><th>Date removed</th></tr></thead><tbody>'+
         removedRows+
         '</tbody></table>';
@@ -4154,11 +5703,12 @@ service cloud.firestore {
       "farmed-by": "Farmed by",
       "bins": "Bin report",
       "bin-loads": "Bin load report (who/when)",
-      "rocks": "Rock report"
+      "rocks": "Rock report",
+      "field-records": "Field records"
     };
     var html = reportPrintHeaderHtml(subtitleByType[type] || "Report");
     if(type === "all"){
-      html += buildCropSummaryReportHtml() + buildCropDetailReportHtml() + buildFarmedByReportHtml() + buildBinReportHtml() + buildBinLoadReportHtml() + buildRockReportHtml();
+      html += buildCropSummaryReportHtml() + buildCropDetailReportHtml() + buildFarmedByReportHtml() + buildBinReportHtml() + buildBinLoadReportHtml() + buildRockReportHtml() + buildFieldRecordsReportHtml();
     } else if(type === "crop-summary"){
       html += buildCropSummaryReportHtml();
     } else if(type === "crop-detail"){
@@ -4171,6 +5721,8 @@ service cloud.firestore {
       html += buildBinLoadReportHtml();
     } else if(type === "rocks"){
       html += buildRockReportHtml();
+    } else if(type === "field-records"){
+      html += buildFieldRecordsReportHtml();
     }
     bodyEl.innerHTML = html;
     document.getElementById("rock-report-clear-row").classList.toggle("hidden", type !== "rocks");
@@ -4962,14 +6514,18 @@ service cloud.firestore {
       if(e.hydraulicFilter) filterBits.push("Hydraulic filter: " + e.hydraulicFilter);
       if(e.wiperBlade) filterBits.push("Wiper blade: " + e.wiperBlade);
       var line2 = [ymBits, filterBits.join(" · ")].filter(Boolean).join(" · ");
+      var svc = serviceSummary(e);
       var files = equipFilesOf(e);
       var clipBit = files.length ? ' <span title="Has '+files.length+' file'+(files.length===1?'':'s')+'">📎</span>' : '';
       return '<div class="rock-row" data-id="'+e.id+'">'+
         '<div class="rock-info">'+
           '<div class="r1">🚜 '+escapeHtml(e.name || "Equipment")+clipBit+'</div>'+
           (line2 ? '<div class="r2 r2-lg">'+escapeHtml(line2)+'</div>' : '')+
+          (svc ? '<div class="r2 svc-line">'+escapeHtml(svc)+'</div>' : '')+
+          (openJobCountFor(e.id) ? '<div class="r2 svc-line">🛠️ '+openJobCountFor(e.id)+' open job'+(openJobCountFor(e.id) === 1 ? '' : 's')+'</div>' : '')+
         '</div>'+
         '<div class="rock-actions">'+
+          '<button class="row-btn" data-action="service" title="Hours &amp; service">🔧</button>'+
           '<button class="row-btn" data-action="edit">✏️</button>'+
         '</div>'+
       '</div>';
@@ -6205,6 +7761,7 @@ service cloud.firestore {
         firstName:first, lastName:last, phone:phone, address:address, city:city, state:state, zip:zip, email:email,
         createdAt: new Date().toISOString()
       };
+      if(farmUser && farmUser.uid && !isOwnerUser(farmUser)){ newEmployee.ownerUid = farmUser.uid; }
       if(sharingEnabled){
         employeeDocRef(newEmployee.id).set(newEmployee).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
@@ -6243,19 +7800,23 @@ service cloud.firestore {
     var field = document.getElementById("input-field").value.trim();
     var note = document.getElementById("input-note").value.trim();
 
+    var kindLabel = markerKindInfo(selectedKind).label;
     if(editingId){
+      var upd = {field:field, note:note, size:selectedSize, kind:selectedKind};
+      var photoPatch = saveRockPhoto(editingId);
+      Object.keys(photoPatch).forEach(function(k){ upd[k] = photoPatch[k]; });
       if(sharingEnabled){
-        rockDocRef(editingId).update({field:field, note:note, size:selectedSize}).catch(function(){
+        rockDocRef(editingId).update(upd).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
         var r = rocks.find(function(x){ return x.id === editingId; });
-        if(r){ r.field = field; r.note = note; r.size = selectedSize; }
+        if(r){ Object.keys(upd).forEach(function(k){ r[k] = upd[k]; }); }
         saveData();
         updateFieldOptions();
         renderAll();
       }
-      toast("Rock updated");
+      toast(kindLabel + " updated");
     } else {
       var newRock = {
         id: "r"+Date.now()+"_"+Math.floor(Math.random()*10000),
@@ -6264,11 +7825,14 @@ service cloud.firestore {
         size: selectedSize,
         field: field,
         note: note,
+        kind: selectedKind,
         createdAt: new Date().toISOString(),
         enteredBy: getDeviceName(), enteredOnDevice: getDeviceLabel()
       };
+      var newPhotoPatch = saveRockPhoto(newRock.id);
+      Object.keys(newPhotoPatch).forEach(function(k){ newRock[k] = newPhotoPatch[k]; });
       if(sharingEnabled){
-        var data = {lat:newRock.lat, lng:newRock.lng, size:newRock.size, field:newRock.field, note:newRock.note, createdAt:newRock.createdAt, enteredBy:newRock.enteredBy, enteredOnDevice:newRock.enteredOnDevice};
+        var data = {lat:newRock.lat, lng:newRock.lng, size:newRock.size, field:newRock.field, note:newRock.note, kind:newRock.kind, hasPhoto:!!newRock.hasPhoto, createdAt:newRock.createdAt, enteredBy:newRock.enteredBy, enteredOnDevice:newRock.enteredOnDevice};
         rockDocRef(newRock.id).set(data).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
@@ -6278,20 +7842,23 @@ service cloud.firestore {
         updateFieldOptions();
         renderAll();
       }
-      toast("Rock marked");
+      toast(kindLabel + " marked");
     }
     closeModal();
   }
 
   function deleteCurrentRock(){
     if(!editingId) return;
-    if(!confirm("Delete this rock? This can't be undone.")) return;
+    var delR = rocks.find(function(x){ return x.id === editingId; });
+    var delWord = delR ? doneWord(delR) : "picked";
+    if(!confirm("Delete this marker completely? This can't be undone.\n\nIf it was " + delWord + ", use \"Mark " + delWord + "\" instead so the history is kept.")) return;
     var removedRock = rocks.find(function(x){ return x.id === editingId; });
     if(removedRock){ recordRemovedRock(removedRock, getDeviceName(), getDeviceLabel()); }
     if(sharingEnabled){
       rockDocRef(editingId).delete().catch(function(){
         toast("Couldn't delete from the shared map — check your connection.");
       });
+      if(delR && delR.hasPhoto){ rockPhotoDocRef(editingId).delete().catch(function(){}); }
     } else {
       rocks = rocks.filter(function(x){ return x.id !== editingId; });
       saveData();
@@ -6299,7 +7866,7 @@ service cloud.firestore {
       renderAll();
     }
     closeModal();
-    toast("Rock deleted");
+    toast("Deleted");
   }
 
   function closeModal(){
@@ -6473,7 +8040,7 @@ service cloud.firestore {
 
   function exportKML(){
     var placemarks = rocks.map(function(r){
-      var name = (r.size === "boulder" ? "FOD marker" : sizeLabel(r.size) + " rock") + (r.field ? " — " + r.field : "");
+      var name = markerTitle(r) + (isPicked(r) ? " (" + doneWord(r) + ")" : "") + (r.field ? " — " + r.field : "");
       var desc = (r.note || "") + " (marked " + new Date(r.createdAt).toLocaleDateString() + ")";
       return "<Placemark><name>" + xmlEscape(name) + "</name><description>" + xmlEscape(desc) + "</description>" +
         "<Point><coordinates>" + r.lng + "," + r.lat + ",0</coordinates></Point></Placemark>";
@@ -6504,9 +8071,9 @@ service cloud.firestore {
   }
 
   function exportCSV(){
-    var rows = [["field","size","lat","lng","note","date_marked"]];
+    var rows = [["type","field","size","lat","lng","note","date_marked","picked_or_fixed","picked_by"]];
     rocks.forEach(function(r){
-      rows.push([r.field||"", r.size, r.lat, r.lng, (r.note||"").replace(/\n/g," "), new Date(r.createdAt).toISOString()]);
+      rows.push([markerKindInfo(markerKindOf(r)).label, r.field||"", isRockMarker(r) ? (r.size||"medium") : "", r.lat, r.lng, (r.note||"").replace(/\n/g," "), new Date(r.createdAt).toISOString(), r.pickedAt || "", r.pickedBy || ""]);
     });
     var csv = rows.map(function(row){
       return row.map(function(cell){
@@ -6770,7 +8337,7 @@ service cloud.firestore {
       try{ blob = raw ? (JSON.parse(raw) || {}) : {}; }catch(e2){ blob = {}; }
       blob.rocks = rocks; blob.waypoints = waypoints; blob.bins = bins;
       blob.equipment = equipment; blob.belts = belts; blob.employees = employees;
-      blob.truckSizes = truckSizes; blob.removedRocks = removedRocks;
+      blob.truckSizes = truckSizes; blob.removedRocks = removedRocks; blob.jobs = jobs;
       // Fields are cached per crop year so switching years and then going
       // offline shows that year's own boundaries, not whichever year
       // happened to sync last. The legacy unsuffixed "fields" key is kept
@@ -6902,6 +8469,14 @@ service cloud.firestore {
     );
 
     unsubscribeFns.push(
+      firestoreDb.collection("farms").doc(farmCode).collection("jobs").onSnapshot(function(snapshot){
+        jobs = snapshot.docs.map(function(d){ var data = d.data(); data.id = d.id; return data; });
+        cacheSharedData();
+        renderJobsList(); updateJobsBadge(); renderEquipmentList();
+      }, function(err){ toast("Sync error loading jobs."); })
+    );
+
+    unsubscribeFns.push(
       firestoreDb.collection("farms").doc(farmCode).collection("belts").onSnapshot(function(snapshot){
         belts = snapshot.docs.map(function(d){
           var data = d.data();
@@ -6916,7 +8491,10 @@ service cloud.firestore {
     );
 
     unsubscribeFns.push(
-      firestoreDb.collection("farms").doc(farmCode).collection("employees").onSnapshot(function(snapshot){
+      (isOwnerUser(farmUser) || !(farmUser && farmUser.uid)
+        ? firestoreDb.collection("farms").doc(farmCode).collection("employees")
+        : firestoreDb.collection("farms").doc(farmCode).collection("employees").where("ownerUid", "==", farmUser.uid)
+      ).onSnapshot(function(snapshot){
         employees = snapshot.docs.map(function(d){
           var data = d.data();
           data.id = d.id;
@@ -7104,7 +8682,7 @@ service cloud.firestore {
         firebase.initializeApp(config);
       }
       firestoreDb = firebase.firestore();
-      try{ firestoreDb.enablePersistence({synchronizeTabs:true}); }catch(e){ /* offline cache best-effort */ }
+      /* offline cache is switched on once, in initAuth, before any Firestore use */
       try{ firebaseStorageInst = firebase.storage(); }catch(e){ firebaseStorageInst = null; }
       farmCode = code;
       sharingEnabled = true;
@@ -7448,6 +9026,211 @@ service cloud.firestore {
   }
 
   // ---------- Wire up UI ----------
+  function wireNewFeatures(){
+    function on(id, ev, fn){ var el = document.getElementById(id); if(el) el.addEventListener(ev, fn); }
+
+    // Marker type chips + photo + picked
+    document.querySelectorAll("#kind-options .kind-opt").forEach(function(el){
+      el.addEventListener("click", function(){ selectKind(el.getAttribute("data-kind")); });
+    });
+    on("input-rock-photo", "change", handleRockPhotoPicked);
+    on("rock-photo-preview", "click", function(ev){
+      if(ev.target.id === "btn-rock-photo-remove"){ pendingRockPhoto = null; pendingRockPhotoChanged = true; renderRockPhotoPreview(); return; }
+      if(ev.target.id === "rock-photo-thumb" && pendingRockPhoto){
+        openPhotoViewerForFiles([{id:"rp", kind:"image", name:"Photo", pages:[pendingRockPhoto]}], "Photo", 0);
+      }
+    });
+    on("btn-mark-picked", "click", function(){
+      var r = editingId ? rocks.find(function(x){ return x.id === editingId; }) : null;
+      if(!r) return;
+      setMarkerPicked(r.id, !isPicked(r));
+      closeModal();
+    });
+    on("input-field", "input", function(){ var h = document.getElementById("field-auto-hint"); if(h) h.classList.add("hidden"); });
+
+    // Rocks list: show-picked toggle + picking mode shortcut (the list is
+    // re-rendered often, so these are delegated from the container).
+    on("rock-list", "click", function(ev){
+      if(ev.target.id === "btn-list-picking"){ startPicking(); }
+    });
+    on("rock-list", "change", function(ev){
+      if(ev.target.id === "chk-show-picked"){
+        showPickedMarkers = ev.target.checked;
+        try{ localStorage.setItem(SHOW_PICKED_KEY, showPickedMarkers ? "1" : "0"); }catch(e){}
+        renderAll();
+      }
+    });
+
+    // Picking mode panel
+    on("btn-pick-next", "click", pickNextClosest);
+    on("btn-pick-done", "click", pickMarkDone);
+    on("btn-pick-skip", "click", pickSkip);
+    on("btn-pick-nav", "click", function(){
+      var t = picking && picking.targetId ? rocks.find(function(x){ return x.id === picking.targetId; }) : null;
+      if(t) openInGoogleMaps(t.lat, t.lng);
+    });
+    on("btn-pick-exit", "click", stopPicking);
+    on("pick-field", "change", function(){
+      if(!picking) return;
+      picking.field = this.value; picking.targetId = null; picking.skipped = [];
+      renderAll();
+      var cands = pickCandidates();
+      if(cands.length){ map.fitBounds(L.latLngBounds(cands.map(function(r){ return [r.lat, r.lng]; })), {padding:[60,60], maxZoom:18}); }
+      updatePickPanel();
+      pickNextClosest();
+    });
+    on("btn-picking-fab", "click", function(){ startPicking(); });
+    on("btn-label-pick", "click", function(){
+      var f = fields.find(function(x){ return x.id === fieldLabelActionsFieldId; });
+      closeFieldLabelActions();
+      startPicking(f ? (f.name || "").trim() : null);
+    });
+
+    // Quick "mark at my location" buttons for a given marker type
+    on("btn-quick-rock", "click", function(){ locateMe(function(ll){ openAddModal(ll, "rock"); }); });
+    on("btn-quick-wet", "click", function(){ locateMe(function(ll){ openAddModal(ll, "wet"); }); });
+
+    // Field records
+    on("btn-label-records", "click", function(){
+      var id = fieldLabelActionsFieldId;
+      closeFieldLabelActions();
+      openFieldRecord(id);
+    });
+    on("btn-records-fab", "click", chooseFieldForRecord);
+    on("btn-rec-add-app", "click", function(){ showAppForm(null); });
+    on("btn-app-cancel", "click", hideAppForm);
+    on("btn-app-save", "click", saveAppFromForm);
+    on("btn-rec-save", "click", saveFieldRecord);
+    on("btn-rec-cancel", "click", closeFieldRecord);
+    on("field-record-backdrop", "click", closeFieldRecord);
+    on("input-rec-yield", "input", updateRecordYieldHint);
+    on("rec-apps", "click", function(ev){
+      var row = ev.target.closest("[data-app]");
+      if(!row) return;
+      var id = row.getAttribute("data-app");
+      var a = recordApps.find(function(x){ return x.id === id; });
+      var act = ev.target.getAttribute("data-action");
+      if(act === "edit-app" && a){ showAppForm(a); }
+      if(act === "del-app" && a && confirm("Remove this pass?")){
+        recordApps = recordApps.filter(function(x){ return x.id !== id; });
+        renderRecordApps();
+      }
+    });
+
+    // Equipment service + parts list
+    on("equipment-list", "click", function(ev){
+      if(ev.target.getAttribute("data-action") !== "service") return;
+      ev.stopPropagation();
+      var row = ev.target.closest(".rock-row");
+      if(row) openServiceSheet(row.getAttribute("data-id"));
+    });
+    on("input-service-hours", "input", renderServiceItems);
+    on("service-items", "click", function(ev){
+      if(ev.target.getAttribute("data-action") !== "done-now") return;
+      var row = ev.target.closest(".svc-item");
+      if(row) serviceDoneNow(row.getAttribute("data-k"));
+    });
+    on("service-items", "change", function(ev){
+      if(!ev.target.classList.contains("svc-interval")) return;
+      var row = ev.target.closest(".svc-item");
+      var v = parseFloat(ev.target.value);
+      if(row && !isNaN(v) && v > 0){
+        var k = row.getAttribute("data-k");
+        var s = serviceDraft.service[k] || {}; s.interval = v; serviceDraft.service[k] = s;
+        renderServiceItems();
+      }
+    });
+    on("btn-service-save", "click", saveServiceSheet);
+    on("btn-service-cancel", "click", closeServiceSheet);
+    on("service-backdrop", "click", closeServiceSheet);
+    on("btn-parts-list", "click", openPartsList);
+    on("parts-only-due", "change", renderPartsList);
+    on("btn-parts-copy", "click", shareShoppingList);
+    on("btn-parts-copytext", "click", function(){ copyText(shoppingListText(), "Shopping list copied"); });
+    on("btn-parts-print", "click", printShoppingList);
+    on("btn-parts-picture", "click", function(){ listToPicture("Parts to get", selectedPartsLines(), "parts-to-get.png"); });
+    on("btn-parts-extra-add", "click", addPartsExtra);
+    on("input-parts-extra", "keydown", function(e){ if(e.key === "Enter") addPartsExtra(); });
+    on("btn-parts-clear", "click", clearShoppingList);
+    on("parts-list", "change", function(ev){
+      var row = ev.target.closest(".part-row"); if(!row) return;
+      var extraId = row.getAttribute("data-extra");
+      if(extraId){
+        var x = partsExtras.find(function(z){ return z.id === extraId; });
+        if(x && ev.target.classList.contains("part-qty")) x.qty = Math.max(1, parseInt(ev.target.value, 10) || 1);
+      } else {
+        var k = row.getAttribute("data-key");
+        var pick = partsPicks[k] || {};
+        if(ev.target.classList.contains("part-cb")) pick.checked = ev.target.checked;
+        if(ev.target.classList.contains("part-qty")){ pick.qty = Math.max(1, parseInt(ev.target.value, 10) || 1); pick.checked = true; row.querySelector(".part-cb").checked = true; }
+        partsPicks[k] = pick;
+        row.classList.toggle("picked", !!pick.checked);
+      }
+      savePartsPicks(); updatePartsCount();
+    });
+    on("parts-list", "click", function(ev){
+      if(ev.target.getAttribute("data-act") !== "del-extra") return;
+      var row = ev.target.closest(".part-row");
+      partsExtras = partsExtras.filter(function(z){ return z.id !== row.getAttribute("data-extra"); });
+      savePartsPicks(); renderPartsList();
+    });
+
+    // Jobs list
+    on("menu-item-jobs", "click", function(){ closeSideMenu(); openJobs(); });
+    on("btn-jobs-close", "click", function(){ hideSheet("jobs-modal", "jobs-backdrop"); });
+    on("jobs-backdrop", "click", function(){ hideSheet("jobs-modal", "jobs-backdrop"); });
+    on("jobs-filters", "click", function(ev){ var c = ev.target.closest(".job-chip"); if(!c) return; jobsFilter = c.getAttribute("data-f"); renderJobsList(); });
+    on("btn-job-add", "click", function(){ openJobEditor(null); });
+    on("btn-job-ideas", "click", openJobIdeas);
+    on("jobs-list", "change", function(ev){
+      if(!ev.target.classList.contains("job-cb")) return;
+      var row = ev.target.closest(".job-row"); if(row) toggleJobDone(row.getAttribute("data-id"), ev.target.checked);
+    });
+    on("jobs-list", "click", function(ev){
+      var info = ev.target.closest("[data-act=edit]"); if(!info) return;
+      var row = ev.target.closest(".job-row"); var j = row && jobs.find(function(x){ return x.id === row.getAttribute("data-id"); });
+      if(j) openJobEditor(j);
+    });
+    on("btn-job-save", "click", saveJobFromForm);
+    on("btn-job-cancel", "click", closeJobEditor);
+    on("job-editor-backdrop", "click", closeJobEditor);
+    on("btn-job-delete", "click", function(){
+      if(!editingJobId || !confirm("Delete this job?")) return;
+      deleteJob(editingJobId); closeJobEditor(); toast("Job deleted");
+    });
+    on("btn-ideas-add", "click", addSelectedIdeas);
+    on("btn-ideas-close", "click", function(){ hideSheet("job-ideas-modal", "job-ideas-backdrop"); });
+    on("job-ideas-backdrop", "click", function(){ hideSheet("job-ideas-modal", "job-ideas-backdrop"); });
+    on("btn-jobs-share", "click", shareJobs);
+    on("btn-jobs-print", "click", printJobs);
+    on("btn-jobs-picture", "click", function(){
+      var lines = jobsAsLines(); if(!lines.length){ toast("Nothing in this list."); return; }
+      listToPicture(jobsFilterLabel(), lines, "jobs-list.png");
+    });
+    on("btn-service-add-job", "click", function(){
+      var id = serviceEquipId;
+      closeServiceSheet();
+      openJobEditor(null, {machineId:id, priority:2});
+    });
+    updateJobsBadge();
+    on("btn-parts-close", "click", function(){ hideSheet("parts-modal", "parts-backdrop"); });
+    on("parts-backdrop", "click", function(){ hideSheet("parts-modal", "parts-backdrop"); });
+
+    // Season switch
+    on("btn-season", "click", function(ev){ ev.stopPropagation(); toggleSeasonMenu(); });
+    document.querySelectorAll("#season-menu .season-opt").forEach(function(el){
+      el.addEventListener("click", function(){ applySeason(el.getAttribute("data-season")); toggleSeasonMenu(false); });
+    });
+    document.addEventListener("click", function(ev){
+      if(!ev.target.closest("#season-menu") && !ev.target.closest("#btn-season")) toggleSeasonMenu(false);
+    });
+    on("btn-log-load-fab", "click", startLogLoad);
+    on("chooser-backdrop", "click", closeChooser);
+    on("btn-chooser-close", "click", closeChooser);
+
+    applySeason(currentSeason);
+  }
+
   function wireUI(){
     // ---------- Hamburger menu ----------
     document.getElementById("btn-menu").addEventListener("click", openSideMenu);
@@ -7527,6 +9310,7 @@ service cloud.firestore {
       var eq = equipment.find(function(x){ return x.id === id; });
       if(!eq) return;
       var action = e.target.getAttribute("data-action");
+      if(action === "service") return; // handled by the service sheet
       if(action === "edit"){ openEquipmentModal(eq); return; }
       var files = equipFilesOf(eq);
       if(files.length === 0){ openEquipmentModal(eq); }
@@ -7745,6 +9529,7 @@ service cloud.firestore {
     document.getElementById("modal-backdrop").addEventListener("click", closeModal);
 
     document.getElementById("btn-mark-here").addEventListener("click", function(){
+      if(currentSeason === "harvest"){ startLogLoad(); return; }
       locateMe(function(latlng){ openAddModal(latlng); });
     });
     document.getElementById("btn-locate").addEventListener("click", function(){ locateMe(); });
@@ -8233,49 +10018,330 @@ service cloud.firestore {
   // ACCESS_CODE has it saved in localStorage and never sees this again —
   // until the code above gets changed, at which point the saved value no
   // longer matches and everyone's asked once more.
-  function hasValidAccessCode(){
+  // ---------- Farm sign-in (Firebase Authentication) ----------
+  // The shared farm data is protected by Firebase's own security rules,
+  // which only let a signed-in farm login read or change anything. The
+  // login is remembered on each device, so people sign in once.
+  var SIGNED_IN_KEY = "rockMarkerSignedIn_v1";
+  var farmUser = null;
+  var authStarted = false;
+  var splashDone = false;
+  var authKnown = false;
+  function everSignedInHere(){
+    try{ return localStorage.getItem(SIGNED_IN_KEY) === "1"; }catch(e){ return false; }
+  }
+  function hasValidAccessCode(){ return !!farmUser; }
+  function authAvailable(){
+    return typeof firebase !== "undefined" && typeof firebase.auth === "function";
+  }
+  // ---------- Who gets in: Jason, plus people Jason approves ----------
+  var OWNER_EMAILS = ["jasonchaplinski@gmail.com"];
+  // Private push channel for access requests (free ntfy app — subscribe to
+  // this exact name on Jason's phone). Only the request goes through it.
+  var NTFY_TOPIC = "chaplinski-rockmarker-1d5a34463ac9";
+  var accessGranted = false;
+  var memberUnsub = null, requestUnsub = null, ownerUnsubs = [];
+  var pendingRequests = [], farmMembers = [];
+  function isOwnerUser(u){ return !!(u && u.email && OWNER_EMAILS.indexOf(String(u.email).toLowerCase()) !== -1); }
+  function farmRootRef(){ return firebase.firestore().collection("farms").doc(BAKED_IN_FARM_CODE); }
+  function approvedKey(uid){ return "rockMarkerApproved_" + uid; }
+
+  function afterSignedIn(){
+    document.getElementById("access-gate").classList.add("hidden");
+    var u = farmUser;
+    if(!u) return;
+    if(u.offline || isOwnerUser(u)){ grantAccess(); return; }
+    var cached = false;
+    try{ cached = localStorage.getItem(approvedKey(u.uid)) === "1"; }catch(e){}
+    if(cached){ grantAccess(); }
+    watchMembership(u);
+  }
+  function grantAccess(){
+    if(accessGranted) return;
+    accessGranted = true;
+    try{ localStorage.setItem(SIGNED_IN_KEY, "1"); localStorage.removeItem(ACCESS_CODE_KEY); }catch(e){}
+    document.getElementById("wait-gate").classList.add("hidden");
+    document.getElementById("access-gate").classList.add("hidden");
+    var owner = isOwnerUser(farmUser);
+    document.getElementById("menu-item-approve").classList.toggle("hidden", !owner);
+    document.getElementById("menu-item-employees").classList.toggle("hidden", !owner);
+    if(!sharingEnabled){ tryAutoReconnect(); }
+    if(owner){ startOwnerWatch(); }
+    if(splashDone && !hasDeviceName()){ showNameGate(); }
+    if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
+  }
+  function revokeAccess(){
+    accessGranted = false;
+    try{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(SIGNED_IN_KEY); }catch(e){}
+    if(sharingEnabled){ try{ disconnectSharing(); }catch(e){} }
+  }
+  function watchMembership(u){
+    if(memberUnsub){ memberUnsub(); memberUnsub = null; }
+    memberUnsub = farmRootRef().collection("members").doc(u.uid).onSnapshot({includeMetadataChanges:true}, function(d){
+      if(d.exists){
+        try{ localStorage.setItem(approvedKey(u.uid), "1"); }catch(e){}
+        grantAccess();
+      } else {
+        if(d.metadata && d.metadata.fromCache) return; // offline — keep whatever we had
+        try{ localStorage.removeItem(approvedKey(u.uid)); }catch(e){}
+        if(accessGranted){ revokeAccess(); }
+        showWaitGate(u);
+      }
+    }, function(){ if(!accessGranted) showWaitGate(u); });
+  }
+  function showWaitGate(u){
+    document.getElementById("wait-gate").classList.remove("hidden");
+    document.getElementById("wait-email").textContent = "Signed in as " + (u.email || "");
+    if(requestUnsub){ requestUnsub(); requestUnsub = null; }
+    requestUnsub = farmRootRef().collection("accessRequests").doc(u.uid).onSnapshot(function(d){
+      var r = d.exists ? d.data() : null;
+      var title = document.getElementById("wait-title"), text = document.getElementById("wait-text");
+      var nameIn = document.getElementById("input-wait-name"), btn = document.getElementById("btn-wait-request");
+      if(r && r.status === "pending"){
+        title.textContent = "Waiting for approval";
+        text.textContent = "Jason has your request. This screen opens up by itself as soon as he approves it.";
+        nameIn.classList.add("hidden"); btn.classList.add("hidden");
+      } else if(r && r.status === "denied"){
+        title.textContent = "Request not approved";
+        text.textContent = "Jason didn't approve this request. If that's a mistake, talk to him and ask again.";
+        nameIn.classList.add("hidden"); btn.classList.remove("hidden"); btn.textContent = "Ask again";
+      } else if(r && r.status === "approved"){
+        title.textContent = "Access removed";
+        text.textContent = "This login no longer has access to the farm map. Talk to Jason if you need it back.";
+        nameIn.classList.add("hidden"); btn.classList.remove("hidden"); btn.textContent = "Ask again";
+      } else {
+        title.textContent = "Request access";
+        text.textContent = "This login doesn't have access to the farm map yet. Enter your name and send Jason a request.";
+        nameIn.classList.remove("hidden"); btn.classList.remove("hidden"); btn.textContent = "Request access";
+        if(!nameIn.value) nameIn.value = getDeviceName() || "";
+      }
+    }, function(){});
+  }
+  function submitAccessRequest(name){
+    var u = firebase.auth().currentUser;
+    if(!u) return Promise.resolve();
+    name = (name || "").trim() || getDeviceName() || u.email;
+    if(!hasDeviceName()){ try{ localStorage.setItem(DEVICE_NAME_KEY, name); }catch(e){} }
+    return farmRootRef().collection("accessRequests").doc(u.uid).set({
+      name: name, email: u.email, status: "pending",
+      requestedAt: new Date().toISOString(), device: getDeviceLabel() || ""
+    }).then(function(){ notifyOwnerOfRequest(name, u.email); })
+      .catch(function(){ toast("Couldn't send the request — check your connection and try again."); });
+  }
+  function notifyOwnerOfRequest(name, email){
     try{
-      return localStorage.getItem(ACCESS_CODE_KEY) === ACCESS_CODE;
-    }catch(e){
-      return false; // no localStorage (private browsing, etc.) — ask every time
-    }
+      fetch("https://ntfy.sh/" + NTFY_TOPIC, {
+        method: "POST",
+        body: name + " (" + email + ") wants access to Rock Marker. Open the app: menu > Approve users.",
+        headers: {"Title": "Rock Marker access request", "Tags": "tractor", "Click": "https://jasonchaplinski-commits.github.io/rock-marker-app/"}
+      }).catch(function(){});
+    }catch(e){}
   }
 
+  // ---------- Owner: approve / deny / remove ----------
+  function startOwnerWatch(){
+    if(ownerUnsubs.length) return;
+    var root = farmRootRef();
+    ownerUnsubs.push(root.collection("accessRequests").where("status", "==", "pending").onSnapshot(function(snap){
+      pendingRequests = snap.docs.map(function(d){ var x = d.data(); x.uid = d.id; return x; });
+      updateApproveBadge(); renderApproveSheet();
+    }, function(){}));
+    ownerUnsubs.push(root.collection("members").onSnapshot(function(snap){
+      farmMembers = snap.docs.map(function(d){ var x = d.data(); x.uid = d.id; return x; });
+      renderApproveSheet();
+    }, function(){}));
+  }
+  function updateApproveBadge(){
+    var n = pendingRequests.length;
+    var c = document.getElementById("approve-count");
+    c.textContent = n; c.classList.toggle("hidden", !n);
+    var menuBtn = document.getElementById("btn-menu");
+    var dot = menuBtn.querySelector(".menu-dot");
+    if(n){
+      if(!dot){ dot = document.createElement("span"); dot.className = "menu-badge menu-dot"; menuBtn.appendChild(dot); }
+      dot.textContent = n;
+    } else if(dot){ dot.remove(); }
+  }
+  function renderApproveSheet(){
+    var pe = document.getElementById("approve-pending"), me = document.getElementById("approve-members");
+    if(!pe || !me) return;
+    pe.innerHTML = pendingRequests.length ? pendingRequests.map(function(r){
+      return '<div class="appr-row" data-uid="'+escapeHtml(r.uid)+'"><div class="rock-info"><div class="r1">'+escapeHtml(r.name || "(no name)")+'</div><div class="r2">'+escapeHtml(r.email || "")+(r.requestedAt ? " · " + new Date(r.requestedAt).toLocaleDateString() : "")+'</div></div>'+
+        '<button class="btn btn-primary" data-act="approve">✅ Approve</button><button class="btn btn-danger" data-act="deny">❌</button></div>';
+    }).join("") : '<div class="rec-empty">No one is waiting.</div>';
+    var list = farmMembers.slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); });
+    me.innerHTML = list.length ? list.map(function(m){
+      return '<div class="appr-row" data-uid="'+escapeHtml(m.uid)+'"><div class="rock-info"><div class="r1">'+escapeHtml(m.name || "(no name)")+'</div><div class="r2">'+escapeHtml(m.email || "")+(m.approvedAt ? " · since " + new Date(m.approvedAt).toLocaleDateString() : "")+'</div></div>'+
+        '<button class="btn btn-secondary" data-act="remove">Remove</button></div>';
+    }).join("") : '<div class="rec-empty">No one approved yet — just you.</div>';
+  }
+  function approveAction(uid, act){
+    var root = farmRootRef();
+    var now = new Date().toISOString();
+    if(act === "approve"){
+      var r = pendingRequests.find(function(x){ return x.uid === uid; }) || {};
+      root.collection("members").doc(uid).set({name:r.name || "", email:r.email || "", approvedAt:now, approvedBy:(farmUser && farmUser.email) || ""})
+        .then(function(){ return root.collection("accessRequests").doc(uid).update({status:"approved", decidedAt:now}); })
+        .then(function(){ toast((r.name || "They") + " can use the app now"); })
+        .catch(function(){ toast("Couldn't approve — check your connection."); });
+    } else if(act === "deny"){
+      root.collection("accessRequests").doc(uid).update({status:"denied", decidedAt:now})
+        .then(function(){ toast("Request declined"); })
+        .catch(function(){ toast("Couldn't update — check your connection."); });
+    } else if(act === "remove"){
+      var m = farmMembers.find(function(x){ return x.uid === uid; }) || {};
+      if(!confirm("Remove " + (m.name || m.email || "this person") + "? They'll be locked out on every device right away.")) return;
+      root.collection("members").doc(uid).delete()
+        .then(function(){ toast("Removed"); })
+        .catch(function(){ toast("Couldn't remove — check your connection."); });
+    }
+  }
+  function initAuth(){
+    if(authStarted) return;
+    authStarted = true;
+    if(!authAvailable()){
+      // No connection on a cold start (the sign-in service didn't load).
+      // A device that has signed in before can keep using what it already
+      // has saved; anyone else has to be online to sign in the first time.
+      authKnown = true;
+      if(everSignedInHere()){ farmUser = {offline:true}; accessGranted = true; }
+      return;
+    }
+    try{
+      if(!firebase.apps || !firebase.apps.length){ firebase.initializeApp(BAKED_IN_FIREBASE_CONFIG); }
+      try{ var ep = firebase.firestore().enablePersistence({synchronizeTabs:true}); if(ep && ep.catch) ep.catch(function(){}); }catch(e){}
+      firebase.auth().onAuthStateChanged(function(user){
+        authKnown = true;
+        farmUser = user || null;
+        if(user){
+          afterSignedIn();
+        } else {
+          try{ localStorage.removeItem(SIGNED_IN_KEY); }catch(e){}
+          accessGranted = false;
+          if(sharingEnabled){ try{ disconnectSharing(); }catch(e){} }
+          document.getElementById("wait-gate").classList.add("hidden");
+          if(splashDone){ showAccessGate(); }
+        }
+      });
+    }catch(e){
+      authKnown = true;
+      if(everSignedInHere()){ farmUser = {offline:true}; }
+    }
+  }
   function showAccessGate(){
     var gate = document.getElementById("access-gate");
     if(!gate) return;
     gate.classList.remove("hidden");
+    var errEl = document.getElementById("access-gate-error");
+    if(!authAvailable()){
+      errEl.textContent = "You need an internet connection the first time you sign in on this device.";
+      errEl.classList.remove("hidden");
+    }
     setTimeout(function(){
-      var input = document.getElementById("input-access-code");
+      var input = document.getElementById("input-login-email");
       if(input) input.focus();
     }, 60);
   }
-
-  function submitAccessCode(){
-    var input = document.getElementById("input-access-code");
-    var errEl = document.getElementById("access-gate-error");
-    var entered = (input.value || "").trim();
-    if(entered === ACCESS_CODE){
-      try{ localStorage.setItem(ACCESS_CODE_KEY, entered); }catch(e){}
-      errEl.classList.add("hidden");
-      document.getElementById("access-gate").classList.add("hidden");
-      if(hasDeviceName()){
-        if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
-      } else {
-        showNameGate();
-      }
-    } else {
-      errEl.classList.remove("hidden");
-      input.value = "";
-      input.focus();
-    }
+  var gateSignupMode = false;
+  function setGateMode(signup){
+    gateSignupMode = signup;
+    document.getElementById("gate-title").textContent = signup ? "Request access" : "Farm sign-in";
+    document.getElementById("gate-text").textContent = signup
+      ? "Enter your name, your email, and make up a password (6 or more characters). Jason gets your request and approves it."
+      : "Sign in with your email and password. Each phone or computer only has to do this once.";
+    document.getElementById("input-signup-name").classList.toggle("hidden", !signup);
+    document.getElementById("input-login-password").setAttribute("autocomplete", signup ? "new-password" : "current-password");
+    document.getElementById("btn-access-gate-submit").textContent = signup ? "Send request" : "Sign in";
+    document.getElementById("btn-gate-mode").textContent = signup ? "Already approved? Sign in" : "New here? Request access";
+    document.getElementById("access-gate-error").classList.add("hidden");
   }
-
+  function submitAccessCode(){
+    if(gateSignupMode){ submitSignup(); return; }
+    var email = (document.getElementById("input-login-email").value || "").trim();
+    var pw = document.getElementById("input-login-password").value || "";
+    var errEl = document.getElementById("access-gate-error");
+    var btn = document.getElementById("btn-access-gate-submit");
+    if(!email || !pw){ errEl.textContent = "Enter the email and password."; errEl.classList.remove("hidden"); return; }
+    if(!authAvailable()){ errEl.textContent = "No internet connection — connect and try again."; errEl.classList.remove("hidden"); return; }
+    btn.disabled = true; btn.textContent = "Signing in…";
+    firebase.auth().signInWithEmailAndPassword(email, pw).then(function(){
+      errEl.classList.add("hidden");
+      document.getElementById("input-login-password").value = "";
+    }).catch(function(err){
+      var code = (err && err.code) || "";
+      var msg = "That email or password isn't right — try again.";
+      if(code.indexOf("network") !== -1) msg = "No internet connection — connect and try again.";
+      else if(code.indexOf("too-many-requests") !== -1) msg = "Too many tries — wait a few minutes and try again.";
+      else if(code.indexOf("api-key") !== -1) msg = "The app's Firebase key isn't valid — the farm's Firebase settings need updating in index.html.";
+      else if(code.indexOf("operation-not-allowed") !== -1 || code.indexOf("configuration-not-found") !== -1) msg = "Sign-in isn't turned on for this farm yet (Firebase → Authentication → Email/Password).";
+      errEl.textContent = msg;
+      errEl.classList.remove("hidden");
+      document.getElementById("input-login-password").value = "";
+    }).then(function(){ btn.disabled = false; btn.textContent = "Sign in"; });
+  }
+  function submitSignup(){
+    var name = (document.getElementById("input-signup-name").value || "").trim();
+    var email = (document.getElementById("input-login-email").value || "").trim();
+    var pw = document.getElementById("input-login-password").value || "";
+    var errEl = document.getElementById("access-gate-error");
+    var btn = document.getElementById("btn-access-gate-submit");
+    function fail(m){ errEl.textContent = m; errEl.classList.remove("hidden"); }
+    if(!name || name.split(/\s+/).length < 2){ fail("Enter your first and last name."); return; }
+    if(containsProfanity(name)){ fail("Please enter an appropriate name."); return; }
+    if(!email || email.indexOf("@") === -1){ fail("Enter your email."); return; }
+    if(pw.length < 6){ fail("Make the password at least 6 characters."); return; }
+    if(!authAvailable()){ fail("No internet connection — connect and try again."); return; }
+    btn.disabled = true; btn.textContent = "Sending…";
+    try{ localStorage.setItem(DEVICE_NAME_KEY, name); }catch(e){}
+    firebase.auth().createUserWithEmailAndPassword(email, pw).then(function(){
+      errEl.classList.add("hidden");
+      return submitAccessRequest(name);
+    }).catch(function(err){
+      var code = (err && err.code) || "";
+      if(code.indexOf("email-already-in-use") !== -1) fail("That email already has a login — tap \"Already approved? Sign in\" and use your password.");
+      else if(code.indexOf("invalid-email") !== -1) fail("That email doesn't look right.");
+      else if(code.indexOf("weak-password") !== -1) fail("Pick a longer password (6 or more characters).");
+      else if(code.indexOf("network") !== -1) fail("No internet connection — connect and try again.");
+      else fail("Couldn't send the request — try again.");
+    }).then(function(){ btn.disabled = false; btn.textContent = gateSignupMode ? "Send request" : "Sign in"; });
+  }
+  function signOutThisDevice(){
+    if(!confirm("Sign this device out? You'll need the farm login to get back in.")) return;
+    try{ localStorage.removeItem(SIGNED_IN_KEY); }catch(e){}
+    if(authAvailable()){ firebase.auth().signOut().catch(function(){}); }
+    farmUser = null;
+    location.reload();
+  }
   function wireAccessGate(){
     document.getElementById("btn-access-gate-submit").addEventListener("click", submitAccessCode);
-    document.getElementById("input-access-code").addEventListener("keydown", function(e){
-      if(e.key === "Enter"){ submitAccessCode(); }
+    ["input-login-email","input-login-password"].forEach(function(id){
+      document.getElementById(id).addEventListener("keydown", function(e){ if(e.key === "Enter"){ submitAccessCode(); } });
     });
+    document.getElementById("btn-gate-mode").addEventListener("click", function(){ setGateMode(!gateSignupMode); });
+    document.getElementById("input-signup-name").addEventListener("keydown", function(e){ if(e.key === "Enter"){ document.getElementById("input-login-email").focus(); } });
+    document.getElementById("btn-wait-request").addEventListener("click", function(){
+      var nameIn = document.getElementById("input-wait-name");
+      var nm = nameIn.classList.contains("hidden") ? (getDeviceName() || "") : nameIn.value;
+      if(!nameIn.classList.contains("hidden") && nm.trim().split(/\s+/).length < 2){ toast("Enter your first and last name."); return; }
+      submitAccessRequest(nm);
+    });
+    document.getElementById("btn-wait-signout").addEventListener("click", function(){
+      try{ localStorage.removeItem(SIGNED_IN_KEY); }catch(e){}
+      if(authAvailable()){ firebase.auth().signOut().then(function(){ location.reload(); }); } else { location.reload(); }
+    });
+    document.getElementById("menu-item-approve").addEventListener("click", function(){
+      closeSideMenu(); renderApproveSheet(); showSheet("approve-modal", "approve-backdrop");
+    });
+    document.getElementById("btn-close-approve").addEventListener("click", function(){ hideSheet("approve-modal", "approve-backdrop"); });
+    document.getElementById("approve-backdrop").addEventListener("click", function(){ hideSheet("approve-modal", "approve-backdrop"); });
+    ["approve-pending","approve-members"].forEach(function(id){
+      document.getElementById(id).addEventListener("click", function(ev){
+        var b = ev.target.closest("[data-act]"); if(!b) return;
+        var row = b.closest("[data-uid]"); if(row) approveAction(row.getAttribute("data-uid"), b.getAttribute("data-act"));
+      });
+    });
+    var so = document.getElementById("menu-item-sign-out");
+    if(so) so.addEventListener("click", function(){ closeSideMenu(); signOutThisDevice(); });
   }
 
   // ---------- Device name ----------
@@ -8318,7 +10384,7 @@ service cloud.firestore {
     if(typeof L === "undefined"){
       throw new Error("Leaflet failed to load");
     }
-    var accessAlreadyGranted = hasValidAccessCode();
+    initAuth();
     wireAccessGate();
     wireNameGate();
     loadData();
@@ -8326,10 +10392,12 @@ service cloud.firestore {
     updateFieldOptions();
     renderAll();
     wireUI();
+    wireNewFeatures();
     wireInstallPrompt();
     registerServiceWorker();
     setShareStatusUI();
-    tryAutoReconnect();
+    // Shared data connects only after sign-in (see initAuth/afterSignedIn).
+    if(farmUser && farmUser.offline){ /* offline cold start: cached data only */ }
     setTimeout(function(){
       try{ fitToAllData(); }catch(e){}
       // A phone's browser chrome (address bar, etc.) can still be settling
@@ -8347,9 +10415,12 @@ service cloud.firestore {
     // right as the splash fades, instead of covering up the intro.
     setTimeout(function(){
       hideSplash();
-      if(!accessAlreadyGranted){
-        showAccessGate();
-      } else if(!hasDeviceName()){
+      splashDone = true;
+      if(!farmUser){
+        // Wait for Firebase to report whether this device is signed in.
+        if(authKnown || !authAvailable()){ showAccessGate(); }
+        else { setTimeout(function(){ if(!farmUser) showAccessGate(); }, 2500); }
+      } else if(accessGranted && !hasDeviceName()){
         // This device unlocked the access code before names were tracked —
         // ask for one now, on its own, without re-asking for the code.
         showNameGate();
