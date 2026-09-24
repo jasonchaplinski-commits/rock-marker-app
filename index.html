@@ -5425,7 +5425,7 @@ service cloud.firestore {
         hLabel = "Partial (" + partialAcresOf(f).toFixed(1) + " of " + acres.toFixed(1) + " ac)";
       }
       var hWhen = (hStatus === "Harvested" && f.harvestedAt) ? formatHarvestedAt(f.harvestedAt) : "—";
-      return '<tr><td>'+escapeHtml(f.name||"Field")+'</td><td>'+acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+hIcon+' '+escapeHtml(hLabel)+'</td><td>'+escapeHtml(hWhen)+'</td></tr>';
+      return '<tr><td>'+escapeHtml(f.name||"Field")+'</td><td>'+acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+hIcon+' '+escapeHtml(hLabel)+(hStatus === "Partial Harvested" ? ' · <b>'+Math.max(0, acres - partialAcresOf(f)).toFixed(1)+' ac left</b>' : '')+'</td><td>'+escapeHtml(hWhen)+'</td></tr>';
     }).join("");
     return '<div class="report-section">'+
       '<h3>🗺️ Crop Report (by field)</h3>'+
