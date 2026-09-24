@@ -731,7 +731,7 @@
   .parts-add .btn{flex:none;padding:10px 14px;}
   #parts-selected-count{font-size:13px;font-weight:700;margin-top:10px;color:var(--green-dark);}
   .btn:disabled{opacity:.45;}
-  .ord-row{background:#fff;border:1px solid var(--line);border-left:6px solid #c62828;border-radius:10px;padding:10px;margin-bottom:8px;}   .ord-row.ordered{border-left-color:#1565c0;} .ord-row.received{border-left-color:#2e7d32;opacity:.8;}   .ord-main{cursor:pointer;} .ord-title{font-size:15.5px;word-break:break-word;} .ord-sub{font-size:12.5px;margin-top:2px;}   .ord-badge{font-size:11px;font-weight:800;border-radius:6px;padding:1px 6px;color:#fff;vertical-align:middle;margin-left:4px;}   .ord-badge.needed{background:#c62828;} .ord-badge.ordered{background:#1565c0;} .ord-badge.received{background:#2e7d32;}   .ord-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap;}   .ord-track{font-weight:800;font-size:13px;color:#1565c0;word-break:break-all;}   .ord-act{flex:none;padding:9px 12px;font-size:14px;margin-left:auto;}   #orders-modal h2{display:flex;justify-content:space-between;align-items:center;}   #orders-modal{z-index:960;} #orders-backdrop{z-index:955;} #order-editor-modal{z-index:970;} #order-editor-backdrop{z-index:965;}   #parts-modal{z-index:962;} #parts-backdrop{z-index:958;}   .need-crop{border:2px solid #c62828 !important;box-shadow:0 0 0 3px rgba(198,40,40,.2);} #log-crop-locked-note{font-weight:700;} .le3.to-fill{color:#1565c0;font-weight:700;} .ord-check{float:left;margin:0 10px 4px 0;} .ord-check input{width:26px;height:26px;accent-color:var(--green);} .ord-row.checked{background:#eef4ec;} #orders-bulk{position:sticky;bottom:0;display:flex;align-items:center;gap:8px;background:var(--cream);padding:10px 0;border-top:1px solid var(--line);z-index:2;} #orders-bulk span{font-weight:800;flex:1;} #orders-bulk .btn{flex:none;padding:11px 14px;} #chooser-modal{z-index:980 !important;} .cat-tools{display:flex;gap:10px;align-items:center;margin-bottom:8px;} .cat-tools input[type=search]{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;} .cat-tools label{font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px;white-space:nowrap;} .cat-group{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin:12px 0 2px;} .cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);} .cat-add{flex:none;width:46px;height:46px;border-radius:50%;border:none;background:var(--green);color:#fff;font-size:24px;font-weight:800;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);} .cat-add:active{transform:scale(.92);} .cat-on{font-size:11px;font-weight:800;background:#c62828;color:#fff;border-radius:6px;padding:1px 6px;vertical-align:middle;} .cat-on.ordered{background:#1565c0;} #parts-tabs{margin-top:-4px;} #chooser-backdrop{z-index:975 !important;} /* Jobs list */
+  .ord-row{background:#fff;border:1px solid var(--line);border-left:6px solid #c62828;border-radius:10px;padding:10px;margin-bottom:8px;}   .ord-row.ordered{border-left-color:#1565c0;} .ord-row.received{border-left-color:#2e7d32;opacity:.8;}   .ord-main{cursor:pointer;} .ord-title{font-size:15.5px;word-break:break-word;} .ord-sub{font-size:12.5px;margin-top:2px;}   .ord-badge{font-size:11px;font-weight:800;border-radius:6px;padding:1px 6px;color:#fff;vertical-align:middle;margin-left:4px;}   .ord-badge.needed{background:#c62828;} .ord-badge.ordered{background:#1565c0;} .ord-badge.received{background:#2e7d32;}   .ord-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap;}   .ord-track{font-weight:800;font-size:13px;color:#1565c0;word-break:break-all;}   .ord-act{flex:none;padding:9px 12px;font-size:14px;margin-left:auto;}   #orders-modal h2{display:flex;justify-content:space-between;align-items:center;}   #orders-modal{z-index:960;} #orders-backdrop{z-index:955;} #order-editor-modal{z-index:970;} #order-editor-backdrop{z-index:965;}   #parts-modal{z-index:962;} #parts-backdrop{z-index:958;}   .need-crop{border:2px solid #c62828 !important;box-shadow:0 0 0 3px rgba(198,40,40,.2);} #log-crop-locked-note{font-weight:700;} .le3.to-fill{color:#1565c0;font-weight:700;} .ord-check{float:left;margin:0 10px 4px 0;} .ord-check input{width:26px;height:26px;accent-color:var(--green);} .ord-row.checked{background:#eef4ec;} #orders-bulk{position:sticky;bottom:0;display:flex;align-items:center;gap:8px;background:var(--cream);padding:10px 0;border-top:1px solid var(--line);z-index:2;} #orders-bulk span{font-weight:800;flex:1;} #orders-bulk .btn{flex:none;padding:11px 14px;} #chooser-modal{z-index:980 !important;} .report-section{overflow-x:auto;} @media (max-width:520px){ .report-table.crop-detail th, .report-table.crop-detail td{padding:6px 4px;font-size:12px;} } .cat-tools{display:flex;gap:10px;align-items:center;margin-bottom:8px;} .cat-tools input[type=search]{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;} .cat-tools label{font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px;white-space:nowrap;} .cat-group{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin:12px 0 2px;} .cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);} .cat-add{flex:none;width:46px;height:46px;border-radius:50%;border:none;background:var(--green);color:#fff;font-size:24px;font-weight:800;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);} .cat-add:active{transform:scale(.92);} .cat-on{font-size:11px;font-weight:800;background:#c62828;color:#fff;border-radius:6px;padding:1px 6px;vertical-align:middle;} .cat-on.ordered{background:#1565c0;} #parts-tabs{margin-top:-4px;} #chooser-backdrop{z-index:975 !important;} /* Jobs list */
   .job-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;-webkit-overflow-scrolling:touch;}
   .job-chip{flex:none;border:1px solid var(--line);background:#fff;border-radius:16px;padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink);}
   .job-chip.active{background:var(--green);color:#fff;border-color:var(--green);}
@@ -1234,8 +1234,8 @@
     <div class="coord-readout" id="field-partial-acres-hint" style="margin-top:6px;margin-bottom:0;"></div>
   </div>
 
-  <div class="field-row hidden" id="field-harvested-at-row">
-    <label>Harvested on <span style="font-weight:400;color:var(--muted);">(edit if this isn't right)</span></label>
+  <div class="field-row hidden" id="field-started-at-row"><label>Harvest started <span style="font-weight:400;color:var(--muted);">(edit if this isn't right)</span></label><input type="date" id="input-field-started-at"></div><div class="field-row hidden" id="field-harvested-at-row">
+    <label>Finished on <span style="font-weight:400;color:var(--muted);">(edit if this isn't right)</span></label>
     <input type="datetime-local" id="input-field-harvested-at">
   </div>
 
@@ -5062,7 +5062,7 @@ service cloud.firestore {
       "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
   }
 
-  function updateHarvestedAtRow(){
+  function localDateStr(d){ var p = function(n){ return (n < 10 ? "0" : "") + n; }; return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }   function updateStartedAtRow(){     var st = document.getElementById("input-field-harvest").value;     var show = st === "Partial Harvested" || st === "Harvested";     var row = document.getElementById("field-started-at-row"); if(!row) return;     row.classList.toggle("hidden", !show);     var inp = document.getElementById("input-field-started-at");     var saved = editingFieldId ? fields.find(function(x){ return x.id === editingFieldId; }) : null;     if(show && !inp.value && harvestStatusOf(saved) === "Not Harvested"){ inp.value = localDateStr(new Date()); }   }   function updateHarvestedAtRow(){ updateStartedAtRow();
     var status = document.getElementById("input-field-harvest").value;
     var isHarvested = status === "Harvested";
     var row = document.getElementById("field-harvested-at-row");
@@ -5087,7 +5087,7 @@ service cloud.firestore {
       document.getElementById("input-field-partial-acres").value =
         (typeof field.partialAcresHarvested === "number" && !isNaN(field.partialAcresHarvested)) ? field.partialAcresHarvested : "";
       document.getElementById("input-field-harvested-at").value =
-        field.harvestedAt ? toDatetimeLocalValue(new Date(field.harvestedAt)) : "";
+        field.harvestedAt ? toDatetimeLocalValue(new Date(field.harvestedAt)) : ""; document.getElementById("input-field-started-at").value = field.harvestStartedAt ? String(field.harvestStartedAt).slice(0, 10) : "";
       selectFieldColor(field.color || FIELD_COLORS[0]);
       document.getElementById("field-edit-only-row").classList.remove("hidden");
     } else {
@@ -5099,7 +5099,7 @@ service cloud.firestore {
       document.getElementById("input-field-farmer").value = "";
       document.getElementById("input-field-harvest").value = "Not Harvested";
       document.getElementById("input-field-partial-acres").value = "";
-      document.getElementById("input-field-harvested-at").value = "";
+      document.getElementById("input-field-harvested-at").value = ""; document.getElementById("input-field-started-at").value = "";
       selectFieldColor(FIELD_COLORS[fields.length % FIELD_COLORS.length]);
       document.getElementById("field-edit-only-row").classList.add("hidden");
     }
@@ -5111,7 +5111,7 @@ service cloud.firestore {
     document.getElementById("field-harvest-status-row").classList.toggle("hidden", isFutureYear(currentYear));
     if(isFutureYear(currentYear)){
       document.getElementById("field-partial-acres-row").classList.add("hidden");
-      document.getElementById("field-harvested-at-row").classList.add("hidden");
+      document.getElementById("field-harvested-at-row").classList.add("hidden"); document.getElementById("field-started-at-row").classList.add("hidden");
     }
     showSheet("field-modal", "field-backdrop");
   }
@@ -5180,7 +5180,7 @@ service cloud.firestore {
     // it as-is, fall back to the old automatic behavior: stamp "now" the
     // moment a field flips to Harvested, keep the existing stamp if it was
     // already Harvested, and clear it if the status isn't Harvested.
-    var oldHarvestStatus = existingField ? (existingField.harvestStatus || "Not Harvested") : "Not Harvested";
+    var oldHarvestStatus = existingField ? (existingField.harvestStatus || "Not Harvested") : "Not Harvested"; var harvestStartedAt = null; if(harvestStatus !== "Not Harvested"){ harvestStartedAt = document.getElementById("input-field-started-at").value || null; if(!harvestStartedAt && oldHarvestStatus === "Not Harvested"){ harvestStartedAt = localDateStr(new Date()); } }
     var harvestedAt = existingField ? (existingField.harvestedAt || null) : null;
     if(harvestStatus === "Harvested" && oldHarvestStatus !== "Harvested"){
       harvestedAt = new Date().toISOString();
@@ -5198,10 +5198,10 @@ service cloud.firestore {
     }
 
     if(editingFieldId){
-      var updates = {name:name, crop:crop, farmer:farmer, harvestStatus:harvestStatus, partialAcresHarvested:partialAcresHarvested, harvestedAt:harvestedAt, color:color};
+      var updates = {name:name, crop:crop, farmer:farmer, harvestStatus:harvestStatus, partialAcresHarvested:partialAcresHarvested, harvestedAt:harvestedAt, harvestStartedAt:harvestStartedAt, color:color};
       if(pendingFieldPoints){ updates.points = pendingFieldPoints; }
       if(sharingEnabled){
-        var fsUpdates = {name:updates.name, crop:updates.crop, farmer:updates.farmer, harvestStatus:updates.harvestStatus, partialAcresHarvested:updates.partialAcresHarvested, harvestedAt:updates.harvestedAt, color:updates.color};
+        var fsUpdates = {name:updates.name, crop:updates.crop, farmer:updates.farmer, harvestStatus:updates.harvestStatus, partialAcresHarvested:updates.partialAcresHarvested, harvestedAt:updates.harvestedAt, harvestStartedAt:updates.harvestStartedAt || null, color:updates.color};
         if(updates.points){ fsUpdates.points = pointsToFirestore(updates.points); }
         fieldDocRef(editingFieldId).update(fsUpdates).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
@@ -5215,7 +5215,7 @@ service cloud.firestore {
         var f = fields.find(function(x){ return x.id === editingFieldId; });
         if(f){
           f.name = updates.name; f.crop = updates.crop; f.farmer = updates.farmer; f.harvestStatus = updates.harvestStatus;
-          f.partialAcresHarvested = updates.partialAcresHarvested; f.harvestedAt = updates.harvestedAt; f.color = updates.color;
+          f.partialAcresHarvested = updates.partialAcresHarvested; f.harvestedAt = updates.harvestedAt; f.harvestStartedAt = updates.harvestStartedAt; f.color = updates.color;
           if(updates.points){ f.points = updates.points; }
         }
         if(nameChanged){
@@ -5240,13 +5240,13 @@ service cloud.firestore {
         farmer: farmer,
         harvestStatus: harvestStatus,
         partialAcresHarvested: partialAcresHarvested,
-        harvestedAt: harvestedAt,
+        harvestedAt: harvestedAt, harvestStartedAt: harvestStartedAt,
         color: color,
         points: pendingFieldPoints,
         createdAt: new Date().toISOString()
       };
       if(sharingEnabled){
-        fieldDocRef(newField.id).set({name:newField.name, crop:newField.crop, farmer:newField.farmer, harvestStatus:newField.harvestStatus, partialAcresHarvested:newField.partialAcresHarvested, harvestedAt:newField.harvestedAt, color:newField.color, points:pointsToFirestore(newField.points), createdAt:newField.createdAt}).catch(function(){
+        fieldDocRef(newField.id).set({name:newField.name, crop:newField.crop, farmer:newField.farmer, harvestStatus:newField.harvestStatus, partialAcresHarvested:newField.partialAcresHarvested, harvestedAt:newField.harvestedAt, harvestStartedAt:newField.harvestStartedAt || null, color:newField.color, points:pointsToFirestore(newField.points), createdAt:newField.createdAt}).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
         });
       } else {
@@ -5389,7 +5389,7 @@ service cloud.firestore {
       '<table class="report-table"><thead><tr><th>Crop</th><th>Fields</th><th>Acres</th><th>% of farm</th></tr></thead><tbody>'+
       cropRows+
       '</tbody></table>'+
-      '<table class="report-table" style="margin-top:10px;"><thead><tr><th>Harvest status</th><th>Acres</th></tr></thead><tbody>'+
+      buildLeftByCropHtml()+'<table class="report-table" style="margin-top:10px;"><thead><tr><th>Harvest status</th><th>Acres</th></tr></thead><tbody>'+
         '<tr><td>✅ Harvested</td><td>'+totals.harvestedAcres.toFixed(1)+'</td></tr>'+
         '<tr><td>🌗 Partial (so far)</td><td>'+totals.partialAcres.toFixed(1)+'</td></tr>'+
         '<tr><td>⬜ Not harvested</td><td>'+totals.notHarvestedAcres.toFixed(1)+'</td></tr>'+
@@ -5397,7 +5397,7 @@ service cloud.firestore {
     '</div>';
   }
 
-  function buildCropDetailReportHtml(){
+  function buildLeftByCropHtml(){ var by = {}, order = []; fields.forEach(function(f){ if(!f.points || f.points.length < 3) return; var ac = polygonAreaAcres(f.points); var c = (f.crop && CROP_COLORS[f.crop]) ? f.crop : "No Crop"; if(!by[c]){ by[c] = {acres:0, done:0}; order.push(c); } var st = harvestStatusOf(f); by[c].acres += ac; by[c].done += st === "Harvested" ? ac : (st === "Partial Harvested" ? partialAcresOf(f) : 0); }); if(!order.length) return ""; order.sort(function(a, b){ return (by[b].acres - by[b].done) - (by[a].acres - by[a].done); }); var T = {acres:0, done:0}; var rows = order.map(function(c){ var x = by[c]; T.acres += x.acres; T.done += x.done; var left = Math.max(0, x.acres - x.done); var pct = x.acres > 0 ? Math.round(x.done / x.acres * 100) : 0; return '<tr><td>'+(CROP_ICONS[c] ? CROP_ICONS[c]+' ' : '')+escapeHtml(c)+'</td><td>'+x.acres.toFixed(1)+'</td><td>'+x.done.toFixed(1)+'</td><td><b>'+left.toFixed(1)+'</b></td><td>'+pct+'%</td></tr>'; }).join(""); var tl = Math.max(0, T.acres - T.done); return '<h3 style="margin-top:16px;">⏳ Left to harvest (by crop)</h3><table class="report-table"><thead><tr><th>Crop</th><th>Acres</th><th>Harvested</th><th>Left</th><th>Done</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>Total</td><td>'+T.acres.toFixed(1)+'</td><td>'+T.done.toFixed(1)+'</td><td>'+tl.toFixed(1)+'</td><td>'+(T.acres > 0 ? Math.round(T.done / T.acres * 100) : 0)+'%</td></tr></tfoot></table>'; }   function buildCropDetailReportHtml(){
     if(fields.length === 0){
       return '<div class="report-section"><h3>🗺️ Crop Report (by field)</h3><div class="report-empty">No fields have been mapped yet.</div></div>';
     }
@@ -5424,12 +5424,12 @@ service cloud.firestore {
       if(hStatus === "Partial Harvested"){
         hLabel = "Partial (" + partialAcresOf(f).toFixed(1) + " of " + acres.toFixed(1) + " ac)";
       }
-      var hWhen = (hStatus === "Harvested" && f.harvestedAt) ? formatHarvestedAt(f.harvestedAt) : "—";
-      return '<tr><td>'+escapeHtml(f.name||"Field")+'</td><td>'+acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+hIcon+' '+escapeHtml(hLabel)+(hStatus === "Partial Harvested" ? ' · <b>'+Math.max(0, acres - partialAcresOf(f)).toFixed(1)+' ac left</b>' : '')+'</td><td>'+escapeHtml(hWhen)+'</td></tr>';
+      var hWhen = (hStatus === "Harvested" && f.harvestedAt) ? shortReportDate(f.harvestedAt) : "—"; var hStart = (hStatus !== "Not Harvested" && f.harvestStartedAt) ? shortReportDate(String(f.harvestStartedAt).slice(0, 10) + "T12:00:00") : "—";
+      return '<tr><td>'+escapeHtml(f.name||"Field")+'</td><td>'+acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+hIcon+' '+escapeHtml(hLabel)+(hStatus === "Partial Harvested" ? ' · <b>'+Math.max(0, acres - partialAcresOf(f)).toFixed(1)+' ac left</b>' : '')+'</td><td>'+escapeHtml(hStart)+'</td><td>'+escapeHtml(hWhen)+'</td></tr>';
     }).join("");
     return '<div class="report-section">'+
       '<h3>🗺️ Crop Report (by field)</h3>'+
-      '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th><th>Harvest status</th><th>Harvested on</th></tr></thead><tbody>'+
+      '<table class="report-table crop-detail"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th><th>Harvest status</th><th>Started</th><th>Finished</th></tr></thead><tbody>'+
       rows+
       '</tbody></table>'+
     '</div>';
@@ -5438,7 +5438,7 @@ service cloud.firestore {
   // Formats the harvestedAt ISO timestamp for display in the Crop Report —
   // e.g. "Sep 22, 2026, 3:45 PM". Falls back to the raw value if it can't be
   // parsed as a date (shouldn't normally happen).
-  function formatHarvestedAt(iso){
+  function shortReportDate(iso){ var d = new Date(iso); if(isNaN(d.getTime())) return String(iso); return d.getFullYear() === new Date().getFullYear() ? d.toLocaleDateString(undefined, {month:"short", day:"numeric"}) : d.toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"}); }   function formatHarvestedAt(iso){
     var d = new Date(iso);
     if(isNaN(d.getTime())) return iso;
     var datePart = d.toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
@@ -6283,7 +6283,7 @@ service cloud.firestore {
   // Options offered in the reason dropdown shown before a truck-load entry
   // is actually deleted or edited. "Other" reveals a free-text box.
   var LOG_DELETE_REASONS = ["Duplicate entry", "Entered by mistake", "Wrong bin selected", "Test entry", "Other"];
-  var LOG_EDIT_REASONS = ["Wrong truck size (tandem/semi)", "Wrong load amount (fraction)", "Wrong crop", "Wrong date/time", "Correcting a typo or note", "Other"];
+  var LOG_EDIT_REASONS = ["Added more grain", "Removed some grain", "Wrong truck size (tandem/semi)", "Wrong load amount (fraction)", "Wrong crop", "Wrong date/time", "Correcting a typo or note", "Other"];
 
   var logReasonOnConfirm = null;
   var logReasonOnCancel = null;
@@ -8244,7 +8244,7 @@ service cloud.firestore {
         fieldsIn.forEach(function(f){
           if(f && Array.isArray(f.points) && f.points.length >= 3 && !existingFieldIds.has(f.id)){
             if(sharingEnabled){
-              fieldDocRef(f.id).set({name:f.name||"Field", crop:f.crop||"", harvestStatus:f.harvestStatus||"Not Harvested", partialAcresHarvested:(typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0), harvestedAt:f.harvestedAt||null, color:f.color||FIELD_COLORS[0], points:pointsToFirestore(f.points), createdAt:f.createdAt||new Date().toISOString()});
+              fieldDocRef(f.id).set({name:f.name||"Field", crop:f.crop||"", harvestStatus:f.harvestStatus||"Not Harvested", partialAcresHarvested:(typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0), harvestedAt:f.harvestedAt||null, harvestStartedAt:f.harvestStartedAt||null, color:f.color||FIELD_COLORS[0], points:pointsToFirestore(f.points), createdAt:f.createdAt||new Date().toISOString()});
             } else {
               fields.push(f);
             }
@@ -8764,7 +8764,7 @@ service cloud.firestore {
             crop: f.crop || "",
             harvestStatus: f.harvestStatus || "Not Harvested",
             partialAcresHarvested: (typeof f.partialAcresHarvested === "number" ? f.partialAcresHarvested : 0),
-            harvestedAt: f.harvestedAt || null,
+            harvestedAt: f.harvestedAt || null, harvestStartedAt: f.harvestStartedAt || null,
             color: f.color || FIELD_COLORS[0],
             points: pointsToFirestore(f.points),
             createdAt: f.createdAt || new Date().toISOString()
