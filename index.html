@@ -1235,7 +1235,7 @@
   </div>
 
   <div class="field-row hidden" id="field-started-at-row"><label>Harvest started <span style="font-weight:400;color:var(--muted);">(edit if this isn't right)</span></label><input type="date" id="input-field-started-at"></div><div class="field-row hidden" id="field-harvested-at-row">
-    <label>Finished on <span style="font-weight:400;color:var(--muted);">(edit if this isn't right)</span></label>
+    <label>Finished on <span id="finished-hint" style="font-weight:400;color:var(--muted);">(edit if this isn't right)</span></label>
     <input type="datetime-local" id="input-field-harvested-at">
   </div>
 
@@ -4926,7 +4926,7 @@ service cloud.firestore {
 
     document.getElementById("field-label-actions-stats").innerHTML =
       '<div class="summary-row summary-total"><span>'+cropLine+'</span><span>'+acres.toFixed(1)+' acres</span></div>'+
-      '<div class="summary-row"><span>'+harvestLine+'</span></div>'+
+      '<div class="summary-row"><span>'+harvestLine+'</span></div>'+(hStatus !== "Not Harvested" ? '<div class="summary-row" style="font-size:14px;"><span>▶️ Started harvesting</span><span>'+(f.harvestStartedAt ? escapeHtml(shortReportDate(String(f.harvestStartedAt).slice(0, 10) + "T12:00:00")) : "—")+'</span></div><div class="summary-row" style="font-size:14px;"><span>🏁 Finished</span><span>'+(hStatus === "Harvested" && f.harvestedAt ? escapeHtml(shortReportDate(f.harvestedAt)) : "—")+'</span></div>' : '')+
       '<div class="summary-row"><span>🪨 Rocks left to pick</span><span>'+rockCount+'</span></div>'+
       ((f.seedVariety || f.plantedOn || fieldAppsOf(f).length || typeof f.yieldBuAc === "number")
         ? '<div class="summary-row" style="font-size:14px;"><span>📒 '+escapeHtml([f.seedVariety, f.plantedOn ? "planted " + new Date(f.plantedOn+"T12:00:00").toLocaleDateString() : "", fieldAppsOf(f).length ? fieldAppsOf(f).length + " passes" : "", typeof f.yieldBuAc === "number" ? f.yieldBuAc + " bu/ac" : ""].filter(Boolean).join(" · "))+'</span></div>' : '');
@@ -5067,7 +5067,7 @@ service cloud.firestore {
     var isHarvested = status === "Harvested";
     var row = document.getElementById("field-harvested-at-row");
     var input = document.getElementById("input-field-harvested-at");
-    row.classList.toggle("hidden", !isHarvested);
+    row.classList.toggle("hidden", !(isHarvested || status === "Partial Harvested")); var fh = document.getElementById("finished-hint"); if(fh) fh.textContent = isHarvested ? "(edit if this isn't right)" : "(fill in when the field is done — it will be marked Harvested)";
     if(isHarvested && input.value === ""){
       // Default to now so it's pre-filled with something sensible; the
       // admin can still change it to backdate an older harvest.
@@ -5162,7 +5162,7 @@ service cloud.firestore {
     // Harvest tracking doesn't apply to a future planning year — the
     // dropdown is hidden in the modal for those years, but force it here
     // too as a safety net regardless of stale form state.
-    if(isFutureYear(currentYear)){ harvestStatus = "Not Harvested"; }
+    if(isFutureYear(currentYear)){ harvestStatus = "Not Harvested"; } if(harvestStatus === "Partial Harvested" && document.getElementById("input-field-harvested-at").value){ harvestStatus = "Harvested"; }
     var color = selectedFieldColor || FIELD_COLORS[0];
 
     var partialAcresHarvested = 0;
