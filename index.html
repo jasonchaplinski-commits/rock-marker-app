@@ -560,7 +560,7 @@
   #btn-menu .menu-dot{position:absolute;top:-3px;right:-3px;margin:0;}
   .appr-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);}
   .appr-row .rock-info{flex:1;min-width:0;}
-  .appr-row .btn{flex:none;padding:9px 12px;font-size:14px;}
+  .appr-row .btn{flex:none;padding:9px 12px;font-size:14px;} .appr-row{flex-wrap:wrap;} .appr-row .rock-info{min-width:150px;} .appr-acts{display:flex;gap:8px;align-items:center;margin-left:auto;} .role-sel{border:1px solid var(--line);border-radius:10px;padding:8px 8px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);} .role-tag{font-size:13px;font-weight:700;padding:6px 4px;}
   #access-gate-logo, #name-gate-logo{width:88px;height:88px;border-radius:20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
   #access-gate-card h2, #name-gate-card h2{margin:0 0 6px 0;color:var(--ink);}
   #access-gate-card p, #name-gate-card p{margin:0 0 18px 0;color:var(--ink);font-size:14px;}
@@ -1144,7 +1144,7 @@
   <div id="approve-pending"></div>
   <div class="rec-section">Approved</div>
   <div id="approve-members"></div>
-  <div class="coord-readout" style="margin-top:12px;">Removing someone locks them out right away, on every device they use.</div>
+  <div class="coord-readout" style="margin-top:12px;"><b>👷 Worker</b> — marks rocks, logs loads, sets harvest status, logs service hours, jobs and parts, their own My Info.<br><b>⭐ Manager</b> — all of that, plus adding/changing/deleting fields, boundaries, bins, equipment and belts, who farms a field, and the bin archive.<br><b>🏛️ Executive</b> — all of that, plus Employee Info and this Approve users screen (approve, remove, set Worker/Manager — but can't make or change Executives).<br><b>👑 Web Administrator (you)</b> — everything. You're recognized by your own login, so no one can remove or change you.<br>Removing someone locks them out right away, on every device they use.</div>
 </div>
 
 <!-- List sheet -->
@@ -1220,7 +1220,7 @@
   </div>
 
   <div class="field-row">
-    <label>Farmed by <span style="font-weight:400;color:var(--muted);">(admin to change)</span></label>
+    <label>Farmed by <span style="font-weight:400;color:var(--muted);">(manager to change)</span></label>
     <select id="input-field-farmer">
       <option value="">— Unassigned —</option>
       <option value="Brenda">Brenda</option>
@@ -1963,17 +1963,17 @@ service cloud.firestore {
   // equipment. Unlike ACCESS_CODE above, this one is never
   // remembered/saved, so it's asked for fresh every time, for every one of
   // those actions. To change it, edit this line and re-upload index.html.
-  var ADMIN_CODE = "218";
+  var ROLE_KEY = "rockMarkerRole_v1";   var myRole = "worker";   try{ myRole = localStorage.getItem(ROLE_KEY) || "worker"; }catch(e){}   function canManage(){ if(typeof isOwnerUser === "function" && isOwnerUser(farmUser)) return true; return myRole === "manager" || myRole === "executive" || myRole === "owner"; }   function isAdminRole(){ return (typeof isOwnerUser === "function" && isOwnerUser(farmUser)) || myRole === "owner" || myRole === "executive"; }   function roleName(r){ return r === "executive" ? "🏛️ Executive" : (r === "manager" ? "⭐ Manager" : "👷 Worker"); }   function roleControls(m){ var r = m.role || "worker"; var iAmOwner = isOwnerUser(farmUser); var isSelf = !!(farmUser && m.uid === farmUser.uid); if(!iAmOwner && (r === "executive" || isSelf)){ return '<div class="appr-acts"><span class="role-tag">' + roleName(r) + '</span></div>'; } var opts = ["worker", "manager"]; if(iAmOwner) opts.push("executive"); return '<div class="appr-acts"><select class="role-sel" aria-label="Role">' + opts.map(function(o){ return '<option value="' + o + '"' + (o === r ? " selected" : "") + ">" + roleName(o) + "</option>"; }).join("") + '</select><button class="btn btn-secondary" data-act="remove">Remove</button></div>'; }   function setMyRole(r){ var prev = myRole; myRole = r; try{ localStorage.setItem(ROLE_KEY, r); }catch(e){} updateRoleUI(); if(prev !== r && (prev === "executive" || r === "executive") && accessGranted){ toast("Your access level changed — reloading…"); setTimeout(function(){ location.reload(); }, 1200); } }   function updateRoleUI(){ var lock = !canManage(); var fs = document.getElementById("input-field-farmer"); if(fs) fs.disabled = lock && !!editingFieldId; var fn = document.getElementById("input-field-name"); if(fn) fn.disabled = lock && !!editingFieldId; }
 
   // Prompts for ADMIN_CODE and returns true only if it was entered
   // correctly. Cancelling or getting it wrong both quietly stop whatever
   // was about to happen — no need to double up with a toast on cancel,
   // since backing out is exactly what "Cancel" means here.
   function checkAdminCode(){
-    if(typeof isOwnerUser === "function" && isOwnerUser(farmUser)) return true; // Jason's own login
-    var entered = prompt("Enter the admin code to continue:");
+    if(canManage()) return true;     toast("Only Jason or a Manager can do that."); return false;
+    var entered = null;
     if(entered === null) return false;
-    if(entered.trim() !== ADMIN_CODE){
+    if(entered !== null){
       toast("Incorrect code.");
       return false;
     }
@@ -5082,7 +5082,7 @@ service cloud.firestore {
       document.getElementById("field-modal-title").textContent = "Edit field";
       document.getElementById("input-field-name").value = field.name || "";
       document.getElementById("input-field-crop").value = field.crop || "";
-      document.getElementById("input-field-farmer").value = field.farmer || "";
+      document.getElementById("input-field-farmer").value = field.farmer || ""; setTimeout(updateRoleUI, 0);
       document.getElementById("input-field-harvest").value = harvestStatusOf(field);
       document.getElementById("input-field-partial-acres").value =
         (typeof field.partialAcresHarvested === "number" && !isNaN(field.partialAcresHarvested)) ? field.partialAcresHarvested : "";
@@ -5096,7 +5096,7 @@ service cloud.firestore {
       document.getElementById("field-modal-title").textContent = "Name this field";
       document.getElementById("input-field-name").value = "";
       document.getElementById("input-field-crop").value = "";
-      document.getElementById("input-field-farmer").value = "";
+      document.getElementById("input-field-farmer").value = ""; document.getElementById("input-field-farmer").disabled = false; document.getElementById("input-field-name").disabled = false;
       document.getElementById("input-field-harvest").value = "Not Harvested";
       document.getElementById("input-field-partial-acres").value = "";
       document.getElementById("input-field-harvested-at").value = ""; document.getElementById("input-field-started-at").value = "";
@@ -7761,7 +7761,7 @@ service cloud.firestore {
         firstName:first, lastName:last, phone:phone, address:address, city:city, state:state, zip:zip, email:email,
         createdAt: new Date().toISOString()
       };
-      if(farmUser && farmUser.uid && !isOwnerUser(farmUser)){ newEmployee.ownerUid = farmUser.uid; }
+      if(farmUser && farmUser.uid && !isOwnerUser(farmUser) && (employeeModalIsSelf || myRole !== "executive")){ newEmployee.ownerUid = farmUser.uid; }
       if(sharingEnabled){
         employeeDocRef(newEmployee.id).set(newEmployee).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
@@ -8491,7 +8491,7 @@ service cloud.firestore {
     );
 
     unsubscribeFns.push(
-      (isOwnerUser(farmUser) || !(farmUser && farmUser.uid)
+      (isAdminRole() || !(farmUser && farmUser.uid)
         ? firestoreDb.collection("farms").doc(farmCode).collection("employees")
         : firestoreDb.collection("farms").doc(farmCode).collection("employees").where("ownerUid", "==", farmUser.uid)
       ).onSnapshot(function(snapshot){
@@ -8633,7 +8633,7 @@ service cloud.firestore {
     targetRef.limit(1).get().then(function(snap){
       if(!snap.empty){ finishSwitch(); return; }
       findNearestYearWithData(targetYear, function(sourceYear){
-        if(!sourceYear){ finishSwitch(); return; }
+        if(!sourceYear){ finishSwitch(); return; } if(!canManage()){ toast(targetYear + " isn't set up yet — ask Jason or a Manager."); finishSwitch(); return; }
         var wantsCopy = confirm(
           targetYear + " has no fields yet.\n\nStart it as a copy of " + sourceYear + "'s current boundaries and crops, as a starting point you can edit for " + targetYear + " without changing " + sourceYear + "?\n\nOK = copy from " + sourceYear + "\nCancel = start " + targetYear + " empty"
         );
@@ -9266,7 +9266,7 @@ service cloud.firestore {
       closeSideMenu();
       openCropPlanSheet();
     });
-    document.getElementById("menu-item-employees").addEventListener("click", function(){
+    document.getElementById("menu-item-employees").addEventListener("click", function(){ if(!isAdminRole()){ toast("Only Jason or an Executive can open Employee Info."); return; }
       closeSideMenu();
       if(!checkAdminCode()) return;
       employeeModalIsSelf = false;
@@ -9633,7 +9633,7 @@ service cloud.firestore {
       }
     });
 
-    document.getElementById("btn-draw-bin").addEventListener("click", function(){
+    document.getElementById("btn-draw-bin").addEventListener("click", function(){ if(!checkAdminCode()) return;
       editingBinId = null;
       startDrawingBin();
     });
@@ -10062,11 +10062,11 @@ service cloud.firestore {
     try{ localStorage.setItem(SIGNED_IN_KEY, "1"); localStorage.removeItem(ACCESS_CODE_KEY); }catch(e){}
     document.getElementById("wait-gate").classList.add("hidden");
     document.getElementById("access-gate").classList.add("hidden");
-    var owner = isOwnerUser(farmUser);
+    var owner = isOwnerUser(farmUser) || myRole === "executive";
     document.getElementById("menu-item-approve").classList.toggle("hidden", !owner);
     document.getElementById("menu-item-employees").classList.toggle("hidden", !owner);
     if(!sharingEnabled){ tryAutoReconnect(); }
-    if(owner){ startOwnerWatch(); }
+    if(owner){ if(isOwnerUser(farmUser)) setMyRole("owner"); startOwnerWatch(); } else { updateRoleUI(); }
     if(splashDone && !hasDeviceName()){ showNameGate(); }
     if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
   }
@@ -10079,7 +10079,7 @@ service cloud.firestore {
     if(memberUnsub){ memberUnsub(); memberUnsub = null; }
     memberUnsub = farmRootRef().collection("members").doc(u.uid).onSnapshot({includeMetadataChanges:true}, function(d){
       if(d.exists){
-        try{ localStorage.setItem(approvedKey(u.uid), "1"); }catch(e){}
+        try{ localStorage.setItem(approvedKey(u.uid), "1"); }catch(e){} var rr = (d.data() || {}).role; setMyRole(rr === "manager" || rr === "executive" ? rr : "worker");
         grantAccess();
       } else {
         if(d.metadata && d.metadata.fromCache) return; // offline — keep whatever we had
@@ -10172,7 +10172,7 @@ service cloud.firestore {
     var list = farmMembers.slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); });
     me.innerHTML = list.length ? list.map(function(m){
       return '<div class="appr-row" data-uid="'+escapeHtml(m.uid)+'"><div class="rock-info"><div class="r1">'+escapeHtml(m.name || "(no name)")+'</div><div class="r2">'+escapeHtml(m.email || "")+(m.approvedAt ? " · since " + new Date(m.approvedAt).toLocaleDateString() : "")+'</div></div>'+
-        '<button class="btn btn-secondary" data-act="remove">Remove</button></div>';
+        roleControls(m)+'</div>';
     }).join("") : '<div class="rec-empty">No one approved yet — just you.</div>';
   }
   function approveAction(uid, act){
@@ -10180,7 +10180,7 @@ service cloud.firestore {
     var now = new Date().toISOString();
     if(act === "approve"){
       var r = pendingRequests.find(function(x){ return x.uid === uid; }) || {};
-      root.collection("members").doc(uid).set({name:r.name || "", email:r.email || "", approvedAt:now, approvedBy:(farmUser && farmUser.email) || ""})
+      root.collection("members").doc(uid).set({name:r.name || "", email:r.email || "", approvedAt:now, approvedBy:(farmUser && farmUser.email) || "", role:"worker"})
         .then(function(){ return root.collection("accessRequests").doc(uid).update({status:"approved", decidedAt:now}); })
         .then(function(){ toast((r.name || "They") + " can use the app now"); })
         .catch(function(){ toast("Couldn't approve — check your connection."); });
@@ -10340,7 +10340,7 @@ service cloud.firestore {
         var row = b.closest("[data-uid]"); if(row) approveAction(row.getAttribute("data-uid"), b.getAttribute("data-act"));
       });
     });
-    var so = document.getElementById("menu-item-sign-out");
+    document.getElementById("approve-members").addEventListener("change", function(ev){ if(!ev.target.classList.contains("role-sel")) return; var row = ev.target.closest("[data-uid]"); if(!row) return; var uid = row.getAttribute("data-uid"), r = ev.target.value; var m = farmMembers.find(function(x){ return x.uid === uid; }) || {}; farmRootRef().collection("members").doc(uid).update({role:r}).then(function(){ toast((m.name || "They") + " is now " + roleName(r)); }).catch(function(){ toast("Couldn't change — check your connection."); renderApproveSheet(); }); });     var so = document.getElementById("menu-item-sign-out");
     if(so) so.addEventListener("click", function(){ closeSideMenu(); signOutThisDevice(); });
   }
 
