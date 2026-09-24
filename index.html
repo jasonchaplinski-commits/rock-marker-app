@@ -547,7 +547,20 @@
   }
   #access-gate.hidden{display:none;}
   #access-gate input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink);box-sizing:border-box;}
-  #access-gate-card, #name-gate-card{width:100%;max-width:320px;text-align:center;}
+  #access-gate-card, #name-gate-card, #wait-gate-card{width:100%;max-width:320px;text-align:center;}
+  #wait-gate{position:fixed;inset:0;z-index:3500;background:var(--cream);display:flex;align-items:center;justify-content:center;padding:24px;}
+  #wait-gate.hidden{display:none;}
+  #wait-gate h2{margin:0 0 6px 0;color:var(--ink);} #wait-gate p{margin:0 0 18px 0;color:var(--ink);font-size:14px;}
+  #wait-gate input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink);box-sizing:border-box;}
+  .gate-logo{width:88px;height:88px;border-radius:20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+  #wait-email{font-size:13px;margin-top:14px;}
+  .gate-link{background:none;border:none;color:var(--green-dark);font-weight:700;font-size:14px;margin-top:14px;cursor:pointer;text-decoration:underline;font-family:inherit;padding:6px;}
+  .menu-badge{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:#c62828;color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;padding:0 5px;margin-left:6px;vertical-align:middle;}
+  #btn-menu{position:relative;}
+  #btn-menu .menu-dot{position:absolute;top:-3px;right:-3px;margin:0;}
+  .appr-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .appr-row .rock-info{flex:1;min-width:0;}
+  .appr-row .btn{flex:none;padding:9px 12px;font-size:14px;}
   #access-gate-logo, #name-gate-logo{width:88px;height:88px;border-radius:20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
   #access-gate-card h2, #name-gate-card h2{margin:0 0 6px 0;color:var(--ink);}
   #access-gate-card p, #name-gate-card p{margin:0 0 18px 0;color:var(--ink);font-size:14px;}
@@ -702,10 +715,46 @@
   /* New sheets open on top of whatever list they were opened from. */
   #service-modal, #parts-modal, #chooser-modal, #field-record-modal{z-index:960;}
   #service-backdrop, #parts-backdrop, #chooser-backdrop, #field-record-backdrop{z-index:955;}
+  /* Parts shopping list */
+  .parts-hint{font-size:13px;margin:0 0 8px;}
+  .part-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .part-row.picked{background:#eef4ec;margin:0 -8px;padding:10px 8px;border-radius:10px;}
+  .part-check input{width:24px;height:24px;accent-color:var(--green);}
+  .part-info{flex:1;min-width:0;}
+  .part-num{font-weight:800;font-size:16px;word-break:break-word;}
+  .part-sub{font-size:12.5px;}
+  .part-links{display:flex;gap:14px;margin-top:4px;font-size:13px;font-weight:700;}
+  .part-links a, .svc-sub a{color:var(--green-dark);}
+  .part-qty{width:58px;border:1px solid var(--line);border-radius:8px;padding:8px 6px;font-size:16px;text-align:center;font-family:inherit;}
+  .parts-add{display:flex;gap:8px;margin-top:10px;}
+  .parts-add input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;}
+  .parts-add .btn{flex:none;padding:10px 14px;}
+  #parts-selected-count{font-size:13px;font-weight:700;margin-top:10px;color:var(--green-dark);}
+  .btn:disabled{opacity:.45;}
+  /* Jobs list */
+  .job-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;-webkit-overflow-scrolling:touch;}
+  .job-chip{flex:none;border:1px solid var(--line);background:#fff;border-radius:16px;padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink);}
+  .job-chip.active{background:var(--green);color:#fff;border-color:var(--green);}
+  .job-row{display:flex;align-items:flex-start;gap:10px;padding:10px 8px;margin-bottom:6px;border-radius:10px;background:#fff;border:1px solid var(--line);border-left:6px solid #9e9e9e;}
+  .job-row.p1{border-left-color:#c62828;} .job-row.p2{border-left-color:#ef6c00;} .job-row.p3{border-left-color:#2e7d32;}
+  .job-row.done .job-title{text-decoration:line-through;opacity:.6;}
+  .job-info{flex:1;min-width:0;cursor:pointer;}
+  .job-title{font-weight:800;font-size:15.5px;}
+  .job-sub{font-size:12.5px;margin-top:2px;}
+  .job-notes{font-size:13px;margin-top:3px;font-style:italic;}
+  .job-pr{font-weight:800;border-radius:6px;padding:1px 6px;font-size:11px;color:#fff;}
+  .job-pr.p1{background:#c62828;} .job-pr.p2{background:#ef6c00;} .job-pr.p3{background:#2e7d32;}
+  .jobs-badge{background:#546e7a;} .jobs-badge.urgent{background:#c62828;}
+  .idea-row{display:flex;align-items:center;gap:10px;padding:9px 2px;font-size:15px;border-bottom:1px solid var(--line);}
+  .idea-row input{width:22px;height:22px;flex:none;accent-color:var(--green);}
+  .idea-row.have{opacity:.55;} .idea-have{font-size:11px;font-style:italic;}
+  #jobs-modal, #job-editor-modal, #job-ideas-modal{z-index:960;}
+  #jobs-backdrop, #job-editor-backdrop, #job-ideas-backdrop{z-index:955;}
+  #job-editor-modal, #job-ideas-modal{z-index:970;} #job-editor-backdrop, #job-ideas-backdrop{z-index:965;}
   /* Chooser */
   .chooser-item{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:15px;cursor:pointer;color:var(--ink);font-family:inherit;}
   .chooser-sub{font-size:12.5px;margin-top:3px;}
-  #chooser-modal h2, #service-modal h2, #parts-modal h2{display:flex;justify-content:space-between;align-items:center;}
+  #chooser-modal h2, #service-modal h2, #parts-modal h2, #jobs-modal h2, #job-ideas-modal h2{display:flex;justify-content:space-between;align-items:center;}
 </style>
 </head>
 <body>
@@ -717,12 +766,26 @@
 <div id="access-gate" class="hidden">
   <div id="access-gate-card">
     <img src="icon-512.png" alt="Chaplinski Farms" id="access-gate-logo">
-    <h2>Farm sign-in</h2>
-    <p>Sign in with the Chaplinski Farms login. Ask Jason for it. Each phone or computer only has to do this once.</p>
+    <h2 id="gate-title">Farm sign-in</h2>
+    <p id="gate-text">Sign in with your email and password. Each phone or computer only has to do this once.</p>
+    <input type="text" id="input-signup-name" class="hidden" autocomplete="name" placeholder="Your first and last name" style="margin-bottom:10px;">
     <input type="email" id="input-login-email" autocomplete="username" placeholder="Email" style="margin-bottom:10px;">
     <input type="password" id="input-login-password" autocomplete="current-password" placeholder="Password">
     <div class="hidden" id="access-gate-error">That email or password isn't right — try again.</div>
     <button class="btn btn-primary" id="btn-access-gate-submit" style="width:100%;margin-top:12px;">Sign in</button>
+    <button type="button" class="gate-link" id="btn-gate-mode">New here? Request access</button>
+  </div>
+</div>
+
+<div id="wait-gate" class="hidden">
+  <div id="wait-gate-card">
+    <img src="icon-512.png" alt="Chaplinski Farms" class="gate-logo">
+    <h2 id="wait-title">Waiting for approval</h2>
+    <p id="wait-text">Jason has been sent your request. This screen opens up by itself as soon as he approves it.</p>
+    <input type="text" id="input-wait-name" class="hidden" autocomplete="name" placeholder="Your first and last name" style="margin-bottom:10px;">
+    <button class="btn btn-primary hidden" id="btn-wait-request" style="width:100%;">Request access</button>
+    <div id="wait-email"></div>
+    <button type="button" class="gate-link" id="btn-wait-signout">Sign out / use a different email</button>
   </div>
 </div>
 
@@ -765,6 +828,7 @@
     <select id="input-crop-year"></select>
   </div>
   <div class="side-menu-sep"></div>
+  <div class="side-menu-item" id="menu-item-jobs"><span class="smi-icon">🛠️</span> Jobs list <span class="menu-badge jobs-badge hidden" id="jobs-count"></span></div>
   <div class="side-menu-item" id="menu-item-equipment"><span class="smi-icon">🚜</span> Equipment</div>
   <div class="side-menu-item" id="menu-item-belts"><span class="smi-icon">⚙️</span> Belts</div>
   <div class="side-menu-item" id="menu-item-reports"><span class="smi-icon">📊</span> Reports</div>
@@ -772,7 +836,8 @@
   <div class="side-menu-item" id="menu-item-crop-plan"><span class="smi-icon">📄</span> Crop Planning</div>
   <div class="side-menu-sep"></div>
   <div class="side-menu-item" id="menu-item-my-info"><span class="smi-icon">📝</span> My Info</div>
-  <div class="side-menu-item" id="menu-item-employees"><span class="smi-icon">🪪</span> Employee Info (admin)</div>
+  <div class="side-menu-item hidden" id="menu-item-approve"><span class="smi-icon">✅</span> Approve users <span class="menu-badge hidden" id="approve-count"></span></div>
+  <div class="side-menu-item hidden" id="menu-item-employees"><span class="smi-icon">🪪</span> Employee Info</div>
   <div class="side-menu-item" id="menu-item-sign-out"><span class="smi-icon">🔒</span> Sign out of this device</div>
 </div>
 
@@ -985,6 +1050,7 @@
     <div class="auto-hint" id="service-hours-hint"></div>
   </div>
   <div id="service-items"></div>
+  <button class="btn btn-secondary" id="btn-service-add-job" style="width:100%;margin-top:4px;">🛠️ Add a job for this machine</button>
   <div class="btn-row">
     <button class="btn btn-secondary" id="btn-service-cancel">Cancel</button>
     <button class="btn btn-primary" id="btn-service-save">Save</button>
@@ -996,12 +1062,89 @@
 <div class="sheet" id="parts-modal">
   <div class="sheet-handle"></div>
   <h2>🧾 Parts list <button class="icon-btn" id="btn-parts-close" style="font-size:14px;">✕</button></h2>
-  <div class="list-tools"><label><input type="checkbox" id="parts-only-due"> Only what's due soon</label></div>
+  <div class="list-tools"><label><input type="checkbox" id="parts-only-due"> Only what's due soon</label><button type="button" class="gate-link" id="btn-parts-clear" style="margin:0;">Clear list</button></div>
+  <div class="parts-hint">Tick what you need and set how many. 🔍 looks the part up on John Deere's parts site.</div>
   <div id="parts-list"></div>
+  <div class="parts-add"><input type="text" id="input-parts-extra" placeholder="Add something else (e.g. 5 gal Hy-Gard)"><button class="btn btn-secondary" id="btn-parts-extra-add">+ Add</button></div>
+  <div id="parts-selected-count"></div>
   <div class="btn-row">
-    <button class="btn btn-secondary" id="btn-parts-copy">📋 Copy / share</button>
-    <button class="btn btn-secondary" id="btn-parts-print">🖨️ Print</button>
+    <button class="btn btn-primary parts-out" id="btn-parts-copy">📤 Text / share</button>
+    <button class="btn btn-secondary parts-out" id="btn-parts-picture">🖼️ Save picture</button>
   </div>
+  <div class="btn-row" style="margin-top:8px;">
+    <button class="btn btn-secondary parts-out" id="btn-parts-copytext">📋 Copy</button>
+    <button class="btn btn-secondary parts-out" id="btn-parts-print">🖨️ Print</button>
+  </div>
+</div>
+
+<!-- Jobs list -->
+<div class="sheet-backdrop" id="jobs-backdrop"></div>
+<div class="sheet" id="jobs-modal">
+  <div class="sheet-handle"></div>
+  <h2>🛠️ Jobs list <button class="icon-btn" id="btn-jobs-close" style="font-size:14px;">✕</button></h2>
+  <div class="job-chips" id="jobs-filters">
+    <button class="job-chip" data-f="open">All open</button>
+    <button class="job-chip" data-f="rain">🌧️ Rain day</button>
+    <button class="job-chip" data-f="summer">☀️ Summer</button>
+    <button class="job-chip" data-f="harvest">🌾 Pre-harvest</button>
+    <button class="job-chip" data-f="winter">❄️ Winter</button>
+    <button class="job-chip" data-f="spring">🌱 Pre-planting</button>
+    <button class="job-chip" data-f="done">✅ Done</button>
+  </div>
+  <div class="btn-row" style="margin:0 0 8px;">
+    <button class="btn btn-primary" id="btn-job-add">+ Add job</button>
+    <button class="btn btn-secondary" id="btn-job-ideas">💡 Ideas</button>
+  </div>
+  <div id="jobs-list"></div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-jobs-share">📤 Text / share</button>
+    <button class="btn btn-secondary" id="btn-jobs-picture">🖼️ Picture</button>
+    <button class="btn btn-secondary" id="btn-jobs-print">🖨️ Print</button>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="job-editor-backdrop"></div>
+<div class="sheet" id="job-editor-modal">
+  <div class="sheet-handle"></div>
+  <h2 id="job-editor-title">Add a job</h2>
+  <div class="field-row"><label>What needs doing?</label><input type="text" id="input-job-title" placeholder="e.g. Fix radio in the 8320R"></div>
+  <div class="rec-two">
+    <div class="field-row"><label>Priority</label><select id="input-job-priority"><option value="1">🔴 Urgent</option><option value="2">🟠 Soon</option><option value="3">🟢 When there's time</option></select></div>
+    <div class="field-row"><label>When</label><select id="input-job-when"><option value="anytime">🔧 Anytime</option><option value="rain">🌧️ Rain day</option><option value="summer">☀️ Summer</option><option value="harvest">🌾 Before harvest</option><option value="winter">❄️ Winter project</option><option value="spring">🌱 Before planting</option></select></div>
+  </div>
+  <div class="field-row"><label>Machine (optional)</label><select id="input-job-machine"></select></div>
+  <div class="rec-two">
+    <div class="field-row"><label>Who (optional)</label><input type="text" id="input-job-assigned" list="job-people" placeholder="Anyone"><datalist id="job-people"></datalist></div>
+    <div class="field-row"><label>Status</label><select id="input-job-status"><option value="todo">To do</option><option value="doing">In progress</option><option value="done">Done</option></select></div>
+  </div>
+  <div class="field-row"><label>Notes</label><textarea id="input-job-notes" placeholder="e.g. alternator whines at idle; part # on order"></textarea></div>
+  <div class="coord-readout" id="job-created-info"></div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="btn-job-cancel">Cancel</button>
+    <button class="btn btn-primary" id="btn-job-save">Save job</button>
+  </div>
+  <div class="btn-row hidden" id="job-delete-row"><button class="btn btn-danger" id="btn-job-delete">Delete job</button></div>
+</div>
+
+<div class="sheet-backdrop" id="job-ideas-backdrop"></div>
+<div class="sheet" id="job-ideas-modal">
+  <div class="sheet-handle"></div>
+  <h2>💡 Job ideas <button class="icon-btn" id="btn-ideas-close" style="font-size:14px;">✕</button></h2>
+  <div class="parts-hint">Tick the ones that fit your place, then add them. You can edit or delete them later.</div>
+  <div id="job-ideas-list"></div>
+  <div class="btn-row"><button class="btn btn-primary" id="btn-ideas-add">Add selected to the jobs list</button></div>
+</div>
+
+<!-- Approve users (owner only) -->
+<div class="sheet-backdrop" id="approve-backdrop"></div>
+<div class="sheet" id="approve-modal">
+  <div class="sheet-handle"></div>
+  <h2 style="display:flex;justify-content:space-between;align-items:center;">✅ Approve users <button class="icon-btn" id="btn-close-approve" style="font-size:14px;">✕</button></h2>
+  <div class="rec-section" style="margin-top:4px;">Waiting for you</div>
+  <div id="approve-pending"></div>
+  <div class="rec-section">Approved</div>
+  <div id="approve-members"></div>
+  <div class="coord-readout" style="margin-top:12px;">Removing someone locks them out right away, on every device they use.</div>
 </div>
 
 <!-- List sheet -->
@@ -1793,7 +1936,7 @@ service cloud.firestore {
   // one on its next visit.
   var BAKED_IN_FARM_CODE = "Chaplinski";
   var BAKED_IN_FIREBASE_CONFIG = {
-    apiKey: "AIzaSyAhCpI9ojiVWMyERPKQgm9cB4BzmoAFcqk",
+    apiKey: "AIzaSyAhCpI9ojiVWWyERPKQgm9cB4BzmoAFcqk",
     authDomain: "rock-marker-eeb95.firebaseapp.com",
     projectId: "rock-marker-eeb95",
     storageBucket: "rock-marker-eeb95.firebasestorage.app",
@@ -1827,6 +1970,7 @@ service cloud.firestore {
   // was about to happen — no need to double up with a toast on cancel,
   // since backing out is exactly what "Cancel" means here.
   function checkAdminCode(){
+    if(typeof isOwnerUser === "function" && isOwnerUser(farmUser)) return true; // Jason's own login
     var entered = prompt("Enter the admin code to continue:");
     if(entered === null) return false;
     if(entered.trim() !== ADMIN_CODE){
@@ -2116,13 +2260,14 @@ service cloud.firestore {
         belts = Array.isArray(parsed.belts) ? parsed.belts : [];
         employees = Array.isArray(parsed.employees) ? parsed.employees : [];
         removedRocks = Array.isArray(parsed.removedRocks) ? parsed.removedRocks : [];
+        jobs = Array.isArray(parsed.jobs) ? parsed.jobs : [];
         if(parsed.truckSizes && typeof parsed.truckSizes === "object"){ truckSizes = parsed.truckSizes; }
       }
-    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; equipment = []; belts = []; employees = []; removedRocks = []; }
+    }catch(e){ rocks = []; fields = []; waypoints = []; bins = []; equipment = []; belts = []; employees = []; removedRocks = []; jobs = []; }
   }
   function saveData(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, equipment: equipment, belts: belts, employees: employees, truckSizes: truckSizes, removedRocks: removedRocks}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({rocks: rocks, fields: fields, waypoints: waypoints, bins: bins, equipment: equipment, belts: belts, employees: employees, truckSizes: truckSizes, removedRocks: removedRocks, jobs: jobs}));
     }catch(e){
       toast("Couldn't save — your browser storage may be full or blocked.");
     }
@@ -2681,8 +2826,8 @@ service cloud.firestore {
     editingAppId = null;
     var acres = polygonAreaAcres(f.points);
     document.getElementById("record-title").textContent = "📒 " + (f.name || "Field") + " — " + currentYear;
-    document.getElementById("record-sub").textContent =
-      [(f.crop ? ((CROP_ICONS[f.crop] ? CROP_ICONS[f.crop] + " " : "") + f.crop) : "No crop set"), acres.toFixed(1) + " ac", harvestStatusOf(f)].join(" · ");
+    document.getElementById("record-sub").innerHTML =
+      (f.crop && CROP_ICONS[f.crop] ? CROP_ICONS[f.crop] + " " : "") + escapeHtml([(f.crop || "No crop set"), acres.toFixed(1) + " ac", harvestStatusOf(f)].join(" · "));
     document.getElementById("input-rec-variety").value = f.seedVariety || "";
     document.getElementById("input-rec-planted").value = f.plantedOn || "";
     document.getElementById("input-rec-rate").value = f.seedingRate || "";
@@ -2923,10 +3068,10 @@ service cloud.firestore {
       else if(st.state === "soon") status = '<span class="svc-warn">Due in ' + Math.round(st.left) + ' hrs</span>';
       else status = '<span class="svc-ok">✓ Due in ' + Math.round(st.left) + ' hrs</span>';
       var last = (st.lastAt !== undefined && !isNaN(st.lastAt)) ? ("Last done at " + Math.round(st.lastAt).toLocaleString() + " hrs" + (st.lastDate ? " · " + new Date(st.lastDate).toLocaleDateString() : "")) : "";
-      var part = e[it.part] ? ("Part: " + e[it.part]) : "";
+      var partLink = e[it.part] ? (' · Part: <a href="'+deereLookupUrl(e[it.part])+'" target="_blank" rel="noopener">'+escapeHtml(e[it.part])+' 🔍</a>') : "";
       return '<div class="svc-item" data-k="'+it.k+'">'+
         '<div class="svc-top"><b>'+it.label+'</b>'+status+'</div>'+
-        '<div class="svc-sub">'+escapeHtml([last, part].filter(Boolean).join(" · "))+'</div>'+
+        '<div class="svc-sub">'+escapeHtml(last)+partLink+'</div>'+
         '<div class="svc-controls"><label>Every <input type="number" inputmode="numeric" min="1" class="svc-interval" value="'+(s.interval || it.def)+'"> hrs</label>'+
         '<button type="button" class="row-btn" data-action="done-now">✅ Done now</button></div>'+
       '</div>';
@@ -2988,6 +3133,27 @@ service cloud.firestore {
     });
     return Object.keys(byPart).sort(function(a,b){ return byPart[a].what.localeCompare(byPart[b].what) || a.localeCompare(b); }).map(function(k){ return byPart[k]; });
   }
+  // ---------- Parts list → shopping list ----------
+  // Tick the parts you need (and how many), add anything else by hand, then
+  // text it, copy it, print it, or save it as a picture. The picks are
+  // remembered on this phone until you clear them.
+  var PARTS_PICK_KEY = "rockMarkerPartsPicks_v1";
+  var partsPicks = {};   // key -> {qty, checked}
+  var partsExtras = [];  // [{id, name, qty}]
+  try{
+    var pp = JSON.parse(localStorage.getItem(PARTS_PICK_KEY) || "{}");
+    partsPicks = pp.picks || {}; partsExtras = Array.isArray(pp.extras) ? pp.extras : [];
+  }catch(e){}
+  function savePartsPicks(){
+    try{ localStorage.setItem(PARTS_PICK_KEY, JSON.stringify({picks:partsPicks, extras:partsExtras})); }catch(e){}
+  }
+  function partKey(p){ return (p.what + "|" + p.part).toUpperCase(); }
+  function deereLookupUrl(part){
+    return "https://partscatalog.deere.com/jdrc/search/type/parts/term/" + encodeURIComponent(String(part).replace(/\s+/g, ""));
+  }
+  function webLookupUrl(part, what){
+    return "https://www.google.com/search?q=" + encodeURIComponent(part + " " + (what || ""));
+  }
   function openPartsList(){
     renderPartsList();
     showSheet("parts-modal", "parts-backdrop");
@@ -2996,32 +3162,321 @@ service cloud.firestore {
     var onlyDue = document.getElementById("parts-only-due").checked;
     var items = buildPartsListText(onlyDue);
     var el = document.getElementById("parts-list");
-    if(!items.length){
-      el.innerHTML = '<div id="empty-list">' + (onlyDue ? "Nothing is due soon." : "No filter part numbers entered yet.") + '</div>';
-      return;
-    }
-    el.innerHTML = '<table class="report-table parts-table"><thead><tr><th>Qty</th><th>Part #</th><th>What</th><th>For</th></tr></thead><tbody>' +
-      items.map(function(p){
-        return '<tr><td><b>'+p.machines.length+'</b></td><td><b>'+escapeHtml(p.part)+'</b></td><td>'+escapeHtml(p.what)+'</td><td>'+escapeHtml(p.machines.join(", "))+'</td></tr>';
-      }).join("") + '</tbody></table>';
+    var rows = items.map(function(p){
+      var k = partKey(p);
+      var pick = partsPicks[k] || {};
+      var qty = pick.qty || p.machines.length;
+      return '<div class="part-row'+(pick.checked ? ' picked' : '')+'" data-key="'+escapeHtml(k)+'">'+
+        '<label class="part-check"><input type="checkbox" class="part-cb"'+(pick.checked ? ' checked' : '')+'></label>'+
+        '<div class="part-info"><div class="part-num">'+escapeHtml(p.part)+'</div>'+
+          '<div class="part-sub">'+escapeHtml(p.what)+' · '+escapeHtml(p.machines.join(", "))+'</div>'+
+          '<div class="part-links"><a href="'+deereLookupUrl(p.part)+'" target="_blank" rel="noopener">🔍 John Deere</a><a href="'+webLookupUrl(p.part, p.what)+'" target="_blank" rel="noopener">🌐 Web</a></div></div>'+
+        '<input type="number" class="part-qty" min="1" inputmode="numeric" value="'+qty+'" aria-label="Quantity">'+
+      '</div>';
+    }).join("");
+    var extrasHtml = partsExtras.map(function(x){
+      return '<div class="part-row picked" data-extra="'+escapeHtml(x.id)+'">'+
+        '<label class="part-check"><input type="checkbox" class="part-cb" checked disabled></label>'+
+        '<div class="part-info"><div class="part-num">'+escapeHtml(x.name)+'</div><div class="part-sub">Added by hand</div></div>'+
+        '<input type="number" class="part-qty" min="1" inputmode="numeric" value="'+(x.qty || 1)+'" aria-label="Quantity">'+
+        '<button type="button" class="row-btn" data-act="del-extra" title="Remove">✕</button>'+
+      '</div>';
+    }).join("");
+    el.innerHTML = (rows || '<div id="empty-list">' + (onlyDue ? "Nothing is due soon." : "No filter part numbers entered yet.") + '</div>') + extrasHtml;
+    updatePartsCount();
   }
-  function copyPartsList(){
+  function selectedPartsLines(){
     var onlyDue = document.getElementById("parts-only-due").checked;
-    var items = buildPartsListText(onlyDue);
-    var text = "Chaplinski Farms parts list" + (onlyDue ? " (due soon)" : "") + "\n" + items.map(function(p){
-      return p.machines.length + " x " + p.part + " — " + p.what + " (" + p.machines.join(", ") + ")";
+    var lines = [];
+    buildPartsListText(false).forEach(function(p){
+      var pick = partsPicks[partKey(p)];
+      if(pick && pick.checked){ lines.push({qty: pick.qty || p.machines.length, name: p.part, sub: p.what + " — " + p.machines.join(", ")}); }
+    });
+    partsExtras.forEach(function(x){ lines.push({qty: x.qty || 1, name: x.name, sub: ""}); });
+    return lines;
+  }
+  function updatePartsCount(){
+    var n = selectedPartsLines().length;
+    var el = document.getElementById("parts-selected-count");
+    el.textContent = n ? (n + (n === 1 ? " item" : " items") + " on the shopping list") : "Tick the parts you need to build a shopping list";
+    document.querySelectorAll(".parts-out").forEach(function(b){ b.disabled = !n; });
+  }
+  function shoppingListText(){
+    var lines = selectedPartsLines();
+    var d = new Date().toLocaleDateString();
+    return "Chaplinski Farms — parts to get (" + d + ")\n" + lines.map(function(l){
+      return "☐ " + l.qty + " x " + l.name + (l.sub ? "  (" + l.sub + ")" : "");
     }).join("\n");
+  }
+  function shareShoppingList(){
+    var text = shoppingListText();
+    if(navigator.share){ navigator.share({title:"Parts to get", text:text}).catch(function(){}); return; }
+    copyText(text, "Shopping list copied — paste it into a text or email");
+  }
+  function copyText(text, okMsg){
     function fallback(){
       var ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
-      try{ document.execCommand("copy"); toast("Parts list copied"); }catch(e){ toast("Couldn't copy — select the list and copy it."); }
+      try{ document.execCommand("copy"); toast(okMsg); }catch(e){ toast("Couldn't copy."); }
       document.body.removeChild(ta);
     }
-    if(navigator.share){
-      navigator.share({title:"Parts list", text:text}).catch(function(){});
-    } else if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(function(){ toast("Parts list copied — paste it into a text or email"); }, fallback);
-    } else { fallback(); }
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){ toast(okMsg); }, fallback); }
+    else fallback();
   }
+  function printLines(title, htmlBody){
+    var w = window.open("", "_blank");
+    if(!w){ toast("Allow pop-ups to print."); return; }
+    w.document.write('<html><head><title>'+escapeHtml(title)+'</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:15px}h2{margin:0 0 4px}table{border-collapse:collapse;width:100%;margin-top:12px}td,th{border:1px solid #999;padding:7px 8px;text-align:left;vertical-align:top}.box{width:22px}</style></head><body>' + htmlBody + '</body></html>');
+    w.document.close(); w.focus(); setTimeout(function(){ w.print(); }, 300);
+  }
+  function printShoppingList(){
+    var lines = selectedPartsLines();
+    printLines("Parts to get", '<h2>Chaplinski Farms — parts to get</h2><div>' + new Date().toLocaleDateString() + '</div><table><tr><th class="box">✓</th><th>Qty</th><th>Part</th><th>For</th></tr>' +
+      lines.map(function(l){ return '<tr><td class="box">☐</td><td><b>'+l.qty+'</b></td><td><b>'+escapeHtml(l.name)+'</b></td><td>'+escapeHtml(l.sub)+'</td></tr>'; }).join("") + '</table>');
+  }
+  // Draws the list onto a picture so it can go straight into Photos or a text.
+  function listToPicture(title, lines, fileName){
+    var W = 1080, pad = 60, lineH = 58, subH = 40;
+    var height = pad * 2 + 130 + lines.reduce(function(s, l){ return s + lineH + (l.sub ? subH : 0) + 14; }, 0);
+    var c = document.createElement("canvas"); c.width = W; c.height = Math.max(height, 400);
+    var g = c.getContext("2d");
+    g.fillStyle = "#faf7ef"; g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = "#274a24"; g.font = "bold 50px Arial"; g.fillText(title, pad, pad + 40);
+    g.fillStyle = "#20261f"; g.font = "30px Arial"; g.fillText("Chaplinski Farms · " + new Date().toLocaleDateString(), pad, pad + 90);
+    var y = pad + 160;
+    function fit(text, font, maxW){ g.font = font; if(g.measureText(text).width <= maxW) return text; while(text.length > 3 && g.measureText(text + "…").width > maxW){ text = text.slice(0, -1); } return text + "…"; }
+    lines.forEach(function(l){
+      g.strokeStyle = "#20261f"; g.lineWidth = 3; g.strokeRect(pad, y - 36, 34, 34);
+      g.fillStyle = "#20261f";
+      g.fillText(fit((l.qty ? l.qty + " × " : "") + l.name, "bold 40px Arial", W - pad * 2 - 60), pad + 56, y);
+      y += lineH - 10;
+      if(l.sub){ g.fillStyle = "#3a3f38"; g.fillText(fit(l.sub, "28px Arial", W - pad * 2 - 60), pad + 56, y); y += subH; }
+      y += 24;
+    });
+    c.toBlob(function(blob){
+      if(!blob){ toast("Couldn't make the picture."); return; }
+      var file = null;
+      try{ file = new File([blob], fileName, {type:"image/png"}); }catch(e){}
+      if(file && navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({files:[file], title:title}).catch(function(){});
+      } else {
+        var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fileName;
+        document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        toast("Picture saved to your downloads");
+      }
+    }, "image/png");
+  }
+  function addPartsExtra(){
+    var nameEl = document.getElementById("input-parts-extra");
+    var name = nameEl.value.trim();
+    if(!name){ nameEl.focus(); return; }
+    partsExtras.push({id:"x" + Date.now(), name:name, qty:1});
+    nameEl.value = "";
+    savePartsPicks(); renderPartsList();
+  }
+  function clearShoppingList(){
+    if(!confirm("Clear the shopping list?")) return;
+    partsPicks = {}; partsExtras = []; savePartsPicks(); renderPartsList();
+  }
+
+  // ---------- Jobs list (priority to-do list for the shop & crew) ----------
+  var JOB_PRIORITIES = {1:{label:"Urgent", cls:"p1"}, 2:{label:"Soon", cls:"p2"}, 3:{label:"When there's time", cls:"p3"}};
+  var JOB_WHEN = {
+    anytime:{icon:"🔧", label:"Anytime"},
+    rain:{icon:"🌧️", label:"Rain day"},
+    summer:{icon:"☀️", label:"Summer (crop growing)"},
+    winter:{icon:"❄️", label:"Winter project"},
+    harvest:{icon:"🌾", label:"Before harvest"},
+    spring:{icon:"🌱", label:"Before planting"}
+  };
+  var JOB_IDEAS = {
+    rain: ["Grease every machine (all zerks)", "Check & top off fluids — engine, hydraulic, coolant", "Check tire pressure on tractors, trucks & carts",
+           "Blow out radiators, coolers & cab filters", "Replace burnt-out lights & bulbs", "Organize shop & parts shelves",
+           "Inventory filters & belts on hand (update the parts list)", "Update equipment hours in the app", "Clean out cabs & wash windows"],
+    summer: ["Sweep & clean bins; check floors & aeration fans", "Service grain dryer — burners, sensors, safety switches",
+             "Check augers, grain leg belts & bearings", "Spray weeds around bins & the yard", "Pick rocks (use Picking mode)",
+             "Fix fences & field approaches", "Mow ditches & field edges", "Grain trucks: brakes, tarps, lights, DOT inspection",
+             "Check fire extinguishers in every machine"],
+    harvest: ["Full combine service — sieves, concaves, chains, belts", "Check header knife sections & guards", "Service grain cart & truck tires",
+              "Test bin level indicators & moisture tester", "Stock up on filters, belts & shear bolts"],
+    winter: ["Service tractors — oil & filters before spring", "Planter / seeder rebuild — meters, disc openers, chains", "Sprayer — nozzles, hoses, pump; calibrate",
+             "Test batteries & keep them charged", "Paint & rust repair", "Shop projects — welding & fabrication",
+             "Order seed, fertilizer & parts early", "Review field records & plan next crop year"],
+    spring: ["Calibrate planter & sprayer", "Check GPS / auto-steer & update displays", "Walk fields for washouts & wet spots", "Set up the fill station & tender"]
+  };
+  var jobs = [];
+  var jobsFilter = "open";
+  var editingJobId = null;
+
+  function jobDocRef(id){ return firestoreDb.collection("farms").doc(farmCode).collection("jobs").doc(id); }
+  function saveJob(job, isNew){
+    if(sharingEnabled){
+      var data = Object.assign({}, job); delete data.id;
+      (isNew ? jobDocRef(job.id).set(data) : jobDocRef(job.id).update(data)).catch(function(){ toast("Couldn't save to the shared map — check your connection."); });
+    }
+    var i = jobs.findIndex(function(x){ return x.id === job.id; });
+    if(i >= 0) jobs[i] = job; else jobs.push(job);
+    if(!sharingEnabled) saveData();
+    renderJobsList(); updateJobsBadge();
+  }
+  function deleteJob(id){
+    if(sharingEnabled){ jobDocRef(id).delete().catch(function(){ toast("Couldn't delete — check your connection."); }); }
+    jobs = jobs.filter(function(x){ return x.id !== id; });
+    if(!sharingEnabled) saveData();
+    renderJobsList(); updateJobsBadge();
+  }
+  function openJobs(){
+    renderJobsList();
+    showSheet("jobs-modal", "jobs-backdrop");
+  }
+  function filteredJobs(){
+    return jobs.filter(function(j){
+      if(jobsFilter === "done") return j.status === "done";
+      if(j.status === "done") return false;
+      if(jobsFilter === "open") return true;
+      return (j.when || "anytime") === jobsFilter || (j.when || "anytime") === "anytime";
+    }).sort(function(a, b){
+      if(jobsFilter === "done") return (b.doneAt || "").localeCompare(a.doneAt || "");
+      return (a.priority || 3) - (b.priority || 3) || (a.createdAt || "").localeCompare(b.createdAt || "");
+    });
+  }
+  function jobMachineName(j){
+    if(!j.machineId) return "";
+    var e = equipment.find(function(x){ return x.id === j.machineId; });
+    return e ? (e.name || "") : (j.machineName || "");
+  }
+  function renderJobsList(){
+    document.querySelectorAll("#jobs-filters .job-chip").forEach(function(c){ c.classList.toggle("active", c.getAttribute("data-f") === jobsFilter); });
+    var el = document.getElementById("jobs-list");
+    if(!el) return;
+    var list = filteredJobs();
+    if(!list.length){
+      el.innerHTML = '<div id="empty-list">' + (jobsFilter === "done" ? "Nothing finished yet." : (jobs.some(function(j){ return j.status !== "done"; }) ? "Nothing for this time of year." : 'No jobs yet. Tap "+ Add job", or "💡 Ideas" for a starter list.')) + '</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(j){
+      var pr = JOB_PRIORITIES[j.priority || 3] || JOB_PRIORITIES[3];
+      var w = JOB_WHEN[j.when || "anytime"] || JOB_WHEN.anytime;
+      var bits = [w.icon + " " + w.label];
+      var m = jobMachineName(j); if(m) bits.push("🚜 " + m);
+      if(j.assignedTo) bits.push("👤 " + j.assignedTo);
+      if(j.status === "doing") bits.push("⏳ In progress");
+      if(j.status === "done") bits.push("✅ " + (j.doneBy ? j.doneBy + " · " : "") + (j.doneAt ? new Date(j.doneAt).toLocaleDateString() : ""));
+      return '<div class="job-row '+pr.cls+(j.status === "done" ? ' done' : '')+'" data-id="'+escapeHtml(j.id)+'">'+
+        '<label class="part-check"><input type="checkbox" class="job-cb"'+(j.status === "done" ? ' checked' : '')+' aria-label="Done"></label>'+
+        '<div class="job-info" data-act="edit"><div class="job-title">'+escapeHtml(j.title)+'</div>'+
+          '<div class="job-sub"><span class="job-pr '+pr.cls+'">'+pr.label+'</span> '+escapeHtml(bits.join(" · "))+'</div>'+
+          (j.notes ? '<div class="job-notes">'+escapeHtml(j.notes)+'</div>' : '')+'</div>'+
+      '</div>';
+    }).join("");
+  }
+  function updateJobsBadge(){
+    var urgent = jobs.filter(function(j){ return j.status !== "done" && (j.priority || 3) === 1; }).length;
+    var open = jobs.filter(function(j){ return j.status !== "done"; }).length;
+    var b = document.getElementById("jobs-count");
+    if(b){ b.textContent = open; b.classList.toggle("hidden", !open); b.classList.toggle("urgent", !!urgent); }
+  }
+  function openJobEditor(j, preset){
+    editingJobId = j ? j.id : null;
+    document.getElementById("job-editor-title").textContent = j ? "Edit job" : "Add a job";
+    var sel = document.getElementById("input-job-machine");
+    sel.innerHTML = '<option value="">— No machine —</option>' + equipment.slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); }).map(function(e){
+      return '<option value="'+escapeHtml(e.id)+'">'+escapeHtml(e.name || "Equipment")+'</option>';
+    }).join("");
+    document.getElementById("input-job-title").value = j ? j.title : ((preset && preset.title) || "");
+    document.getElementById("input-job-priority").value = String(j ? (j.priority || 3) : ((preset && preset.priority) || 2));
+    document.getElementById("input-job-when").value = j ? (j.when || "anytime") : ((preset && preset.when) || (jobsFilter !== "open" && jobsFilter !== "done" ? jobsFilter : "anytime"));
+    sel.value = j ? (j.machineId || "") : ((preset && preset.machineId) || "");
+    document.getElementById("input-job-assigned").value = j ? (j.assignedTo || "") : "";
+    document.getElementById("input-job-status").value = j ? (j.status || "todo") : "todo";
+    document.getElementById("input-job-notes").value = j ? (j.notes || "") : "";
+    document.getElementById("job-created-info").textContent = j && j.createdBy ? ("Added by " + j.createdBy + (j.createdAt ? " · " + new Date(j.createdAt).toLocaleDateString() : "")) : "";
+    document.getElementById("job-delete-row").classList.toggle("hidden", !j);
+    var names = {};
+    (typeof farmMembers !== "undefined" ? farmMembers : []).forEach(function(m){ if(m.name) names[m.name] = 1; });
+    employees.forEach(function(e){ var n = ((e.firstName||"") + " " + (e.lastName||"")).trim(); if(n) names[n] = 1; });
+    if(getDeviceName()) names[getDeviceName()] = 1;
+    document.getElementById("job-people").innerHTML = Object.keys(names).sort().map(function(n){ return '<option value="'+escapeHtml(n)+'">'; }).join("");
+    showSheet("job-editor-modal", "job-editor-backdrop");
+    setTimeout(function(){ if(!j) document.getElementById("input-job-title").focus(); }, 250);
+  }
+  function closeJobEditor(){ hideSheet("job-editor-modal", "job-editor-backdrop"); editingJobId = null; }
+  function saveJobFromForm(){
+    var title = document.getElementById("input-job-title").value.trim();
+    if(!title){ toast("What's the job?"); return; }
+    var existing = editingJobId ? jobs.find(function(x){ return x.id === editingJobId; }) : null;
+    var status = document.getElementById("input-job-status").value;
+    var machineId = document.getElementById("input-job-machine").value;
+    var mach = equipment.find(function(e){ return e.id === machineId; });
+    var job = Object.assign({}, existing || {
+      id: "j" + Date.now() + "_" + Math.floor(Math.random()*1000),
+      createdAt: new Date().toISOString(), createdBy: getDeviceName() || ""
+    }, {
+      title: title,
+      priority: parseInt(document.getElementById("input-job-priority").value, 10) || 3,
+      when: document.getElementById("input-job-when").value,
+      machineId: machineId, machineName: mach ? (mach.name || "") : "",
+      assignedTo: document.getElementById("input-job-assigned").value.trim(),
+      notes: document.getElementById("input-job-notes").value.trim(),
+      status: status
+    });
+    if(status === "done" && !(existing && existing.status === "done")){ job.doneAt = new Date().toISOString(); job.doneBy = getDeviceName() || ""; }
+    if(status !== "done"){ job.doneAt = ""; job.doneBy = ""; }
+    saveJob(job, !existing);
+    toast(existing ? "Job updated" : "Job added");
+    closeJobEditor();
+  }
+  function toggleJobDone(id, done){
+    var j = jobs.find(function(x){ return x.id === id; });
+    if(!j) return;
+    var job = Object.assign({}, j, done ? {status:"done", doneAt:new Date().toISOString(), doneBy:getDeviceName() || ""} : {status:"todo", doneAt:"", doneBy:""});
+    saveJob(job, false);
+    if(done) toast("Nice — marked done");
+  }
+  function openJobIdeas(){
+    var el = document.getElementById("job-ideas-list");
+    var existing = {}; jobs.forEach(function(j){ if(j.status !== "done") existing[(j.title||"").toLowerCase()] = 1; });
+    el.innerHTML = ["rain","summer","harvest","winter","spring"].map(function(w){
+      return '<div class="rec-section">'+JOB_WHEN[w].icon+' '+JOB_WHEN[w].label+'</div>' + JOB_IDEAS[w].map(function(t, i){
+        var have = existing[t.toLowerCase()];
+        return '<label class="idea-row'+(have ? ' have' : '')+'"><input type="checkbox" data-when="'+w+'" data-i="'+i+'"'+(have ? ' disabled' : '')+'> '+escapeHtml(t)+(have ? ' <span class="idea-have">already on the list</span>' : '')+'</label>';
+      }).join("");
+    }).join("");
+    showSheet("job-ideas-modal", "job-ideas-backdrop");
+  }
+  function addSelectedIdeas(){
+    var boxes = document.querySelectorAll("#job-ideas-list input:checked:not(:disabled)");
+    if(!boxes.length){ toast("Tick the ideas you want to add."); return; }
+    boxes.forEach(function(b, k){
+      var w = b.getAttribute("data-when"), t = JOB_IDEAS[w][parseInt(b.getAttribute("data-i"), 10)];
+      saveJob({id:"j" + Date.now() + "_" + k + "_" + Math.floor(Math.random()*1000), title:t, priority:3, when:w, machineId:"", machineName:"", assignedTo:"", notes:"", status:"todo", createdAt:new Date().toISOString(), createdBy:getDeviceName() || ""}, true);
+    });
+    toast("Added " + boxes.length + (boxes.length === 1 ? " job" : " jobs"));
+    hideSheet("job-ideas-modal", "job-ideas-backdrop");
+  }
+  function jobsAsLines(){
+    return filteredJobs().map(function(j){
+      var pr = (JOB_PRIORITIES[j.priority || 3] || JOB_PRIORITIES[3]).label;
+      var m = jobMachineName(j);
+      return {qty:"", name:j.title, sub:[pr, m, j.assignedTo ? "for " + j.assignedTo : "", j.notes].filter(Boolean).join(" · ")};
+    });
+  }
+  function jobsFilterLabel(){ return jobsFilter === "open" ? "All open jobs" : (jobsFilter === "done" ? "Finished jobs" : JOB_WHEN[jobsFilter].label + " jobs"); }
+  function shareJobs(){
+    var lines = jobsAsLines();
+    if(!lines.length){ toast("Nothing in this list to share."); return; }
+    var text = "Chaplinski Farms — " + jobsFilterLabel() + "\n" + lines.map(function(l){ return "☐ " + l.name + (l.sub ? "  (" + l.sub + ")" : ""); }).join("\n");
+    if(navigator.share){ navigator.share({title:"Jobs list", text:text}).catch(function(){}); }
+    else copyText(text, "Jobs list copied — paste it into a text");
+  }
+  function printJobs(){
+    var lines = jobsAsLines();
+    printLines("Jobs list", '<h2>Chaplinski Farms — ' + escapeHtml(jobsFilterLabel()) + '</h2><div>' + new Date().toLocaleDateString() + '</div><table><tr><th class="box">✓</th><th>Job</th><th>Details</th></tr>' +
+      lines.map(function(l){ return '<tr><td class="box">☐</td><td><b>'+escapeHtml(l.name)+'</b></td><td>'+escapeHtml(l.sub)+'</td></tr>'; }).join("") + '</table>');
+  }
+  function openJobCountFor(equipId){
+    return jobs.filter(function(j){ return j.status !== "done" && j.machineId === equipId; }).length;
+  }
+
   // ---------- Season views ----------
   // Same map and data — the season only changes which buttons and cards
   // are out front. Remembered per device. "All" is the original layout.
@@ -3064,7 +3519,7 @@ service cloud.firestore {
     document.getElementById("chooser-title").textContent = title;
     var el = document.getElementById("chooser-list");
     el.innerHTML = items.length ? items.map(function(it, i){
-      return '<button type="button" class="chooser-item" data-i="'+i+'"><span>'+it.html+'</span>'+(it.sub ? '<span class="chooser-sub">'+escapeHtml(it.sub)+'</span>' : '')+'</button>';
+      return '<button type="button" class="chooser-item" data-i="'+i+'"><span>'+it.html+'</span>'+(it.subHtml ? '<span class="chooser-sub">'+it.subHtml+'</span>' : (it.sub ? '<span class="chooser-sub">'+escapeHtml(it.sub)+'</span>' : ''))+'</button>';
     }).join("") : '<div id="empty-list">Nothing here yet.</div>';
     el.onclick = function(ev){
       var b = ev.target.closest(".chooser-item");
@@ -3081,8 +3536,10 @@ service cloud.firestore {
   function startLogLoad(){
     if(!bins.length){ toast("No bins yet — outline one from the list (📋 → Bins)."); return; }
     var items = bins.slice().sort(function(a,b){ return binSortRank(a.name) - binSortRank(b.name) || (a.name||"").localeCompare(b.name||"", undefined, {numeric:true}); }).map(function(b){
-      var holding = (b.currentCrop && b.currentBu > 0) ? ((CROP_ICONS[b.currentCrop] ? CROP_ICONS[b.currentCrop]+" " : "") + b.currentCrop + " · ≈" + Math.round(b.currentBu).toLocaleString() + " bu") : "Empty";
-      return {value:b.id, html:"🛢 <b>" + escapeHtml(b.name || "Bin") + "</b>", sub:holding};
+      var holdingHtml = (b.currentCrop && b.currentBu > 0)
+        ? ((CROP_ICONS[b.currentCrop] ? CROP_ICONS[b.currentCrop] + " " : "") + escapeHtml(b.currentCrop + " · ≈" + Math.round(b.currentBu).toLocaleString() + " bu"))
+        : "Empty";
+      return {value:b.id, html:"🛢 <b>" + escapeHtml(b.name || "Bin") + "</b>", subHtml:holdingHtml};
     });
     openChooser("Log a load into which bin?", items, function(binId){
       binActionsBinId = binId;
@@ -6065,6 +6522,7 @@ service cloud.firestore {
           '<div class="r1">🚜 '+escapeHtml(e.name || "Equipment")+clipBit+'</div>'+
           (line2 ? '<div class="r2 r2-lg">'+escapeHtml(line2)+'</div>' : '')+
           (svc ? '<div class="r2 svc-line">'+escapeHtml(svc)+'</div>' : '')+
+          (openJobCountFor(e.id) ? '<div class="r2 svc-line">🛠️ '+openJobCountFor(e.id)+' open job'+(openJobCountFor(e.id) === 1 ? '' : 's')+'</div>' : '')+
         '</div>'+
         '<div class="rock-actions">'+
           '<button class="row-btn" data-action="service" title="Hours &amp; service">🔧</button>'+
@@ -7303,6 +7761,7 @@ service cloud.firestore {
         firstName:first, lastName:last, phone:phone, address:address, city:city, state:state, zip:zip, email:email,
         createdAt: new Date().toISOString()
       };
+      if(farmUser && farmUser.uid && !isOwnerUser(farmUser)){ newEmployee.ownerUid = farmUser.uid; }
       if(sharingEnabled){
         employeeDocRef(newEmployee.id).set(newEmployee).catch(function(){
           toast("Couldn't save to the shared map — check your connection.");
@@ -7878,7 +8337,7 @@ service cloud.firestore {
       try{ blob = raw ? (JSON.parse(raw) || {}) : {}; }catch(e2){ blob = {}; }
       blob.rocks = rocks; blob.waypoints = waypoints; blob.bins = bins;
       blob.equipment = equipment; blob.belts = belts; blob.employees = employees;
-      blob.truckSizes = truckSizes; blob.removedRocks = removedRocks;
+      blob.truckSizes = truckSizes; blob.removedRocks = removedRocks; blob.jobs = jobs;
       // Fields are cached per crop year so switching years and then going
       // offline shows that year's own boundaries, not whichever year
       // happened to sync last. The legacy unsuffixed "fields" key is kept
@@ -8010,6 +8469,14 @@ service cloud.firestore {
     );
 
     unsubscribeFns.push(
+      firestoreDb.collection("farms").doc(farmCode).collection("jobs").onSnapshot(function(snapshot){
+        jobs = snapshot.docs.map(function(d){ var data = d.data(); data.id = d.id; return data; });
+        cacheSharedData();
+        renderJobsList(); updateJobsBadge(); renderEquipmentList();
+      }, function(err){ toast("Sync error loading jobs."); })
+    );
+
+    unsubscribeFns.push(
       firestoreDb.collection("farms").doc(farmCode).collection("belts").onSnapshot(function(snapshot){
         belts = snapshot.docs.map(function(d){
           var data = d.data();
@@ -8024,7 +8491,10 @@ service cloud.firestore {
     );
 
     unsubscribeFns.push(
-      firestoreDb.collection("farms").doc(farmCode).collection("employees").onSnapshot(function(snapshot){
+      (isOwnerUser(farmUser) || !(farmUser && farmUser.uid)
+        ? firestoreDb.collection("farms").doc(farmCode).collection("employees")
+        : firestoreDb.collection("farms").doc(farmCode).collection("employees").where("ownerUid", "==", farmUser.uid)
+      ).onSnapshot(function(snapshot){
         employees = snapshot.docs.map(function(d){
           var data = d.data();
           data.id = d.id;
@@ -8212,7 +8682,7 @@ service cloud.firestore {
         firebase.initializeApp(config);
       }
       firestoreDb = firebase.firestore();
-      try{ firestoreDb.enablePersistence({synchronizeTabs:true}); }catch(e){ /* offline cache best-effort */ }
+      /* offline cache is switched on once, in initAuth, before any Firestore use */
       try{ firebaseStorageInst = firebase.storage(); }catch(e){ firebaseStorageInst = null; }
       farmCode = code;
       sharingEnabled = true;
@@ -8675,13 +9145,74 @@ service cloud.firestore {
     on("service-backdrop", "click", closeServiceSheet);
     on("btn-parts-list", "click", openPartsList);
     on("parts-only-due", "change", renderPartsList);
-    on("btn-parts-copy", "click", copyPartsList);
-    on("btn-parts-print", "click", function(){
-      var w = window.open("", "_blank");
-      if(!w){ toast("Allow pop-ups to print the parts list."); return; }
-      w.document.write('<html><head><title>Parts list</title><style>body{font-family:Arial,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:6px 8px;text-align:left}</style></head><body><h2>Chaplinski Farms — parts list</h2>' + document.getElementById("parts-list").innerHTML + '</body></html>');
-      w.document.close(); w.focus(); setTimeout(function(){ w.print(); }, 300);
+    on("btn-parts-copy", "click", shareShoppingList);
+    on("btn-parts-copytext", "click", function(){ copyText(shoppingListText(), "Shopping list copied"); });
+    on("btn-parts-print", "click", printShoppingList);
+    on("btn-parts-picture", "click", function(){ listToPicture("Parts to get", selectedPartsLines(), "parts-to-get.png"); });
+    on("btn-parts-extra-add", "click", addPartsExtra);
+    on("input-parts-extra", "keydown", function(e){ if(e.key === "Enter") addPartsExtra(); });
+    on("btn-parts-clear", "click", clearShoppingList);
+    on("parts-list", "change", function(ev){
+      var row = ev.target.closest(".part-row"); if(!row) return;
+      var extraId = row.getAttribute("data-extra");
+      if(extraId){
+        var x = partsExtras.find(function(z){ return z.id === extraId; });
+        if(x && ev.target.classList.contains("part-qty")) x.qty = Math.max(1, parseInt(ev.target.value, 10) || 1);
+      } else {
+        var k = row.getAttribute("data-key");
+        var pick = partsPicks[k] || {};
+        if(ev.target.classList.contains("part-cb")) pick.checked = ev.target.checked;
+        if(ev.target.classList.contains("part-qty")){ pick.qty = Math.max(1, parseInt(ev.target.value, 10) || 1); pick.checked = true; row.querySelector(".part-cb").checked = true; }
+        partsPicks[k] = pick;
+        row.classList.toggle("picked", !!pick.checked);
+      }
+      savePartsPicks(); updatePartsCount();
     });
+    on("parts-list", "click", function(ev){
+      if(ev.target.getAttribute("data-act") !== "del-extra") return;
+      var row = ev.target.closest(".part-row");
+      partsExtras = partsExtras.filter(function(z){ return z.id !== row.getAttribute("data-extra"); });
+      savePartsPicks(); renderPartsList();
+    });
+
+    // Jobs list
+    on("menu-item-jobs", "click", function(){ closeSideMenu(); openJobs(); });
+    on("btn-jobs-close", "click", function(){ hideSheet("jobs-modal", "jobs-backdrop"); });
+    on("jobs-backdrop", "click", function(){ hideSheet("jobs-modal", "jobs-backdrop"); });
+    on("jobs-filters", "click", function(ev){ var c = ev.target.closest(".job-chip"); if(!c) return; jobsFilter = c.getAttribute("data-f"); renderJobsList(); });
+    on("btn-job-add", "click", function(){ openJobEditor(null); });
+    on("btn-job-ideas", "click", openJobIdeas);
+    on("jobs-list", "change", function(ev){
+      if(!ev.target.classList.contains("job-cb")) return;
+      var row = ev.target.closest(".job-row"); if(row) toggleJobDone(row.getAttribute("data-id"), ev.target.checked);
+    });
+    on("jobs-list", "click", function(ev){
+      var info = ev.target.closest("[data-act=edit]"); if(!info) return;
+      var row = ev.target.closest(".job-row"); var j = row && jobs.find(function(x){ return x.id === row.getAttribute("data-id"); });
+      if(j) openJobEditor(j);
+    });
+    on("btn-job-save", "click", saveJobFromForm);
+    on("btn-job-cancel", "click", closeJobEditor);
+    on("job-editor-backdrop", "click", closeJobEditor);
+    on("btn-job-delete", "click", function(){
+      if(!editingJobId || !confirm("Delete this job?")) return;
+      deleteJob(editingJobId); closeJobEditor(); toast("Job deleted");
+    });
+    on("btn-ideas-add", "click", addSelectedIdeas);
+    on("btn-ideas-close", "click", function(){ hideSheet("job-ideas-modal", "job-ideas-backdrop"); });
+    on("job-ideas-backdrop", "click", function(){ hideSheet("job-ideas-modal", "job-ideas-backdrop"); });
+    on("btn-jobs-share", "click", shareJobs);
+    on("btn-jobs-print", "click", printJobs);
+    on("btn-jobs-picture", "click", function(){
+      var lines = jobsAsLines(); if(!lines.length){ toast("Nothing in this list."); return; }
+      listToPicture(jobsFilterLabel(), lines, "jobs-list.png");
+    });
+    on("btn-service-add-job", "click", function(){
+      var id = serviceEquipId;
+      closeServiceSheet();
+      openJobEditor(null, {machineId:id, priority:2});
+    });
+    updateJobsBadge();
     on("btn-parts-close", "click", function(){ hideSheet("parts-modal", "parts-backdrop"); });
     on("parts-backdrop", "click", function(){ hideSheet("parts-modal", "parts-backdrop"); });
 
@@ -9503,11 +10034,167 @@ service cloud.firestore {
   function authAvailable(){
     return typeof firebase !== "undefined" && typeof firebase.auth === "function";
   }
+  // ---------- Who gets in: Jason, plus people Jason approves ----------
+  var OWNER_EMAILS = ["jasonchaplinski@gmail.com"];
+  // Private push channel for access requests (free ntfy app — subscribe to
+  // this exact name on Jason's phone). Only the request goes through it.
+  var NTFY_TOPIC = "chaplinski-rockmarker-1d5a34463ac9";
+  var accessGranted = false;
+  var memberUnsub = null, requestUnsub = null, ownerUnsubs = [];
+  var pendingRequests = [], farmMembers = [];
+  function isOwnerUser(u){ return !!(u && u.email && OWNER_EMAILS.indexOf(String(u.email).toLowerCase()) !== -1); }
+  function farmRootRef(){ return firebase.firestore().collection("farms").doc(BAKED_IN_FARM_CODE); }
+  function approvedKey(uid){ return "rockMarkerApproved_" + uid; }
+
   function afterSignedIn(){
     document.getElementById("access-gate").classList.add("hidden");
+    var u = farmUser;
+    if(!u) return;
+    if(u.offline || isOwnerUser(u)){ grantAccess(); return; }
+    var cached = false;
+    try{ cached = localStorage.getItem(approvedKey(u.uid)) === "1"; }catch(e){}
+    if(cached){ grantAccess(); }
+    watchMembership(u);
+  }
+  function grantAccess(){
+    if(accessGranted) return;
+    accessGranted = true;
+    try{ localStorage.setItem(SIGNED_IN_KEY, "1"); localStorage.removeItem(ACCESS_CODE_KEY); }catch(e){}
+    document.getElementById("wait-gate").classList.add("hidden");
+    document.getElementById("access-gate").classList.add("hidden");
+    var owner = isOwnerUser(farmUser);
+    document.getElementById("menu-item-approve").classList.toggle("hidden", !owner);
+    document.getElementById("menu-item-employees").classList.toggle("hidden", !owner);
     if(!sharingEnabled){ tryAutoReconnect(); }
+    if(owner){ startOwnerWatch(); }
     if(splashDone && !hasDeviceName()){ showNameGate(); }
     if(map){ setTimeout(function(){ map.invalidateSize(); }, 50); }
+  }
+  function revokeAccess(){
+    accessGranted = false;
+    try{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(SIGNED_IN_KEY); }catch(e){}
+    if(sharingEnabled){ try{ disconnectSharing(); }catch(e){} }
+  }
+  function watchMembership(u){
+    if(memberUnsub){ memberUnsub(); memberUnsub = null; }
+    memberUnsub = farmRootRef().collection("members").doc(u.uid).onSnapshot({includeMetadataChanges:true}, function(d){
+      if(d.exists){
+        try{ localStorage.setItem(approvedKey(u.uid), "1"); }catch(e){}
+        grantAccess();
+      } else {
+        if(d.metadata && d.metadata.fromCache) return; // offline — keep whatever we had
+        try{ localStorage.removeItem(approvedKey(u.uid)); }catch(e){}
+        if(accessGranted){ revokeAccess(); }
+        showWaitGate(u);
+      }
+    }, function(){ if(!accessGranted) showWaitGate(u); });
+  }
+  function showWaitGate(u){
+    document.getElementById("wait-gate").classList.remove("hidden");
+    document.getElementById("wait-email").textContent = "Signed in as " + (u.email || "");
+    if(requestUnsub){ requestUnsub(); requestUnsub = null; }
+    requestUnsub = farmRootRef().collection("accessRequests").doc(u.uid).onSnapshot(function(d){
+      var r = d.exists ? d.data() : null;
+      var title = document.getElementById("wait-title"), text = document.getElementById("wait-text");
+      var nameIn = document.getElementById("input-wait-name"), btn = document.getElementById("btn-wait-request");
+      if(r && r.status === "pending"){
+        title.textContent = "Waiting for approval";
+        text.textContent = "Jason has your request. This screen opens up by itself as soon as he approves it.";
+        nameIn.classList.add("hidden"); btn.classList.add("hidden");
+      } else if(r && r.status === "denied"){
+        title.textContent = "Request not approved";
+        text.textContent = "Jason didn't approve this request. If that's a mistake, talk to him and ask again.";
+        nameIn.classList.add("hidden"); btn.classList.remove("hidden"); btn.textContent = "Ask again";
+      } else if(r && r.status === "approved"){
+        title.textContent = "Access removed";
+        text.textContent = "This login no longer has access to the farm map. Talk to Jason if you need it back.";
+        nameIn.classList.add("hidden"); btn.classList.remove("hidden"); btn.textContent = "Ask again";
+      } else {
+        title.textContent = "Request access";
+        text.textContent = "This login doesn't have access to the farm map yet. Enter your name and send Jason a request.";
+        nameIn.classList.remove("hidden"); btn.classList.remove("hidden"); btn.textContent = "Request access";
+        if(!nameIn.value) nameIn.value = getDeviceName() || "";
+      }
+    }, function(){});
+  }
+  function submitAccessRequest(name){
+    var u = firebase.auth().currentUser;
+    if(!u) return Promise.resolve();
+    name = (name || "").trim() || getDeviceName() || u.email;
+    if(!hasDeviceName()){ try{ localStorage.setItem(DEVICE_NAME_KEY, name); }catch(e){} }
+    return farmRootRef().collection("accessRequests").doc(u.uid).set({
+      name: name, email: u.email, status: "pending",
+      requestedAt: new Date().toISOString(), device: getDeviceLabel() || ""
+    }).then(function(){ notifyOwnerOfRequest(name, u.email); })
+      .catch(function(){ toast("Couldn't send the request — check your connection and try again."); });
+  }
+  function notifyOwnerOfRequest(name, email){
+    try{
+      fetch("https://ntfy.sh/" + NTFY_TOPIC, {
+        method: "POST",
+        body: name + " (" + email + ") wants access to Rock Marker. Open the app: menu > Approve users.",
+        headers: {"Title": "Rock Marker access request", "Tags": "tractor", "Click": "https://jasonchaplinski-commits.github.io/rock-marker-app/"}
+      }).catch(function(){});
+    }catch(e){}
+  }
+
+  // ---------- Owner: approve / deny / remove ----------
+  function startOwnerWatch(){
+    if(ownerUnsubs.length) return;
+    var root = farmRootRef();
+    ownerUnsubs.push(root.collection("accessRequests").where("status", "==", "pending").onSnapshot(function(snap){
+      pendingRequests = snap.docs.map(function(d){ var x = d.data(); x.uid = d.id; return x; });
+      updateApproveBadge(); renderApproveSheet();
+    }, function(){}));
+    ownerUnsubs.push(root.collection("members").onSnapshot(function(snap){
+      farmMembers = snap.docs.map(function(d){ var x = d.data(); x.uid = d.id; return x; });
+      renderApproveSheet();
+    }, function(){}));
+  }
+  function updateApproveBadge(){
+    var n = pendingRequests.length;
+    var c = document.getElementById("approve-count");
+    c.textContent = n; c.classList.toggle("hidden", !n);
+    var menuBtn = document.getElementById("btn-menu");
+    var dot = menuBtn.querySelector(".menu-dot");
+    if(n){
+      if(!dot){ dot = document.createElement("span"); dot.className = "menu-badge menu-dot"; menuBtn.appendChild(dot); }
+      dot.textContent = n;
+    } else if(dot){ dot.remove(); }
+  }
+  function renderApproveSheet(){
+    var pe = document.getElementById("approve-pending"), me = document.getElementById("approve-members");
+    if(!pe || !me) return;
+    pe.innerHTML = pendingRequests.length ? pendingRequests.map(function(r){
+      return '<div class="appr-row" data-uid="'+escapeHtml(r.uid)+'"><div class="rock-info"><div class="r1">'+escapeHtml(r.name || "(no name)")+'</div><div class="r2">'+escapeHtml(r.email || "")+(r.requestedAt ? " · " + new Date(r.requestedAt).toLocaleDateString() : "")+'</div></div>'+
+        '<button class="btn btn-primary" data-act="approve">✅ Approve</button><button class="btn btn-danger" data-act="deny">❌</button></div>';
+    }).join("") : '<div class="rec-empty">No one is waiting.</div>';
+    var list = farmMembers.slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); });
+    me.innerHTML = list.length ? list.map(function(m){
+      return '<div class="appr-row" data-uid="'+escapeHtml(m.uid)+'"><div class="rock-info"><div class="r1">'+escapeHtml(m.name || "(no name)")+'</div><div class="r2">'+escapeHtml(m.email || "")+(m.approvedAt ? " · since " + new Date(m.approvedAt).toLocaleDateString() : "")+'</div></div>'+
+        '<button class="btn btn-secondary" data-act="remove">Remove</button></div>';
+    }).join("") : '<div class="rec-empty">No one approved yet — just you.</div>';
+  }
+  function approveAction(uid, act){
+    var root = farmRootRef();
+    var now = new Date().toISOString();
+    if(act === "approve"){
+      var r = pendingRequests.find(function(x){ return x.uid === uid; }) || {};
+      root.collection("members").doc(uid).set({name:r.name || "", email:r.email || "", approvedAt:now, approvedBy:(farmUser && farmUser.email) || ""})
+        .then(function(){ return root.collection("accessRequests").doc(uid).update({status:"approved", decidedAt:now}); })
+        .then(function(){ toast((r.name || "They") + " can use the app now"); })
+        .catch(function(){ toast("Couldn't approve — check your connection."); });
+    } else if(act === "deny"){
+      root.collection("accessRequests").doc(uid).update({status:"denied", decidedAt:now})
+        .then(function(){ toast("Request declined"); })
+        .catch(function(){ toast("Couldn't update — check your connection."); });
+    } else if(act === "remove"){
+      var m = farmMembers.find(function(x){ return x.uid === uid; }) || {};
+      if(!confirm("Remove " + (m.name || m.email || "this person") + "? They'll be locked out on every device right away.")) return;
+      root.collection("members").doc(uid).delete()
+        .then(function(){ toast("Removed"); })
+        .catch(function(){ toast("Couldn't remove — check your connection."); });
+    }
   }
   function initAuth(){
     if(authStarted) return;
@@ -9517,20 +10204,22 @@ service cloud.firestore {
       // A device that has signed in before can keep using what it already
       // has saved; anyone else has to be online to sign in the first time.
       authKnown = true;
-      if(everSignedInHere()){ farmUser = {offline:true}; }
+      if(everSignedInHere()){ farmUser = {offline:true}; accessGranted = true; }
       return;
     }
     try{
       if(!firebase.apps || !firebase.apps.length){ firebase.initializeApp(BAKED_IN_FIREBASE_CONFIG); }
+      try{ var ep = firebase.firestore().enablePersistence({synchronizeTabs:true}); if(ep && ep.catch) ep.catch(function(){}); }catch(e){}
       firebase.auth().onAuthStateChanged(function(user){
         authKnown = true;
         farmUser = user || null;
         if(user){
-          try{ localStorage.setItem(SIGNED_IN_KEY, "1"); localStorage.removeItem(ACCESS_CODE_KEY); }catch(e){}
           afterSignedIn();
         } else {
           try{ localStorage.removeItem(SIGNED_IN_KEY); }catch(e){}
+          accessGranted = false;
           if(sharingEnabled){ try{ disconnectSharing(); }catch(e){} }
+          document.getElementById("wait-gate").classList.add("hidden");
           if(splashDone){ showAccessGate(); }
         }
       });
@@ -9553,7 +10242,21 @@ service cloud.firestore {
       if(input) input.focus();
     }, 60);
   }
+  var gateSignupMode = false;
+  function setGateMode(signup){
+    gateSignupMode = signup;
+    document.getElementById("gate-title").textContent = signup ? "Request access" : "Farm sign-in";
+    document.getElementById("gate-text").textContent = signup
+      ? "Enter your name, your email, and make up a password (6 or more characters). Jason gets your request and approves it."
+      : "Sign in with your email and password. Each phone or computer only has to do this once.";
+    document.getElementById("input-signup-name").classList.toggle("hidden", !signup);
+    document.getElementById("input-login-password").setAttribute("autocomplete", signup ? "new-password" : "current-password");
+    document.getElementById("btn-access-gate-submit").textContent = signup ? "Send request" : "Sign in";
+    document.getElementById("btn-gate-mode").textContent = signup ? "Already approved? Sign in" : "New here? Request access";
+    document.getElementById("access-gate-error").classList.add("hidden");
+  }
   function submitAccessCode(){
+    if(gateSignupMode){ submitSignup(); return; }
     var email = (document.getElementById("input-login-email").value || "").trim();
     var pw = document.getElementById("input-login-password").value || "";
     var errEl = document.getElementById("access-gate-error");
@@ -9569,11 +10272,38 @@ service cloud.firestore {
       var msg = "That email or password isn't right — try again.";
       if(code.indexOf("network") !== -1) msg = "No internet connection — connect and try again.";
       else if(code.indexOf("too-many-requests") !== -1) msg = "Too many tries — wait a few minutes and try again.";
+      else if(code.indexOf("api-key") !== -1) msg = "The app's Firebase key isn't valid — the farm's Firebase settings need updating in index.html.";
       else if(code.indexOf("operation-not-allowed") !== -1 || code.indexOf("configuration-not-found") !== -1) msg = "Sign-in isn't turned on for this farm yet (Firebase → Authentication → Email/Password).";
       errEl.textContent = msg;
       errEl.classList.remove("hidden");
       document.getElementById("input-login-password").value = "";
     }).then(function(){ btn.disabled = false; btn.textContent = "Sign in"; });
+  }
+  function submitSignup(){
+    var name = (document.getElementById("input-signup-name").value || "").trim();
+    var email = (document.getElementById("input-login-email").value || "").trim();
+    var pw = document.getElementById("input-login-password").value || "";
+    var errEl = document.getElementById("access-gate-error");
+    var btn = document.getElementById("btn-access-gate-submit");
+    function fail(m){ errEl.textContent = m; errEl.classList.remove("hidden"); }
+    if(!name || name.split(/\s+/).length < 2){ fail("Enter your first and last name."); return; }
+    if(containsProfanity(name)){ fail("Please enter an appropriate name."); return; }
+    if(!email || email.indexOf("@") === -1){ fail("Enter your email."); return; }
+    if(pw.length < 6){ fail("Make the password at least 6 characters."); return; }
+    if(!authAvailable()){ fail("No internet connection — connect and try again."); return; }
+    btn.disabled = true; btn.textContent = "Sending…";
+    try{ localStorage.setItem(DEVICE_NAME_KEY, name); }catch(e){}
+    firebase.auth().createUserWithEmailAndPassword(email, pw).then(function(){
+      errEl.classList.add("hidden");
+      return submitAccessRequest(name);
+    }).catch(function(err){
+      var code = (err && err.code) || "";
+      if(code.indexOf("email-already-in-use") !== -1) fail("That email already has a login — tap \"Already approved? Sign in\" and use your password.");
+      else if(code.indexOf("invalid-email") !== -1) fail("That email doesn't look right.");
+      else if(code.indexOf("weak-password") !== -1) fail("Pick a longer password (6 or more characters).");
+      else if(code.indexOf("network") !== -1) fail("No internet connection — connect and try again.");
+      else fail("Couldn't send the request — try again.");
+    }).then(function(){ btn.disabled = false; btn.textContent = gateSignupMode ? "Send request" : "Sign in"; });
   }
   function signOutThisDevice(){
     if(!confirm("Sign this device out? You'll need the farm login to get back in.")) return;
@@ -9586,6 +10316,29 @@ service cloud.firestore {
     document.getElementById("btn-access-gate-submit").addEventListener("click", submitAccessCode);
     ["input-login-email","input-login-password"].forEach(function(id){
       document.getElementById(id).addEventListener("keydown", function(e){ if(e.key === "Enter"){ submitAccessCode(); } });
+    });
+    document.getElementById("btn-gate-mode").addEventListener("click", function(){ setGateMode(!gateSignupMode); });
+    document.getElementById("input-signup-name").addEventListener("keydown", function(e){ if(e.key === "Enter"){ document.getElementById("input-login-email").focus(); } });
+    document.getElementById("btn-wait-request").addEventListener("click", function(){
+      var nameIn = document.getElementById("input-wait-name");
+      var nm = nameIn.classList.contains("hidden") ? (getDeviceName() || "") : nameIn.value;
+      if(!nameIn.classList.contains("hidden") && nm.trim().split(/\s+/).length < 2){ toast("Enter your first and last name."); return; }
+      submitAccessRequest(nm);
+    });
+    document.getElementById("btn-wait-signout").addEventListener("click", function(){
+      try{ localStorage.removeItem(SIGNED_IN_KEY); }catch(e){}
+      if(authAvailable()){ firebase.auth().signOut().then(function(){ location.reload(); }); } else { location.reload(); }
+    });
+    document.getElementById("menu-item-approve").addEventListener("click", function(){
+      closeSideMenu(); renderApproveSheet(); showSheet("approve-modal", "approve-backdrop");
+    });
+    document.getElementById("btn-close-approve").addEventListener("click", function(){ hideSheet("approve-modal", "approve-backdrop"); });
+    document.getElementById("approve-backdrop").addEventListener("click", function(){ hideSheet("approve-modal", "approve-backdrop"); });
+    ["approve-pending","approve-members"].forEach(function(id){
+      document.getElementById(id).addEventListener("click", function(ev){
+        var b = ev.target.closest("[data-act]"); if(!b) return;
+        var row = b.closest("[data-uid]"); if(row) approveAction(row.getAttribute("data-uid"), b.getAttribute("data-act"));
+      });
     });
     var so = document.getElementById("menu-item-sign-out");
     if(so) so.addEventListener("click", function(){ closeSideMenu(); signOutThisDevice(); });
@@ -9667,7 +10420,7 @@ service cloud.firestore {
         // Wait for Firebase to report whether this device is signed in.
         if(authKnown || !authAvailable()){ showAccessGate(); }
         else { setTimeout(function(){ if(!farmUser) showAccessGate(); }, 2500); }
-      } else if(!hasDeviceName()){
+      } else if(accessGranted && !hasDeviceName()){
         // This device unlocked the access code before names were tracked —
         // ask for one now, on its own, without re-asking for the code.
         showNameGate();
