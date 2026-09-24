@@ -1636,7 +1636,7 @@ service cloud.firestore {
     <input type="text" id="input-equip-model" placeholder="e.g. John Deere 8320">
   </div>
   <div class="field-row">
-    <label>Serial # (if you have it)</label>
+    <label>SN# — serial number (if you have it)</label>
     <input type="text" id="input-equip-serial" placeholder="e.g. 1RW8320RJEL123456">
   </div>
   <div class="field-row">
@@ -3040,7 +3040,7 @@ service cloud.firestore {
     if(!e) return;
     serviceEquipId = equipId;
     serviceDraft = {hours: e.hours, service: JSON.parse(JSON.stringify(equipService(e))), log: Array.isArray(e.serviceLog) ? e.serviceLog.slice() : []};
-    document.getElementById("service-title").textContent = "🔧 " + (e.name || "Equipment");
+    document.getElementById("service-title").textContent = "🔧 " + (e.name || "Equipment") + (e.serial ? " · SN# " + e.serial : "");
     document.getElementById("input-service-hours").value = (e.hours !== undefined && e.hours !== null && e.hours !== "") ? e.hours : "";
     document.getElementById("service-hours-hint").textContent = e.hoursUpdatedAt ? ("Last entered " + formatLogTimestamp(e.hoursUpdatedAt) + (e.hoursUpdatedBy ? " by " + e.hoursUpdatedBy : "")) : "Enter the hour meter reading.";
     renderServiceItems();
@@ -3114,7 +3114,7 @@ service cloud.firestore {
 
   // Pre-season parts list: every filter part number across the fleet,
   // grouped so you can see how many of each to order.
-  function buildPartsListText(onlyDue){
+  function machineLabel(e){ var n = (e && e.name) || "Equipment"; var sn = e && e.serial ? String(e.serial).trim() : ""; return sn ? n + " (SN# " + sn + ")" : n; }   function buildPartsListText(onlyDue){
     var byPart = {};
     equipment.forEach(function(e){
       SERVICE_ITEMS.forEach(function(it){
@@ -3123,12 +3123,12 @@ service cloud.firestore {
         if(onlyDue){ var st = serviceStatus(e, it); if(st.state !== "overdue" && st.state !== "soon") return; }
         var key = p.toUpperCase();
         if(!byPart[key]) byPart[key] = {part:p, what:it.label, machines:[]};
-        byPart[key].machines.push(e.name || "Equipment");
+        byPart[key].machines.push(machineLabel(e));
       });
-      (Array.isArray(e.otherParts) ? e.otherParts : []).forEach(function(op){ if(onlyDue || !op || !(op.part || "").trim()) return; var okey = "OTHER " + op.part.trim().toUpperCase(); if(!byPart[okey]) byPart[okey] = {part:op.part.trim(), what:op.name || "Other part", machines:[]}; byPart[okey].machines.push(e.name || "Equipment"); });       if(!onlyDue && (e.wiperBlade || "").trim()){
+      (Array.isArray(e.otherParts) ? e.otherParts : []).forEach(function(op){ if(onlyDue || !op || !(op.part || "").trim()) return; var okey = "OTHER " + op.part.trim().toUpperCase(); if(!byPart[okey]) byPart[okey] = {part:op.part.trim(), what:op.name || "Other part", machines:[]}; byPart[okey].machines.push(machineLabel(e)); });       if(!onlyDue && (e.wiperBlade || "").trim()){
         var wk = "WIPER " + e.wiperBlade.trim().toUpperCase();
         if(!byPart[wk]) byPart[wk] = {part:e.wiperBlade.trim(), what:"Wiper blade", machines:[]};
-        byPart[wk].machines.push(e.name || "Equipment");
+        byPart[wk].machines.push(machineLabel(e));
       }
     });
     if(!onlyDue){ belts.forEach(function(bl){ beltItemsOf(bl).forEach(function(it){ var num = String(it.number || it.size || "").split(" ").filter(Boolean).join(" "); if(!num) return; var bkey = "BELT " + num.toUpperCase(); if(!byPart[bkey]) byPart[bkey] = {part:num, what:"Belt", machines:[], count:0}; byPart[bkey].machines.push((bl.system || "Belt") + (it.notes ? " – " + it.notes : "")); byPart[bkey].count += (parseInt(it.qty, 10) || 1); }); }); } return Object.keys(byPart).sort(function(a,b){ return byPart[a].what.localeCompare(byPart[b].what) || a.localeCompare(b); }).map(function(k){ return byPart[k]; });
@@ -3342,7 +3342,7 @@ service cloud.firestore {
   function jobMachineName(j){
     if(!j.machineId) return "";
     var e = equipment.find(function(x){ return x.id === j.machineId; });
-    return e ? (e.name || "") : (j.machineName || "");
+    return e ? machineLabel(e) : (j.machineName || "");
   }
   function renderJobsList(){
     document.querySelectorAll("#jobs-filters .job-chip").forEach(function(c){ c.classList.toggle("active", c.getAttribute("data-f") === jobsFilter); });
@@ -5465,7 +5465,7 @@ service cloud.firestore {
       if(order.indexOf(key) === -1){ order.push(key); }
       if(!groups[key]){ groups[key] = {acres:0, fields:[]}; }
       groups[key].acres += acres;
-      groups[key].fields.push({name:f.name||"Field", acres:acres, crop:f.crop});
+      var leftAc = harvestStatusOf(f) === "Harvested" ? 0 : Math.max(0, acres - partialAcresOf(f)); groups[key].left = (groups[key].left || 0) + leftAc; groups[key].fields.push({name:f.name||"Field", acres:acres, crop:f.crop, left:leftAc});
     });
     var sections = order.filter(function(k){ return groups[k]; }).map(function(key){
       var g = groups[key];
@@ -5473,10 +5473,10 @@ service cloud.firestore {
 
       // Per-crop acres for THIS farmer only, so the "Crop Total" column
       // reflects their share of that crop, not the whole farm's.
-      var cropTotalsForFarmer = {};
+      var cropTotalsForFarmer = {}; var cropLeftForFarmer = {};
       g.fields.forEach(function(f){
         var cropKey = f.crop && CROP_COLORS[f.crop] ? f.crop : "No Crop";
-        cropTotalsForFarmer[cropKey] = (cropTotalsForFarmer[cropKey] || 0) + f.acres;
+        cropTotalsForFarmer[cropKey] = (cropTotalsForFarmer[cropKey] || 0) + f.acres; cropLeftForFarmer[cropKey] = (cropLeftForFarmer[cropKey] || 0) + (f.left || 0);
       });
 
       var sortedFields = g.fields.slice().sort(function(a,z){
@@ -5505,21 +5505,21 @@ service cloud.firestore {
       var cropTotalRows = cropOrderForFarmer.map(function(cropKey){
         var icon = CROP_ICONS[cropKey] ? CROP_ICONS[cropKey]+' ' : '';
         var cropPct = g.acres > 0 ? Math.round((cropTotalsForFarmer[cropKey]/g.acres)*100) : 0;
-        return '<tr><td>'+icon+escapeHtml(cropKey)+'</td><td>'+cropTotalsForFarmer[cropKey].toFixed(1)+'</td><td>'+cropPct+'%</td></tr>';
+        return '<tr><td>'+icon+escapeHtml(cropKey)+'</td><td>'+cropTotalsForFarmer[cropKey].toFixed(1)+'</td><td>'+cropPct+'%</td><td><b>'+(cropLeftForFarmer[cropKey] || 0).toFixed(1)+'</b></td></tr>';
       }).join("");
 
       var rows = sortedFields.map(function(f){
         var cropKey = f.crop && CROP_COLORS[f.crop] ? f.crop : "No Crop";
         var icon = CROP_ICONS[cropKey] ? CROP_ICONS[cropKey]+' ' : '';
-        return '<tr><td>'+escapeHtml(f.name)+'</td><td>'+f.acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(f.name)+'</td><td>'+f.acres.toFixed(1)+'</td><td>'+icon+escapeHtml(cropKey)+'</td><td>'+((f.left || 0) > 0 ? (f.left || 0).toFixed(1) : '✅ 0')+'</td></tr>';
       }).join("");
       var label = key === "Unassigned" ? "🚫 Unassigned" : "🧑‍🌾 "+escapeHtml(key);
       return '<div class="report-section">'+
-        '<h3>'+label+' — '+g.acres.toFixed(1)+' ac ('+pct+'%)</h3>'+
-        '<table class="report-table" style="margin-bottom:10px;"><thead><tr><th>Crop</th><th>Total acres</th><th>% of their acres</th></tr></thead><tbody>'+
+        '<h3>'+label+' — '+g.acres.toFixed(1)+' ac ('+pct+'%) · '+(g.left || 0).toFixed(1)+' ac left to harvest</h3>'+
+        '<table class="report-table" style="margin-bottom:10px;"><thead><tr><th>Crop</th><th>Total acres</th><th>% of their acres</th><th>Left to harvest</th></tr></thead><tbody>'+
         cropTotalRows+
         '</tbody></table>'+
-        '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th></tr></thead><tbody>'+
+        '<table class="report-table"><thead><tr><th>Field</th><th>Acres</th><th>Crop</th><th>Left</th></tr></thead><tbody>'+
         rows+
         '</tbody></table>'+
       '</div>';
@@ -5528,12 +5528,12 @@ service cloud.firestore {
       var g = groups[key];
       var pct = totalAcres > 0 ? Math.round((g.acres/totalAcres)*100) : 0;
       var label = key === "Unassigned" ? "🚫 Unassigned" : "🧑‍🌾 "+escapeHtml(key);
-      return '<tr><td>'+label+'</td><td>'+g.acres.toFixed(1)+'</td><td>'+pct+'%</td></tr>';
+      return '<tr><td>'+label+'</td><td>'+g.acres.toFixed(1)+'</td><td>'+pct+'%</td><td><b>'+(g.left || 0).toFixed(1)+'</b></td></tr>';
     }).join("");
     return '<div class="report-section" style="margin-bottom:4px;">'+
       '<h3>🧑‍🌾 Farmed By</h3>'+
       '<div class="report-meta">'+totalAcres.toFixed(1)+' acres total across '+fields.length+' '+(fields.length === 1 ? "field" : "fields")+'</div>'+
-      '<table class="report-table"><thead><tr><th>Farmer</th><th>Acres</th><th>% of farm</th></tr></thead><tbody>'+
+      '<table class="report-table"><thead><tr><th>Farmer</th><th>Acres</th><th>% of farm</th><th>Left to harvest</th></tr></thead><tbody>'+
       summaryRows+
       '</tbody></table>'+
     '</div>'+
@@ -6505,7 +6505,7 @@ service cloud.firestore {
     }
     var sorted = equipment.slice().sort(function(a,z){ return (a.name||"").localeCompare(z.name||""); });
     listEl.innerHTML = sorted.map(function(e){
-      var ymBits = [e.year, e.model, (e.serial ? "SN " + e.serial : "")].filter(Boolean).join(" · ");
+      var ymBits = [e.year, e.model, (e.serial ? "SN# " + e.serial : "")].filter(Boolean).join(" · ");
       var filterBits = [];
       EQUIP_PART_FIELDS.forEach(function(pf){ if(e[pf.field]) filterBits.push(pf.short + ": " + e[pf.field]); }); (Array.isArray(e.otherParts) ? e.otherParts : []).forEach(function(op){ if(op && (op.name || op.part)) filterBits.push((op.name || "Part") + (op.part ? ": " + op.part : "")); });
       /* (listed above) */
