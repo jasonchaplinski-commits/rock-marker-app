@@ -825,7 +825,7 @@
   <div class="side-menu-item" id="menu-item-home"><span class="smi-icon">🏠</span> Home</div>
   <div class="side-menu-crop-year">
     <label for="input-crop-year">📅 Crop Year</label>
-    <select id="input-crop-year"></select>
+    <select id="input-crop-year"></select><button type="button" class="btn btn-secondary hidden" id="btn-clear-year-crops" style="margin-top:8px;width:100%;">🧹 Clear planned crops</button>
   </div>
   <div class="side-menu-sep"></div>
   <div class="side-menu-item" id="menu-item-orders"><span class="smi-icon">🧾</span> Parts <span class="menu-badge jobs-badge hidden" id="orders-count"></span></div> <div class="side-menu-item" id="menu-item-jobs"><span class="smi-icon">🛠️</span> Jobs list <span class="menu-badge jobs-badge hidden" id="jobs-count"></span></div>
@@ -8578,7 +8578,7 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
         var data = d.data();
         batch.set(targetRef.doc(d.id), {
           name: data.name || "Field",
-          crop: data.crop || "",
+          crop: seedBlankCrops ? "" : (data.crop || ""),
           farmer: data.farmer || "",
           harvestStatus: "Not Harvested",
           partialAcresHarvested: 0,
@@ -8634,7 +8634,7 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
       if(!snap.empty){ finishSwitch(); return; }
       findNearestYearWithData(targetYear, function(sourceYear){
         if(!sourceYear){ finishSwitch(); return; } if(!canManage()){ toast(targetYear + " isn't set up yet — ask " + OWNER_NAME + " or a Manager."); finishSwitch(); return; }
-        var wantsCopy = confirm(
+        var wantsCopy; yearSeedChoose(sourceYear, targetYear, targetRef, finishSwitch); return; wantsCopy = confirm(
           targetYear + " has no fields yet.\n\nStart it as a copy of " + sourceYear + "'s current boundaries and crops, as a starting point you can edit for " + targetYear + " without changing " + sourceYear + "?\n\nOK = copy from " + sourceYear + "\nCancel = start " + targetYear + " empty"
         );
         if(!wantsCopy){ finishSwitch(); return; }
@@ -8660,7 +8660,7 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
   // Keeps the side-menu year picker, the "Planning" map badge, the Reports
   // sheet's on-screen year line, and the field modal's harvest rows all in
   // sync with currentYear.
-  function updateCropYearUI(){
+  var seedBlankCrops = false; function yearSeedChoose(sourceYear, targetYear, targetRef, finishSwitch){ closeSideMenu(); openChooser(targetYear + " has no fields yet", [{value:"blank", html:"📐 <b>Copy field boundaries — crops blank</b>", sub:"Best for planning " + targetYear + ": no retracing, pick each crop fresh"}, {value:"crops", html:"📐🌾 Copy boundaries and " + sourceYear + "’s crops", sub:"Every field starts with the same crop as " + sourceYear}, {value:"empty", html:"⬜ Start " + targetYear + " empty", sub:"Draw every field from scratch"}, {value:"cancel", html:"Cancel — stay on " + currentYear}], function(v){ if(v === "cancel"){ updateCropYearUI(); return; } if(v === "empty"){ finishSwitch(); return; } seedBlankCrops = v === "blank"; seedYearFrom(sourceYear, targetYear, targetRef, function(){ seedBlankCrops = false; finishSwitch(); }); }); } function clearYearCrops(){ if(!canManage()){ toast("Only " + OWNER_NAME + " or a Manager can do that."); return; } var withCrop = fields.filter(function(f){ return f.crop; }); if(!withCrop.length){ toast("No crops are planned for " + currentYear + "."); return; } if(!confirm("Clear the planned crop on all " + withCrop.length + " fields for " + currentYear + "? Field boundaries stay — only the crops go blank so you can plan " + currentYear + " fresh.")) return; if(sharingEnabled && firestoreDb){ var batch = firestoreDb.batch(), col = firestoreDb.collection("farms").doc(farmCode).collection(fieldsCollectionName(currentYear)); withCrop.forEach(function(f){ batch.update(col.doc(f.id), {crop:""}); }); batch.commit().then(function(){ toast("Planned crops cleared for " + currentYear); }).catch(function(){ toast("Couldn’t clear — check your connection."); }); } else { withCrop.forEach(function(f){ f.crop = ""; }); saveData(); renderAll(); toast("Planned crops cleared for " + currentYear); } closeSideMenu(); } function updateCropYearUI(){ var cyb = document.getElementById("btn-clear-year-crops"); if(cyb){ cyb.classList.toggle("hidden", !(isFutureYear(currentYear) && canManage())); cyb.textContent = "🧹 Clear planned crops for " + currentYear; }
     var sel = document.getElementById("input-crop-year");
     if(sel){ sel.value = currentYear; }
     var badge = document.getElementById("crop-year-badge");
@@ -9272,7 +9272,7 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
       employeeModalIsSelf = false;
       openEmployeesListSheet();
     });
-    wireFarmTerms(); wireRotation(); wireFarms(); initBackGuard(); wireFert(); document.getElementById("rec-apps").addEventListener("click", function(ev){ var b = ev.target.closest("[data-ftrec]"); if(!b) return; ev.stopPropagation(); var id = b.getAttribute("data-ftrec"); closeFieldRecord(); openFertTicketEdit(id); }, true); document.getElementById("input-app-type").addEventListener("change", recBlendToggle); document.getElementById("btn-rec-blend").addEventListener("click", function(){ var rf = fields.find(function(x){ return x.id === recordFieldId; }); if(!rf) return; var nm = (rf.name || "").trim(); closeFieldRecord(); openFertTicketFor(nm); }); document.getElementById("menu-item-fert").addEventListener("click", function(){ closeSideMenu(); openFertilizer(); }); document.getElementById("btn-open-fert").addEventListener("click", function(){ closeCropPlanSheet(); openFertilizer(); }); document.getElementById("menu-item-terms").addEventListener("click", function(){ closeSideMenu(); openFarmTerms(); });     document.getElementById("menu-item-my-info").addEventListener("click", function(){
+    wireFarmTerms(); wireRotation(); wireFarms(); initBackGuard(); wireFert(); document.getElementById("btn-clear-year-crops").addEventListener("click", clearYearCrops); document.getElementById("rec-apps").addEventListener("click", function(ev){ var b = ev.target.closest("[data-ftrec]"); if(!b) return; ev.stopPropagation(); var id = b.getAttribute("data-ftrec"); closeFieldRecord(); openFertTicketEdit(id); }, true); document.getElementById("input-app-type").addEventListener("change", recBlendToggle); document.getElementById("btn-rec-blend").addEventListener("click", function(){ var rf = fields.find(function(x){ return x.id === recordFieldId; }); if(!rf) return; var nm = (rf.name || "").trim(); closeFieldRecord(); openFertTicketFor(nm); }); document.getElementById("menu-item-fert").addEventListener("click", function(){ closeSideMenu(); openFertilizer(); }); document.getElementById("btn-open-fert").addEventListener("click", function(){ closeCropPlanSheet(); openFertilizer(); }); document.getElementById("menu-item-terms").addEventListener("click", function(){ closeSideMenu(); openFarmTerms(); });     document.getElementById("menu-item-my-info").addEventListener("click", function(){
       closeSideMenu();
       openMyEmployeeInfoFlow();
     });
