@@ -2980,7 +2980,7 @@ var DEMO_DATA_KEY = "rockMarkerDemoData_v1", DEMO_HIST_KEY = "rockMarkerDemoCrop
   }
 
   function buildFieldRecordsReportHtml(){
-    var html = '<div class="report-section"><h3>📒 Field Records</h3>';
+    var html = '<div class="report-section"><h3>📒 Field Records</h3>'; if(typeof fertEnsure === "function" && fertLoadedFor !== fertKey() + "|" + (sharingEnabled ? "s" : "l")) fertEnsure(function(){ var sel = document.getElementById("input-report-type"); if(sel && sel.value === "field-records" && document.getElementById("reports-modal").classList.contains("show")) renderReportsBody(); });
     var list = fields.slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); });
     if(!list.length){ return html + '<div class="report-empty">No fields yet.</div></div>'; }
     var rows = list.map(function(f){
@@ -2989,7 +2989,7 @@ var DEMO_DATA_KEY = "rockMarkerDemoData_v1", DEMO_HIST_KEY = "rockMarkerDemoCrop
       var apps = fieldAppsOf(f).slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); });
       var appsHtml = apps.length ? apps.map(function(a){
         return escapeHtml(appLine(a) + (a.appliedBy ? " · by " + a.appliedBy : "") + (a.epa ? " · EPA " + a.epa : ""));
-      }).join("<br>") : "—";
+      }).join("<br>") : "—"; var fnm = (f.name || "").trim(), FY = String(currentYear), tks = (typeof blendTickets === "undefined" ? [] : blendTickets).filter(function(t){ return (t.field || "") === fnm && (String(t.year) === FY || String(t.date || "").slice(0, 4) === FY); }).sort(function(a, b){ return String(a.date || "").localeCompare(String(b.date || "")); }); if(tks.length){ var tkHtml = tks.map(function(t){ return "🧾 Blend ticket " + escapeHtml((t.ticketNo ? "#" + t.ticketNo + " · " : "") + (t.date || "") + " · for the " + t.year + " crop" + (t.pass ? " · " + t.pass : "") + " · " + fertTicketLine(t)); }).join("<br>"); appsHtml = (apps.length ? appsHtml + "<br>" : "") + tkHtml; }
       return '<tr><td><b>'+escapeHtml(f.name||"")+'</b><br>'+ac.toFixed(1)+' ac</td><td>'+escapeHtml(f.crop||"—")+'</td><td>'+escapeHtml(f.seedVariety||"—")+(f.seedingRate ? '<br>'+escapeHtml(f.seedingRate) : '')+'</td><td>'+(f.plantedOn ? new Date(f.plantedOn+"T12:00:00").toLocaleDateString() : "—")+'</td><td>'+appsHtml+'</td><td>'+(y !== null ? y + ' bu/ac<br>≈' + Math.round(y*ac).toLocaleString() + ' bu' : "—")+'</td></tr>';
     }).join("");
     return html + '<table class="report-table"><thead><tr><th>Field</th><th>Crop</th><th>Variety</th><th>Planted</th><th>Passes (fertilizer / spray)</th><th>Yield</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
