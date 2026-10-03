@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rock Marker — the farm map your whole crew can use</title>
+<meta name="description" content="Rock Marker is a phone app for the farm: mark rocks, outline fields, log grain loads into bins, track tillage, fertilizer, sprays and sales — and it keeps working with no signal.">
+<meta name="theme-color" content="#2f4f2f">
+<link rel="icon" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--green:#3a6b35;--green-dark:#274a24;--cream:#faf7ef;--ink:#20261f;--line:#e2ddd0;--soft:#eef4ec;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--cream);line-height:1.5;}
+a{color:var(--green-dark);}
+.wrap{max-width:980px;margin:0 auto;padding:0 18px;}
+header{background:linear-gradient(160deg,#274a24 0%,#3a6b35 60%,#5c8a3a 100%);color:#fff;padding:28px 0 46px;}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;}
+.brand img{width:40px;height:40px;border-radius:10px;}
+h1{font-size:clamp(30px,6vw,46px);line-height:1.1;margin:34px 0 12px;letter-spacing:-.02em;}
+.lead{font-size:clamp(17px,2.6vw,20px);max-width:640px;opacity:.95;margin:0 0 24px;}
+.cta{display:flex;flex-wrap:wrap;gap:10px;}
+.btn{display:inline-block;padding:14px 22px;border-radius:14px;font-weight:800;font-size:17px;text-decoration:none;}
+.btn-main{background:#ffca28;color:#20261f;}
+.btn-ghost{background:rgba(255,255,255,.14);color:#fff;border:2px solid rgba(255,255,255,.5);}
+.note{font-size:14px;opacity:.85;margin-top:12px;}
+section{padding:40px 0 10px;}
+h2{font-size:clamp(23px,4vw,30px);margin:0 0 6px;letter-spacing:-.01em;}
+.sub{margin:0 0 20px;color:#4b5548;font-size:16px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px;}
+.card .ic{font-size:28px;}
+.card h3{margin:6px 0 4px;font-size:18px;}
+.card p{margin:0;font-size:15px;color:#3d463b;}
+.band{background:var(--soft);border-radius:18px;padding:20px;margin-top:6px;}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:10px;}
+.steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;font-size:16px;}
+.steps li:before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--line);font-size:15px;}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;}
+th{background:#f3f1e8;}
+.scroll{overflow-x:auto;}
+footer{padding:36px 0 50px;color:#5b6458;font-size:14px;text-align:center;}
+@media (prefers-color-scheme: dark){
+ :root{--cream:#171a16;--ink:#e9ece4;--line:#343a32;--soft:#1f2a1d;}
+ .card,table{background:#20241f;} th{background:#262b25;} .card p,.sub{color:#c3c9bd;} a{color:#9fd494;} footer{color:#a3aa9e;}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="wrap">
+  <div class="brand"><img src="icon-192.png" alt=""> Rock Marker</div>
+  <h1>The farm map your whole crew can use.</h1>
+  <p class="lead">Mark rocks, outline fields, log every load into the bins, track tillage, fertilizer, sprays and grain sales — all on one map, on any phone. And it keeps working when you have no signal.</p>
+  <div class="cta">
+   <a class="btn btn-main" href="./">Open the app</a>
+   <a class="btn btn-ghost" href="./?demo=1">Try the demo farm</a>
+  </div>
+  <div class="note">The demo is a made-up practice farm — tap around, nothing you do is saved.</div>
+ </div>
+</header>
+
+<section>
+ <div class="wrap">
+  <h2>Built for a working farm</h2>
+  <p class="sub">Everything is on the map, so nobody has to explain which field they mean.</p>
+  <div class="grid">
+   <div class="card"><div class="ic">🪨</div><h3>Rocks &amp; wet spots</h3><p>Drop a pin where you are with one tap. The picker walks straight to the closest rock next.</p></div>
+   <div class="card"><div class="ic">🌾</div><h3>Harvest loads</h3><p>Big buttons: which bin, in or out, Tandem or Semi, how full. Bushels add up by themselves, and every load shows who logged it.</p></div>
+   <div class="card"><div class="ic">🚜</div><h3>Tillage</h3><p>Fields shade grey as they’re worked. It flags fertilizer that went on but hasn’t been worked in yet.</p></div>
+   <div class="card"><div class="ic">🧪</div><h3>Soil tests &amp; fertilizer</h3><p>Suggested blends from U of M and NDSU guides, plus the co-op’s blend tickets kept with each field.</p></div>
+   <div class="card"><div class="ic">📒</div><h3>Field records</h3><p>Seed, planting, every spray pass with REI and PHI, and yield. Crews see “no entry” warnings right on the map.</p></div>
+   <div class="card"><div class="ic">🌦</div><h3>Weather &amp; spray window</h3><p>The hour-by-hour forecast for each field, with a plain answer: good to spray, too windy, or rain coming.</p></div>
+   <div class="card"><div class="ic">💵</div><h3>Grain sales &amp; profit</h3><p>Log contracts and cash sales, see how much is sold, and see the cost and profit for each field. Owner and Executives only.</p></div>
+   <div class="card"><div class="ic">📊</div><h3>Reports</h3><p>Crop totals, bins, loads per day, tillage, and a season report for any field. Print them or text them as a PDF.</p></div>
+   <div class="card"><div class="ic">📵</div><h3>No signal? No problem</h3><p>Keep working in the dead spots. Everything is saved on the phone and sent to the farm when you get a bar back.</p></div>
+  </div>
+ </div>
+</section>
+
+<section>
+ <div class="wrap">
+  <h2>The right buttons for each person</h2>
+  <p class="sub">Each person gets a role, so they only see what they need.</p>
+  <div class="scroll"><table>
+   <thead><tr><th>Role</th><th>Good for</th><th>What they can do</th></tr></thead>
+   <tbody>
+    <tr><td><b>Worker</b></td><td>Truck drivers, rock pickers, hired help</td><td>Mark rocks, log loads, log passes and tillage, check weather</td></tr>
+    <tr><td><b>Manager</b></td><td>The person running the crew</td><td>Everything a Worker can do, plus fields, bins, crops, jobs, parts and reports</td></tr>
+    <tr><td><b>Executive / Owner</b></td><td>Owners and partners</td><td>Everything, plus locking a year’s plan, grain sales, profit and approving people</td></tr>
+   </tbody>
+  </table></div>
+ </div>
+</section>
+
+<section>
+ <div class="wrap">
+  <div class="band">
+   <h2>Getting going takes one evening</h2>
+   <ol class="steps" style="margin-top:12px;">
+    <li>Open the app and pick the crops you grow.</li>
+    <li>Outline your fields on the satellite map and set this year’s crop.</li>
+    <li>Outline your bins and set how many bushels your trucks hold.</li>
+    <li>Text the link to your crew. Approve them when they sign in.</li>
+   </ol>
+   <p style="margin:14px 0 0;">The app walks you through it with a setup checklist the first time.</p>
+  </div>
+  <div class="cta" style="margin-top:22px;">
+   <a class="btn btn-main" href="./" style="background:var(--green);color:#fff;">Open the app</a>
+   <a class="btn" href="./?demo=1" style="border:2px solid var(--green);color:var(--green-dark);">Try the demo farm</a>
+  </div>
+ </div>
+</section>
+
+<footer>
+ <div class="wrap">Rock Marker · created by Jason Chaplinski · Weather from the National Weather Service</div>
+</footer>
+</body>
+</html>
