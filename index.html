@@ -10243,7 +10243,7 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
    body.style.padding = v === "map" ? "10px" : "";
    if(v === "bins") body.innerHTML = trkBinsHtml();
    else if(v === "map"){ body.innerHTML = trkMapHtml(); trkMapInit(); }
-   else if(v === "detail") body.innerHTML = trkDetailHtml();
+   else if(v === "detail"){ body.innerHTML = trkDetailHtml(); trkLevelInto(trkFind(TRK.detailId)); }
    else if(v === "take") body.innerHTML = trkTakeHtml();
    var fh = "";
    if(v === "take") fh = '<button type="button" class="trk-btn" data-trk="save" id="trk-save">' + trkSaveLabel() + '</button><div style="font-size:12px;color:#56605A;text-align:center;">' + (TRK.test && TRK.practice ? "Practice mode — this won't change the bin." : "Mistake? You can undo for 10 minutes.") + '</div>';
@@ -10284,7 +10284,7 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
    if(!b || !(TRK.allBins || TRK.bins.indexOf(b.id) !== -1)) return '<div class="trk-empty">This bin isn\'t shared with you.</div>';
    var bu = trkBu(b), pct = trkPct(b), r = trkReady(b), loads = trkSemiLoads(bu);
    var h = trkUndoHtml();
-   h += '<div class="trk-hero"><div class="trk-gauge"><div><i style="height:' + (pct || 0) + '%"></i></div></div><div style="display:flex;flex-direction:column;gap:6px;"><div class="trk-sub">' + escapeHtml(b.currentCrop || "Empty") + '</div><div class="trk-big">' + (bu > 0 ? '≈' + bu.toLocaleString() + ' bu' : 'Empty') + '</div>' + (pct !== null ? '<div style="font-weight:600;">' + pct + '% full</div>' : '') + (r ? '<span class="trk-pill ready" style="align-self:flex-start;">READY · ' + loads + ' semi loads</span>' : '<span class="trk-pill" style="align-self:flex-start;">' + (bu > 0 ? 'Less than a semi load' : 'Empty') + '</span>') + '</div></div>';
+   h += '<div class="trk-hero"><div style="display:flex;flex-direction:column;gap:6px;"><div class="trk-sub">' + escapeHtml(b.currentCrop || "Empty") + '</div><div class="trk-big">' + (bu > 0 ? '≈' + bu.toLocaleString() + ' bu' : 'Empty') + '</div>' + (pct !== null ? '<div style="font-weight:600;">' + pct + '% full</div>' : '') + (r ? '<span class="trk-pill ready" style="align-self:flex-start;">READY · ' + loads + ' semi loads</span>' : '<span class="trk-pill" style="align-self:flex-start;">' + (bu > 0 ? 'Less than a semi load' : 'Empty') + '</span>') + '</div></div><div id="trk-level" style="margin-top:12px;"></div>';
    var rows = [];
    var eq = (typeof loadsEquivLine === "function") ? loadsEquivLine(bu) : null; if(eq) rows.push(["Loads to empty (est.)", eq]);
    var rem = (typeof binRemainingBu === "function") ? binRemainingBu(b) : null; if(rem !== null) rows.push(["Space left before full", rem > 0 ? "≈" + rem.toLocaleString() + " bu" : "Full"]);
@@ -10304,6 +10304,21 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
    }).join("");
    if(sorted.length > TRK.logN) h += '<button type="button" class="trk-btn2" data-trk="more" style="width:100%;">Show older loads</button>';
    return h;
+ }
+ function trkLevelInto(b){
+   var el = document.getElementById("trk-level"); if(!el || !b) return;
+   var saveGl = glUi, saveRg = rgUi, orig = document.getElementById("bin-glass"), html = "";
+   try{
+     glUi = {binId:b.id, mode:"", draft:null}; rgUi = {binId:b.id, mode:"", L:null, how:"", cartDay:""};
+     if(!/hold/i.test(b.name || "") && Number(b.ringCount) > 0){ var tmp = document.createElement("div"); rgRender(b, tmp); html = tmp.innerHTML; }
+     else { if(orig) orig.id = "bin-glass-trkhold"; el.id = "bin-glass"; glRender(b); html = el.innerHTML; el.id = "trk-level"; if(orig) orig.id = "bin-glass"; }
+   }catch(e){ html = ""; if(el.id !== "trk-level") el.id = "trk-level"; if(orig && orig.id !== "bin-glass") orig.id = "bin-glass"; }
+   glUi = saveGl; rgUi = saveRg;
+   var box = document.createElement("div"); box.innerHTML = html;
+   box.querySelectorAll("button, .gl-go, .gl-setup, .gl-ib, .gl-tip, input, select").forEach(function(x){ x.remove(); });
+   box.querySelectorAll("[data-gl]").forEach(function(x){ x.removeAttribute("data-gl"); x.style.cursor = "default"; });
+   box.querySelectorAll("small").forEach(function(x){ if(/tap |“|Check level now|start” below/i.test(x.textContent)) x.remove(); });
+   el.innerHTML = box.querySelector("svg, .gl-bin") ? box.innerHTML : "";
  }
  function trkSaveLabel(){
    var t = TRK.take; if(!t) return "Save";
