@@ -10430,7 +10430,7 @@ var TERM_CATS = [["all", "All"], ["measure", "ğŸ“ Measurements"], ["grain", "ğŸ
  function trkSlotKey(name){
    var n = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
    if(n.indexOf("holding") !== -1) return "H";
-   var m = /^bin0?([1-7])$/.exec(n) || /^([1-7])$/.exec(n); if(m) return "B" + m[1];
+   var m = /^(?:new)?bin0?([1-7])$/.exec(n) || /^([1-7])$/.exec(n); if(m) return "B" + m[1];
    if(n.indexOf("selarge") !== -1 || (n.indexOf("se") === 0 && n.indexOf("large") !== -1) || n.indexOf("southeast") !== -1) return "SE";
    if(n.indexOf("big") === 0) return "BIG";
    return null;
