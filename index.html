@@ -10207,7 +10207,7 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
    else { var c = trkMember || {}; TRK.allBins = false; TRK.bins = c.bins || []; TRK.level = c.level || 1; TRK.name = c.name || getDeviceName() || "Trucker"; }
    if(!TRK.on || prevTest !== TRK.test || (TRK.view === "take" && (TRK.level !== 2 || TRK.test))){ TRK.view = "bins"; TRK.detailId = null; TRK.take = null; }
    TRK.on = true; TRK.sig = "";
-   document.body.classList.add("trk-on");
+   document.body.classList.add("trk-on"); if(!TRK.test){ var te = document.getElementById("toast"); if(te) te.classList.remove("show"); }
    document.getElementById("trk-app").classList.remove("hidden");
    document.getElementById("trk-test").classList.toggle("hidden", !TRK.test);
    try{ closeSideMenu(); }catch(e){}
@@ -10377,41 +10377,65 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
 
  // ---------- yard map ----------
  function trkMapHtml(){
-   return '<div class="trk-mapwrap" id="trk-mapwrap"><svg id="trk-svg" xmlns="http://www.w3.org/2000/svg"></svg><div class="trk-zoom"><button type="button" data-trk="zin" aria-label="Zoom in">+</button><button type="button" data-trk="zout" aria-label="Zoom out">−</button><button type="button" class="fit" data-trk="zfit">FIT</button></div></div><div class="trk-legend"><span><i style="background:#1D5C96"></i>Ready</span><span><i style="background:#fff;border:3px solid #1B2420"></i>Yours, not ready</span><span><i style="background:#C9CFC4"></i>Not shared</span></div>';
+   return '<div class="trk-mapwrap" id="trk-mapwrap"><svg id="trk-svg" xmlns="http://www.w3.org/2000/svg"></svg><div class="trk-zoom"><button type="button" data-trk="zin" aria-label="Zoom in">+</button><button type="button" data-trk="zout" aria-label="Zoom out">−</button><button type="button" class="fit" data-trk="zfit">FIT</button></div></div><div class="trk-legend"><span><i style="background:#1D5C96"></i>Ready</span><span><i style="background:#fff;border:3px solid #1B2420"></i>Yours, not ready</span><span><i style="background:#C9CFC4"></i>Not shared</span></div><div id="trk-other"></div>';
  }
+ function trkSlotKey(name){
+   var n = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+   if(n.indexOf("holding") !== -1) return "H";
+   var m = /^bin0?([1-7])$/.exec(n) || /^([1-7])$/.exec(n); if(m) return "B" + m[1];
+   if(n.indexOf("selarge") !== -1 || (n.indexOf("se") === 0 && n.indexOf("large") !== -1) || n.indexOf("southeast") !== -1) return "SE";
+   if(n.indexOf("big") === 0) return "BIG";
+   return null;
+ }
+ var TRK_SLOTS = [
+   {k:"BIG", t:"c", x:330, y:62, r:28, lab:"Big\nBin"}, {k:"SE", t:"c", x:330, y:176, r:28, lab:"SE\nLarge"},
+   {k:"H", t:"c", x:213, y:189, r:15, lab:"H"}, {k:"B1", t:"c", x:213, y:220, r:15, lab:"1"}, {k:"B2", t:"c", x:213, y:252, r:15, lab:"2"}, {k:"B3", t:"c", x:213, y:284, r:15, lab:"3"},
+   {k:"B4", t:"c", x:213, y:316, r:15, lab:"4"}, {k:"B5", t:"c", x:213, y:348, r:15, lab:"5"}, {k:"B6", t:"c", x:213, y:380, r:15, lab:"6"}, {k:"B7", t:"c", x:213, y:412, r:15, lab:"7"},
+   {k:"RA", t:"r", x:235, y:154, w:56, h:132, dark:true}, {k:"RB", t:"r", x:1, y:204, w:63, h:134}
+ ];
  function trkMapInit(){
    var svg = document.getElementById("trk-svg"); if(!svg) return;
-   var wrap = document.getElementById("trk-mapwrap"); wrap.style.height = Math.max(360, document.getElementById("trk-body").clientHeight - 50) + "px";
-   var all = (bins || []).filter(function(b){ return Array.isArray(b.points) && b.points.length >= 3; });
-   if(!all.length){ svg.outerHTML = '<div class="trk-empty" style="color:#fff;">No bin outlines on the farm map yet.</div>'; return; }
-   var lat0 = 0, n = 0; all.forEach(function(b){ b.points.forEach(function(p){ lat0 += p[0]; n++; }); }); lat0 /= n;
-   var k = Math.cos(lat0 * Math.PI / 180) * 111320, kl = 110540;
-   var maxLat = -999, minLng = 999; all.forEach(function(b){ b.points.forEach(function(p){ if(p[0] > maxLat) maxLat = p[0]; if(p[1] < minLng) minLng = p[1]; }); });
-   var minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9, shapes = [];
-   all.forEach(function(b){
-     var pts = b.points.map(function(p){ var x = (p[1] - minLng) * k, y = (maxLat - p[0]) * kl; if(x < minX) minX = x; if(y < minY) minY = y; if(x > maxX) maxX = x; if(y > maxY) maxY = y; return [x, y]; });
-     var cx = 0, cy = 0; pts.forEach(function(p){ cx += p[0]; cy += p[1]; }); cx /= pts.length; cy /= pts.length;
-     shapes.push({b:b, pts:pts, cx:cx, cy:cy});
+   var wrap = document.getElementById("trk-mapwrap"); wrap.style.height = Math.max(360, document.getElementById("trk-body").clientHeight - 90) + "px";
+   var mine = function(b){ return TRK.allBins || TRK.bins.indexOf(b.id) !== -1; };
+   var assign = {}, used = {}, left = [];
+   (bins || []).forEach(function(b){ var k = trkSlotKey(trkBinName(b)); if(k && !assign[k]){ assign[k] = b; used[b.id] = 1; } });
+   (bins || []).slice().sort(function(a, z){ return String(trkBinName(a)).localeCompare(String(trkBinName(z)), undefined, {numeric:true}); }).forEach(function(b){ if(used[b.id]) return; if(!assign.RA){ assign.RA = b; used[b.id] = 1; } else if(!assign.RB){ assign.RB = b; used[b.id] = 1; } else left.push(b); });
+   var H = function(tag, attrs, inner){ var a = Object.keys(attrs).map(function(k){ return k + '="' + attrs[k] + '"'; }).join(" "); return "<" + tag + " " + a + ">" + (inner || "") + "</" + tag + ">"; };
+   var g = '<defs><pattern id="trk-hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="7" height="14" fill="#E6B62C"></rect><rect x="7" width="7" height="14" fill="#9C8A3A"></rect></pattern></defs>';
+   g += '<rect x="-400" y="-400" width="1158" height="1242" fill="#5E7A5A"></rect>';
+   g += '<rect x="-20" y="-10" width="260" height="92" rx="40" fill="#C9BFA6"></rect><rect x="70" y="40" width="150" height="420" rx="30" fill="#C9BFA6"></rect><rect x="150" y="60" width="120" height="70" rx="35" fill="#C9BFA6"></rect>';
+   g += '<circle cx="86" cy="130" r="20" fill="#6E8A69"></circle><rect x="80" y="2" width="30" height="46" rx="3" fill="#E2DDD0"></rect><rect x="-10" y="-10" width="76" height="44" rx="22" fill="#3F5A3D"></rect><rect x="150" y="-14" width="90" height="40" rx="20" fill="#3F5A3D"></rect>';
+   g += '<polygon points="358,220 358,442 222,442" fill="url(#trk-hatch)"></polygon><polygon points="0,416 150,442 0,442" fill="url(#trk-hatch)"></polygon>';
+   g += '<rect x="196" y="140" width="34" height="30" rx="4" fill="#2C312E"></rect><text x="213" y="159" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" style="pointer-events:none;">Leg</text>';
+   g += '<line x1="228" y1="186" x2="302" y2="178" stroke="#E9EEEC" stroke-width="4"></line>';
+   g += '<rect x="10" y="40" width="58" height="20" rx="6" fill="#E9EEEC"></rect><text x="39" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#1B2420" style="pointer-events:none;">Drive in</text>';
+   g += '<rect x="304" y="404" width="44" height="20" rx="6" fill="#E9EEEC"></rect><text x="326" y="418" text-anchor="middle" font-size="11" font-weight="700" fill="#1B2420" style="pointer-events:none;">Field</text>';
+   TRK_SLOTS.forEach(function(s){
+     var b = assign[s.k], m = b && mine(b), r = m && trkReady(b), pct = b ? trkPct(b) : null;
+     var fill = !b ? "none" : r ? "#1D5C96" : m ? "#FFFFFF" : (s.dark ? "#4A4743" : "#C9CFC4");
+     if(!b && s.t === "r") fill = s.dark ? "#4A4743" : "#A9B8B6";
+     var stroke = !b ? "#9AA39C" : r ? "#FFFFFF" : m ? "#1B2420" : "#8E978F", sw = m ? 3 : 2, txt = r ? "#FFFFFF" : (m ? "#1B2420" : (s.dark && b ? "#FFFFFF" : "#3D4641"));
+     var attrs = {fill:fill, stroke:stroke, "stroke-width":sw}; if(!b) attrs["stroke-dasharray"] = "4 3";
+     if(b){ attrs["data-bid"] = escapeHtml(b.id); attrs.style = "cursor:" + (m ? "pointer" : "default"); }
+     if(s.t === "c"){ attrs.cx = s.x; attrs.cy = s.y; attrs.r = s.r; g += H("circle", attrs); }
+     else { attrs.x = s.x; attrs.y = s.y; attrs.width = s.w; attrs.height = s.h; attrs.rx = 3; g += H("rect", attrs); }
+     var cx = s.t === "c" ? s.x : s.x + s.w / 2, cy = s.t === "c" ? s.y : s.y + s.h / 2;
+     var lab = s.t === "r" ? (b ? trkBinName(b) : "") : s.lab, lines = String(lab).split("\n");
+     if(s.t === "r" && b){ lines = String(lab).split(/\s+/); }
+     var fs = s.t === "c" && s.r < 20 ? 11 : 10, lh = fs * 1.1, y0 = cy - (lines.length - 1) * lh / 2 + fs * 0.35 - (s.t !== "c" || s.r >= 20 ? (m && pct !== null ? lh * 0.5 : 0) : 0);
+     lines.forEach(function(L, i){ g += '<text x="' + cx + '" y="' + (y0 + i * lh).toFixed(1) + '" text-anchor="middle" font-size="' + fs + '" font-weight="700" fill="' + txt + '" style="pointer-events:none;">' + escapeHtml(L) + '</text>'; });
+     if(m && pct !== null){
+       if(s.t === "c" && s.r < 20) g += '<text x="' + (s.x - s.r - 5) + '" y="' + (s.y + 4) + '" text-anchor="end" font-size="10" font-weight="700" fill="#1B2420" style="pointer-events:none;">' + pct + '%</text>';
+       else g += '<text x="' + cx + '" y="' + (y0 + lines.length * lh).toFixed(1) + '" text-anchor="middle" font-size="9" fill="' + txt + '" style="pointer-events:none;">' + pct + '%</text>';
+     }
    });
-   var span = Math.max(maxX - minX, maxY - minY, 10), pad = span * 0.08;
-   TRK.fit = [minX - pad, minY - pad, (maxX - minX) + pad * 2, (maxY - minY) + pad * 2];
-   if(!TRK.vb) TRK.vb = TRK.fit.slice();
-   var fs = span * 0.028, mine = function(b){ return TRK.allBins || TRK.bins.indexOf(b.id) !== -1; };
-   var h = "";
-   shapes.forEach(function(s){
-     var m = mine(s.b), r = m && trkReady(s.b);
-     var fill = r ? "#1D5C96" : (m ? "#FFFFFF" : "#C9CFC4"), stroke = r ? "#FFFFFF" : (m ? "#1B2420" : "#8E978F"), sw = m ? span * 0.006 : span * 0.003;
-     h += '<polygon data-bid="' + escapeHtml(s.b.id) + '" points="' + s.pts.map(function(p){ return p[0].toFixed(2) + "," + p[1].toFixed(2); }).join(" ") + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + sw.toFixed(2) + '" stroke-linejoin="round" style="cursor:' + (m ? 'pointer' : 'default') + '"></polygon>';
-   });
-   shapes.forEach(function(s){
-     var m = mine(s.b), r = m && trkReady(s.b), pct = trkPct(s.b);
-     var col = r ? "#FFFFFF" : (m ? "#1B2420" : "#4A524C");
-     h += '<text x="' + s.cx.toFixed(2) + '" y="' + s.cy.toFixed(2) + '" text-anchor="middle" font-size="' + (m ? fs : fs * 0.75).toFixed(2) + '" font-weight="' + (m ? 700 : 500) + '" fill="' + col + '" style="pointer-events:none;font-family:inherit;">' + escapeHtml(trkBinName(s.b)) + '</text>';
-     if(m && pct !== null) h += '<text x="' + s.cx.toFixed(2) + '" y="' + (s.cy + fs * 1.1).toFixed(2) + '" text-anchor="middle" font-size="' + (fs * 0.85).toFixed(2) + '" fill="' + col + '" style="pointer-events:none;font-family:inherit;">' + pct + '%</text>';
-   });
-   svg.innerHTML = h;
+   svg.innerHTML = g;
+   svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+   TRK.fit = [0, 0, 358, 442]; if(!TRK.vb) TRK.vb = TRK.fit.slice();
    trkApplyVb();
    if(!svg._trkWired){ svg._trkWired = true; trkWireMapGestures(svg); }
+   var other = document.getElementById("trk-other"), lm = left.filter(mine);
+   if(other) other.innerHTML = lm.length ? '<div class="trk-sec">Other bins</div><div class="trk-chips">' + lm.map(function(b){ return '<button type="button" class="trk-chip" data-trk="open" data-bid="' + escapeHtml(b.id) + '">' + escapeHtml(trkBinName(b)) + '</button>'; }).join("") + '</div>' : "";
  }
  function trkApplyVb(){ var svg = document.getElementById("trk-svg"); if(svg && TRK.vb) svg.setAttribute("viewBox", TRK.vb.map(function(x){ return x.toFixed(2); }).join(" ")); }
  function trkZoom(f, cx, cy){
