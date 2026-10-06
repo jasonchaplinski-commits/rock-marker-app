@@ -1,32 +1,32 @@
 {
- "updated": "2026-10-05T13:45:00-05:00",
- "note": "midday",
+ "updated": "2026-10-06T08:25:00-05:00",
+ "note": "overnight trade",
  "futures": [
-  {"name": "Spring wheat", "short": "Spr wheat", "month": "Dec", "exch": "MGEX", "last": 7.09, "chg": 0.11},
-  {"name": "Soybeans", "short": "Soybeans", "month": "Nov", "exch": "CBOT", "last": 12.855, "chg": 0.0725},
-  {"name": "Corn", "short": "Corn", "month": "Dec", "exch": "CBOT", "last": 4.985, "chg": 0.0075},
-  {"name": "Chicago wheat", "short": "Chi wheat", "month": "Dec", "exch": "CBOT", "last": 6.9575, "chg": 0.1275},
-  {"name": "Canola (C$/tonne)", "short": "Canola", "month": "Nov", "exch": "ICE", "last": 815.57, "chg": 0.07}
+  {"name": "Spring wheat", "short": "Spr wheat", "month": "Dec", "exch": "MGEX", "last": 7.14, "chg": 0.055},
+  {"name": "Soybeans", "short": "Soybeans", "month": "Nov", "exch": "CBOT", "last": 12.8625, "chg": 0.055},
+  {"name": "Corn", "short": "Corn", "month": "Dec", "exch": "CBOT", "last": 5.005, "chg": 0.0325},
+  {"name": "Chicago wheat", "short": "Chi wheat", "month": "Dec", "exch": "CBOT", "last": 6.9925, "chg": 0.07},
+  {"name": "Canola (C$/tonne)", "short": "Canola", "month": "Nov", "exch": "ICE", "last": 819.20, "chg": -0.20}
  ],
  "cash": [
-  {"crop": "Spring wheat 13%", "where": "Minneapolis terminal · Oct 2", "price": 6.98, "basis": 0.00},
-  {"crop": "Soybeans", "where": "Minneapolis terminal · Oct 2", "price": 12.22, "basis": -0.57},
-  {"crop": "Corn", "where": "Minneapolis terminal · Oct 2", "price": 4.35, "basis": -0.62}
+  {"crop": "Spring wheat 13%", "where": "Minneapolis terminal · Oct 5", "price": 7.09, "basis": 0.00},
+  {"crop": "Soybeans", "where": "Minneapolis terminal · Oct 5", "price": 12.19, "basis": -0.62},
+  {"crop": "Corn", "where": "Minneapolis terminal · Oct 5", "price": 4.35, "basis": -0.63}
  ],
- "cropPrice": {"Wheat": 6.98, "Soybeans": 12.22, "Corn": 4.35},
+ "cropPrice": {"Wheat": 7.09, "Soybeans": 12.19, "Corn": 4.35},
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "reports": [
-  {"name": "USDA Crop Progress", "when": "Mon Oct 5 · 3 pm CT"},
+  {"name": "USDA Weekly Export Sales", "when": "Thu Oct 8 · 7:30 am CT"},
   {"name": "USDA WASDE + Crop Production", "when": "Fri Oct 9 · 11 am CT"},
   {"name": "USDA Crop Progress (after Columbus Day)", "when": "Tue Oct 13 · 3 pm CT"}
  ],
- "outlook": "Wheat led a Monday rebound after last week's selloff, up about 12 cents in Chicago as Russia said it would step up strikes on Ukrainian infrastructure, raising Black Sea export worries. Soybeans recovered about 7 cents from near five-week lows, though StoneX raised its U.S. crop estimate above USDA's September number. Corn is barely higher just under $5, still weighed down by large Sept. 1 stocks (2.095 billion bu) and slow export sales, while canola is flat. Improving harvest weather is expected this week, and USDA's WASDE and Crop Production reports come Friday.",
+ "outlook": "Grains are higher in overnight trade, with Minneapolis spring wheat up about 5 cents to $7.14 and all wheat contracts gaining as Russia and western Ukraine face dry soils ahead of winter wheat dormancy, though U.S. wheat export inspections are running 35% behind last year. Corn is back right at $5 after weekly inspections of 53.8 million bushels, and soybeans are up about 5 cents with inspections of 42 million bushels, well above the pace USDA needs. Monday's Crop Progress showed harvest behind normal after late-September rains, with corn 23% harvested (27% average) and soybeans 25% (33% average), and condition ratings slipped to 54% and 57% good-to-excellent. Canola is about flat, and USDA's WASDE and Crop Production reports come Friday.",
  "news": [
-  {"title": "TFM Morning Update — Oct 5", "source": "Total Farm Marketing", "url": "https://www.totalfarmmarketing.com/tfm-morning-update-10-05-2026/"},
-  {"title": "Monday Morning Wake Up Call — Oct 5", "source": "Pro Farmer", "url": "https://profarmer.com/news/monday-morning-wake-call-october-5-2026"},
-  {"title": "Could U.S. weather shake corn and soybean markets this week?", "source": "AgroLatam", "url": "https://www.agrolatam.com/usa/weather/us-weather-corn-soybean-harvest-gulf-rain-october-2026/"},
-  {"title": "Afternoon market recap — Oct 2", "source": "Farm Progress", "url": "https://www.farmprogress.com/markets-and-quotes/afternoon-market-recap"},
+  {"title": "TFM Morning Update — Oct 6", "source": "Total Farm Marketing", "url": "https://www.totalfarmmarketing.com/tfm-morning-update-10-06-2026/"},
+  {"title": "USDA Crop Progress: Corn 23% Harvested, Soybeans 25% Harvested as of Oct. 4", "source": "DTN/Progressive Farmer", "url": "https://www.dtnpf.com/agriculture/web/ag/news/article/2026/10/05/usda-crop-progress-corn-23-harvested"},
+  {"title": "Closing Grain and Livestock Futures: October 5, 2026", "source": "Brownfield Ag News", "url": "https://www.brownfieldagnews.com/market-news/closing-grain-and-livestock-futures-october-5-2026/"},
+  {"title": "Wheat gains, continuing to watch Black Sea exports", "source": "Brownfield Ag News", "url": "https://www.brownfieldagnews.com/market-news/wheat-gains-continuing-to-watch-black-sea-exports/"},
   {"title": "Minneapolis daily grain report (USDA)", "source": "USDA AMS", "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"}
  ],
- "sources": "Total Farm Marketing, Trading Economics, Farm Progress, USDA AMS, USDA NASS calendar"
+ "sources": "Total Farm Marketing, Brownfield Ag News, Farmbucks, DTN, USDA AMS, CME Group USDA report calendar"
 }
