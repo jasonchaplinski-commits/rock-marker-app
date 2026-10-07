@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#2f4f2f">
 <meta name="application-name" content="Chaplinski Farms">
 <title>Chaplinski Farms</title>
-<link rel="manifest" href="manifest.json">
+<script>(function(){ var t = false; try{ t = /[?&]tp=/.test(location.search) || !!localStorage.getItem("rockMarkerTrkPass_v1"); }catch(e){} if(t && /iPhone|iPad|iPod/i.test(navigator.userAgent)) return; var l = document.createElement("link"); l.rel = "manifest"; l.href = "manifest.json"; document.head.appendChild(l); })();</script>
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -913,7 +913,7 @@ body.theme-dark .trk-lvl-sel{background:#272c26 !important;}
     <input type="password" id="input-login-password" autocomplete="current-password" placeholder="Password">
     <div class="hidden" id="access-gate-error">That email or password isn't right — try again.</div>
     <button class="btn btn-primary" id="btn-access-gate-submit" style="width:100%;margin-top:12px;">Sign in</button>
-    <button type="button" class="gate-link" id="btn-gate-mode">New here? Request access</button><button type="button" class="btn btn-secondary" id="btn-try-demo" style="width:100%;margin-top:14px;">👀 Try the demo (practice farm)</button>
+    <button type="button" class="gate-link" id="btn-gate-mode">New here? Request access</button><button type="button" class="btn btn-secondary" id="btn-try-demo" style="width:100%;margin-top:14px;">👀 Try the demo (practice farm)</button><button type="button" class="btn btn-secondary" id="btn-gate-trucker" style="width:100%;margin-top:10px;">🚚 Trucker? Paste the link you were texted</button><script>document.getElementById("btn-gate-trucker").addEventListener("click", function(){ var v = prompt("Paste the trucker link you were texted (long-press the link in Messages, tap Copy, then paste here):", ""); if(!v) return; var m = /[?&]tp=([A-Za-z0-9]+)/.exec(v), j = /[?&]join=([A-Za-z0-9_-]+)/.exec(v); if(!m){ alert("That doesn't look like a trucker link. Ask for a new one."); return; } try{ localStorage.setItem("rockMarkerTrkPass_v1", m[1].slice(0, 60)); }catch(e){} location.replace(location.pathname + "?join=" + encodeURIComponent(j ? j[1] : "Chaplinski") + "&tp=" + encodeURIComponent(m[1].slice(0, 60))); });</script>
   </div>
 </div>
 
