@@ -2080,7 +2080,7 @@ service cloud.firestore {
 (function(){
   "use strict";
 
-  var DEMO_KEY = "rockMarkerDemo_v1"; var DEMO = false; try{ if(/[?&]demo=1/.test(location.search)) localStorage.setItem(DEMO_KEY, "1"); DEMO = localStorage.getItem(DEMO_KEY) === "1"; }catch(e){} var STORAGE_KEY = DEMO ? "rockMarkerDemoData_v1" : "rockMarkerData_v1";
+  var DEMO_KEY = "rockMarkerDemo_v1"; var DEMO = false; try{ if(!/[?&]demo=1/.test(location.search) && (/[?&]tp=/.test(location.search) || localStorage.getItem("rockMarkerTrkPass_v1"))){ localStorage.removeItem(DEMO_KEY); localStorage.removeItem("rockMarkerDemoData_v1"); } if(/[?&]demo=1/.test(location.search)) localStorage.setItem(DEMO_KEY, "1"); DEMO = localStorage.getItem(DEMO_KEY) === "1"; }catch(e){} var STORAGE_KEY = DEMO ? "rockMarkerDemoData_v1" : "rockMarkerData_v1";
   var SHARE_KEY = "rockMarkerShareConfig_v1";
 
   // Every copy of this app connects to this one shared farm automatically —
