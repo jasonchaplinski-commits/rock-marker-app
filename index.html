@@ -10523,18 +10523,18 @@ var TERM_CATS = [["all", "All"], ["measure", "üìè Measurements"], ["grain", "ü
  function trkMapHtml(){
    return '<div class="trk-mapwrap" id="trk-mapwrap"><svg id="trk-svg" xmlns="http://www.w3.org/2000/svg"></svg><div class="trk-zoom"><button type="button" data-trk="zin" aria-label="Zoom in">+</button><button type="button" data-trk="zout" aria-label="Zoom out">‚àí</button><button type="button" class="fit" data-trk="zfit">FIT</button></div></div><div class="trk-legend"><span><i style="background:#1D5C96"></i>Ready (a semi load+)</span><span><i style="background:#CFE1F2;border:3px solid #1D5C96"></i>Has grain, under a semi</span><span><i style="background:#fff;border:3px solid #1B2420"></i>Empty</span><span><i style="background:#C9CFC4"></i>Not shared</span></div><div id="trk-other"></div>';
  }
- function trkSlotKey(name){
+ function trkDotLab(name, dflt){ var n = String(name || "").replace(/[^A-Za-z0-9 ]/g, " ").trim(), d = (/([0-9]+)[ ]*$/.exec(n) || [])[1] || ""; if(/holding/i.test(n)) return "H" + d; if(/^new[ ]*bin/i.test(n)) return "NB" + d; if(/^bin[ ]*[0-9]+$/i.test(n)) return d; return dflt; } function trkSlotKey(name){
    var n = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-   if(n.indexOf("holding") !== -1) return "H";
-   var m = /^(?:new)?bin0?([1-7])$/.exec(n) || /^([1-7])$/.exec(n); if(m) return "B" + m[1];
+   var m = /^(?:holding|new)?(?:bin)?0?([1-8])$/.exec(n); if(m) return "B" + m[1];
+   if(n.indexOf("holding") !== -1) return "B1";
    if(n.indexOf("selarge") !== -1 || (n.indexOf("se") === 0 && n.indexOf("large") !== -1) || n.indexOf("southeast") !== -1) return "SE";
    if(n.indexOf("big") === 0) return "BIG";
    return null;
  }
  var TRK_SLOTS = [
    {k:"BIG", t:"c", x:330, y:62, r:28, lab:"Big\nBin"}, {k:"SE", t:"c", x:330, y:176, r:28, lab:"SE\nLarge"},
-   {k:"H", t:"c", x:213, y:189, r:15, lab:"H"}, {k:"B1", t:"c", x:213, y:220, r:15, lab:"1"}, {k:"B2", t:"c", x:213, y:252, r:15, lab:"2"}, {k:"B3", t:"c", x:213, y:284, r:15, lab:"3"},
-   {k:"B4", t:"c", x:213, y:316, r:15, lab:"4"}, {k:"B5", t:"c", x:213, y:348, r:15, lab:"5"}, {k:"B6", t:"c", x:213, y:380, r:15, lab:"6"}, {k:"B7", t:"c", x:213, y:412, r:15, lab:"7"},
+   {k:"B1", t:"c", x:213, y:189, r:15, lab:"1"}, {k:"B2", t:"c", x:213, y:220, r:15, lab:"2"}, {k:"B3", t:"c", x:213, y:252, r:15, lab:"3"}, {k:"B4", t:"c", x:213, y:284, r:15, lab:"4"},
+   {k:"B5", t:"c", x:213, y:316, r:15, lab:"5"}, {k:"B6", t:"c", x:213, y:348, r:15, lab:"6"}, {k:"B7", t:"c", x:213, y:380, r:15, lab:"7"}, {k:"B8", t:"c", x:213, y:412, r:15, lab:"8"},
    {k:"RA", t:"r", x:235, y:154, w:56, h:132, dark:true}, {k:"RB", t:"r", x:1, y:204, w:63, h:134}
  ];
  function trkMapInit(){
@@ -10564,9 +10564,9 @@ var TERM_CATS = [["all", "All"], ["measure", "üìè Measurements"], ["grain", "ü
      if(s.t === "c"){ attrs.cx = s.x; attrs.cy = s.y; attrs.r = s.r; g += H("circle", attrs); }
      else { attrs.x = s.x; attrs.y = s.y; attrs.width = s.w; attrs.height = s.h; attrs.rx = 3; g += H("rect", attrs); }
      var cx = s.t === "c" ? s.x : s.x + s.w / 2, cy = s.t === "c" ? s.y : s.y + s.h / 2;
-     var lab = s.t === "r" ? (b ? trkBinName(b) : "") : s.lab, lines = String(lab).split("\n");
+     var lab = s.t === "r" ? (b ? trkBinName(b) : "") : (b ? trkDotLab(trkBinName(b), s.lab) : s.lab), lines = String(lab).split("\n");
      if(s.t === "r" && b){ lines = String(lab).split(/\s+/); }
-     var fs = s.t === "c" && s.r < 20 ? 11 : 10, lh = fs * 1.1, y0 = cy - (lines.length - 1) * lh / 2 + fs * 0.35 - (s.t !== "c" || s.r >= 20 ? (m && pct !== null ? lh * 0.5 : 0) : 0);
+     var fs = s.t === "c" && s.r < 20 ? (String(lab).length > 2 ? 9 : 11) : 10, lh = fs * 1.1, y0 = cy - (lines.length - 1) * lh / 2 + fs * 0.35 - (s.t !== "c" || s.r >= 20 ? (m && pct !== null ? lh * 0.5 : 0) : 0);
      lines.forEach(function(L, i){ g += '<text x="' + cx + '" y="' + (y0 + i * lh).toFixed(1) + '" text-anchor="middle" font-size="' + fs + '" font-weight="700" fill="' + txt + '" style="pointer-events:none;">' + escapeHtml(L) + '</text>'; });
      if(m && pct !== null){
        if(s.t === "c" && s.r < 20) g += '<text x="' + (s.x - s.r - 5) + '" y="' + (s.y + 4) + '" text-anchor="end" font-size="10" font-weight="700" fill="#1B2420" style="pointer-events:none;">' + pct + '%</text>';
