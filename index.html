@@ -895,6 +895,23 @@ body.theme-dark .inv-kind button{background:#272c26;color:#e9ece4;}
 body.theme-dark .inv-kind button.on{background:#3a6b35;}
 .trk-lvl-sel{border:1px solid var(--line);border-radius:10px;padding:8px 8px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);}
 body.theme-dark .trk-lvl-sel{background:#272c26 !important;}
+
+  /* ---- Satellite history (field menu) ---- */
+  #sh-bar{position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:1600;background:#fff;color:var(--ink);border-radius:16px;box-shadow:0 4px 18px rgba(0,0,0,.4);padding:10px 12px 12px;max-width:560px;margin:0 auto;}
+  #sh-bar.hidden{display:none;}
+  #sh-bar .sh-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+  #sh-bar .sh-title{font-weight:800;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  #sh-bar .sh-exit{border:none;background:var(--green);color:#fff;border-radius:18px;padding:8px 14px;font-weight:700;font-size:14px;}
+  #sh-bar .sh-chips{display:flex;gap:6px;margin-bottom:8px;}
+  #sh-bar .sh-chip{flex:1;border:1px solid #c9cfc2;background:#fff;border-radius:16px;padding:7px 4px;font-size:13px;font-weight:700;color:#444;}
+  #sh-bar .sh-chip.on{background:var(--green);border-color:var(--green);color:#fff;}
+  #sh-bar .sh-row{display:flex;align-items:center;gap:8px;}
+  #sh-bar .sh-step{border:1px solid #c9cfc2;background:#fff;border-radius:50%;width:40px;height:40px;font-size:18px;flex:none;}
+  #sh-bar input[type=range]{flex:1;accent-color:var(--green);height:28px;}
+  #sh-date{font-size:18px;font-weight:800;text-align:center;margin:2px 0 0;}
+  #sh-note{font-size:12.5px;color:#666;text-align:center;}
+  #sh-stamp{position:fixed;top:calc(140px + env(safe-area-inset-top));left:12px;z-index:1600;background:rgba(0,0,0,.65);color:#fff;font-weight:800;font-size:16px;padding:6px 14px;border-radius:16px;pointer-events:none;}
+  #sh-stamp.hidden{display:none;}
 </style>
 </head>
 <body>
@@ -1432,12 +1449,27 @@ body.theme-dark .trk-lvl-sel{background:#272c26 !important;}
   <div class="btn-row" style="flex-direction:column;">
     <button class="btn btn-primary" id="btn-label-edit-field">✏️ Edit field details</button>
     <button class="btn btn-maps" id="btn-label-records">📒 Field records (seed, spray, yield)</button>
+    <button class="btn btn-maps" id="btn-label-sathist">🛰️ Satellite history</button>
     <button class="btn btn-maps" id="btn-label-pick">🧭 Pick rocks in this field</button>
     <button class="btn btn-maps" id="btn-label-boundary">📐 Boundary</button>
     <button class="btn btn-maps" id="btn-label-navigate-field">🧭 Navigate to this field</button>
     <button class="btn btn-secondary" id="btn-label-mark-rock">🪨 Mark a rock here</button>
     <button class="btn btn-secondary" id="btn-label-actions-cancel">Cancel</button>
   </div>
+</div>
+
+<!-- Satellite history bar (opened from the field menu) -->
+<div id="sh-stamp" class="hidden"></div>
+<div id="sh-bar" class="hidden">
+  <div class="sh-top"><div class="sh-title" id="sh-title">🛰️ Satellite history</div><button class="sh-exit" id="sh-exit">Done</button></div>
+  <div class="sh-chips">
+    <button class="sh-chip on" data-shsrc="sharp">Sharp</button>
+    <button class="sh-chip" data-shsrc="recent">Recent</button>
+    <button class="sh-chip" data-shsrc="long">1980s–2000s</button>
+  </div>
+  <div class="sh-row"><button class="sh-step" id="sh-prev" aria-label="Older">◀</button><input type="range" id="sh-slider" min="0" max="0" step="1" value="0"><button class="sh-step" id="sh-next" aria-label="Newer">▶</button></div>
+  <div id="sh-date">Loading…</div>
+  <div id="sh-note"></div>
 </div>
 
 <!-- Field boundary actions sub-menu (Match previous year / Delete / Edit) -->
@@ -2536,7 +2568,7 @@ var DEMO_DATA_KEY = "rockMarkerDemoData_v1", DEMO_HIST_KEY = "rockMarkerDemoCrop
     binLayerGroup = L.layerGroup().addTo(map);
     boundaryEditLayerGroup = L.layerGroup().addTo(map);
 
-    map.on("click", function(e){ if(fpUi){ fpAddPt(e.latlng); return; }
+    map.on("click", function(e){ if(SH && SH.on) return; if(fpUi){ fpAddPt(e.latlng); return; }
       if(drawingField || drawingBin){ addDrawPoint(e.latlng); }
       else if(droppingPin){ dropWaypoint(e.latlng, true); }
       else if(picking){ /* picking mode: taps on the map don't start a new marker */ }
@@ -5110,6 +5142,112 @@ function jobYmd(d){ return d.getFullYear() + "-" + String(d.getMonth() + 1).padS
     planFillPanel(f); tillFillPanel(f); fdFillPanel(f); wxFillPanel(f); akaTitle(f); showSheet("field-label-actions-modal", "field-label-actions-backdrop");
   }
 
+
+  // ---------- Satellite history (field menu → 🛰️ Satellite history) ----------
+  // All free, no sign-up sources:
+  //  Sharp  = Esri World Imagery Wayback (archived sharp aerial/satellite, 2014 → now)
+  //  Recent = NASA GIBS Harmonized Landsat/Sentinel-2 (HLS) daily, last ~120 days
+  //  1980s–2000s = NASA GIBS Landsat WELD yearly cloud-free composites (US only)
+  var SH = {on:false, layer:null, src:"sharp", list:[], fieldId:null, lat:0, lng:0, token:0, wbRel:null, cache:{}};
+  var SH_GIBS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/";
+  var SH_WB = "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/";
+  var SH_NOTES = {
+    sharp: "Sharp aerial photos · only dates when this spot changed",
+    recent: "Satellite pass (10–30 m) · cloudy days can look white",
+    long: "Landsat yearly picture (30 m) · blurry, good for wet spots"
+  };
+  function shTile(z, lat, lng){ var n = Math.pow(2, z); var x = Math.floor((lng + 180) / 360 * n); var r = lat * Math.PI / 180; var y = Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n); return {z:z, x:x, y:y}; }
+  function shFmt(iso){ var d = new Date(iso + "T12:00:00"); return isNaN(d) ? iso : d.toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"}); }
+  function openSatHistory(fieldId){
+    var f = fields.find(function(x){ return x.id === fieldId; });
+    if(!f || !f.points || f.points.length < 3){ toast("This field needs a boundary first"); return; }
+    var c = polygonCentroid(f.points);
+    SH.on = true; SH.fieldId = fieldId; SH.lat = c[0]; SH.lng = c[1];
+    document.getElementById("sh-title").textContent = "🛰️ " + (f.name || "Field");
+    document.getElementById("sh-bar").classList.remove("hidden");
+    try { map.fitBounds(L.latLngBounds(f.points), {paddingTopLeft:[20, 70], paddingBottomRight:[20, 230], maxZoom:17}); } catch(e){}
+    shSetSrc(SH.src || "sharp");
+  }
+  function closeSatHistory(){
+    SH.on = false; SH.token++;
+    if(SH.layer){ map.removeLayer(SH.layer); SH.layer = null; }
+    if(usingSatellite){ if(!map.hasLayer(satelliteLayer)) satelliteLayer.addTo(map); } else { if(!map.hasLayer(streetLayer)) streetLayer.addTo(map); }
+    document.getElementById("sh-bar").classList.add("hidden");
+    document.getElementById("sh-stamp").classList.add("hidden");
+  }
+  function shSetSrc(src){
+    SH.src = src; SH.list = []; var tok = ++SH.token;
+    Array.prototype.forEach.call(document.querySelectorAll("#sh-bar .sh-chip"), function(b){ b.classList.toggle("on", b.getAttribute("data-shsrc") === src); });
+    document.getElementById("sh-note").textContent = SH_NOTES[src];
+    document.getElementById("sh-date").textContent = "Finding pictures…";
+    var sl = document.getElementById("sh-slider"); sl.max = 0; sl.value = 0;
+    var key = src + "|" + SH.lat.toFixed(4) + "," + SH.lng.toFixed(4);
+    function done(list){ if(tok !== SH.token) return; SH.cache[key] = list; SH.list = list;
+      if(!list.length){ document.getElementById("sh-date").textContent = "No pictures found here"; return; }
+      sl.max = list.length - 1; sl.value = list.length - 1; shShow(list.length - 1); }
+    if(SH.cache[key]) return done(SH.cache[key]);
+    if(src === "sharp") shLoadWayback(tok, done);
+    else if(src === "recent") shLoadRecent(tok, done);
+    else shLoadLong(done);
+  }
+  function shShow(i){
+    var it = SH.list[i]; if(!it) return;
+    var lyr = L.tileLayer(it.url, {maxZoom:20, maxNativeZoom:it.maxNative, updateWhenZooming:false, keepBuffer:4, crossOrigin:true, attribution:it.attr});
+    lyr.addTo(map); lyr.bringToBack();
+    var old = SH.layer; SH.layer = lyr;
+    if(map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
+    if(map.hasLayer(streetLayer)) map.removeLayer(streetLayer);
+    if(old){ lyr.once("load", function(){ if(map.hasLayer(old)) map.removeLayer(old); }); setTimeout(function(){ if(old !== SH.layer && map.hasLayer(old)) map.removeLayer(old); }, 4000); }
+    document.getElementById("sh-date").textContent = it.label + "  (" + (i + 1) + " of " + SH.list.length + ")";
+    var st = document.getElementById("sh-stamp"); st.textContent = it.label; st.classList.remove("hidden");
+  }
+  function shLoadWayback(tok, done){
+    function walk(rel){
+      var order = Object.keys(rel).sort(function(a, b){ return rel[b] < rel[a] ? -1 : rel[b] > rel[a] ? 1 : 0; });
+      var t = shTile(17, SH.lat, SH.lng), out = [], seen = {}, i = 0;
+      function step(){
+        if(tok !== SH.token) return;
+        if(i >= order.length) return done(out.reverse());
+        var r = order[i];
+        fetch(SH_WB + "MapServer/tilemap/" + r + "/" + t.z + "/" + t.y + "/" + t.x).then(function(res){ return res.json(); }).then(function(d){
+          if(!d || !d.data || !d.data[0]) return done(out.reverse());
+          var s = String(d.select && d.select[0] ? d.select[0] : r), dt = rel[s] || rel[r];
+          if(!seen[s]){ seen[s] = 1; out.push({label:shFmt(dt), maxNative:19, attr:"Esri World Imagery Wayback — Esri, Maxar, Earthstar Geographics", url:SH_WB + "WMTS/1.0.0/default028mm/MapServer/tile/" + s + "/{z}/{y}/{x}"}); document.getElementById("sh-date").textContent = "Finding pictures… " + out.length + " so far (back to " + dt.slice(0, 4) + ")"; }
+          while(i < order.length && rel[order[i]] >= dt) i++;
+          step();
+        }).catch(function(){ done(out.reverse()); });
+      }
+      step();
+    }
+    if(SH.wbRel) return walk(SH.wbRel);
+    fetch(SH_WB + "MapServer/WMTS/1.0.0/WMTSCapabilities.xml").then(function(r){ return r.text(); }).then(function(x){
+      var rel = {}, re = /Wayback (\d{4}-\d{2}-\d{2})[\s\S]*?MapServer\/tile\/(\d+)\//g, m;
+      x.split("<Layer>").forEach(function(b){ var a = /Wayback (\d{4}-\d{2}-\d{2})/.exec(b), t = /MapServer\/tile\/(\d+)\//.exec(b); if(a && t) rel[t[1]] = a[1]; });
+      SH.wbRel = rel; walk(rel);
+    }).catch(function(){ if(tok === SH.token) document.getElementById("sh-date").textContent = "Couldn't reach the picture library — check signal"; });
+  }
+  function shLoadRecent(tok, done){
+    var t = shTile(12, SH.lat, SH.lng), days = [], now = new Date();
+    for(var k = 1; k <= 120; k++){ var d = new Date(now.getTime() - k * 86400000); days.push(d.toISOString().slice(0, 10)); }
+    var jobs = [];
+    days.forEach(function(day){ ["HLS_S30_Nadir_BRDF_Adjusted_Reflectance", "HLS_L30_Nadir_BRDF_Adjusted_Reflectance"].forEach(function(lay){ jobs.push({day:day, lay:lay}); }); });
+    var hits = {}, idx = 0, running = 0, finished = 0;
+    function url(j, z, y, x){ return SH_GIBS + j.lay + "/default/" + j.day + "/GoogleMapsCompatible_Level12/" + z + "/" + y + "/" + x + ".png"; }
+    function next(){
+      if(tok !== SH.token) return;
+      while(running < 8 && idx < jobs.length){ (function(j){ running++;
+        fetch(url(j, t.z, t.y, t.x), {method:"HEAD"}).then(function(r){ var n = Number(r.headers.get("content-length") || 0); if(n > 8000 && (!hits[j.day] || /S30/.test(j.lay))) hits[j.day] = j; }).catch(function(){}).then(function(){ running--; finished++;
+          if(finished % 20 === 0 && tok === SH.token) document.getElementById("sh-date").textContent = "Checking satellite passes… " + Object.keys(hits).length + " found";
+          if(finished === jobs.length) fin(); else next(); });
+      })(jobs[idx++]); }
+    }
+    function fin(){ var list = Object.keys(hits).sort().map(function(day){ var j = hits[day]; return {label:shFmt(day) + (/S30/.test(j.lay) ? " · Sentinel" : " · Landsat"), maxNative:12, attr:"NASA GIBS · HLS (Landsat / Sentinel-2)", url:SH_GIBS + j.lay + "/default/" + day + "/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png"}; }); done(list); }
+    next();
+  }
+  function shLoadLong(done){
+    var vals = ["1983-12-01","1984-12-01","1985-12-01","1988-12-01","1989-12-01","1990-12-01","1998-12-01","1999-12-01","2000-12-01"];
+    done(vals.map(function(v){ return {label:String(Number(v.slice(0, 4)) + 1) + " (yearly)", maxNative:12, attr:"NASA GIBS · Landsat WELD", url:SH_GIBS + "Landsat_WELD_CorrectedReflectance_TrueColor_Global_Annual/default/" + v + "/GoogleMapsCompatible_Level12/{z}/{y}/{x}.jpg"}; }));
+  }
   function closeFieldLabelActions(){
     hideSheet("field-label-actions-modal", "field-label-actions-backdrop");
     fieldLabelActionsFieldId = null;
@@ -10180,6 +10318,16 @@ var TERM_CATS = [["all", "All"], ["measure", "📏 Measurements"], ["grain", "�
     });
     document.getElementById("btn-boundary-hole").addEventListener("click", function(){ if(!checkAdminCode()) return; var fieldId = fieldBoundaryActionsFieldId; closeFieldBoundaryActions(); startDrawingHole(fieldId); }); document.getElementById("btn-boundary-holes-clear").addEventListener("click", function(){ if(!checkAdminCode()) return; var fieldId = fieldBoundaryActionsFieldId; closeFieldBoundaryActions(); clearFieldHoles(fieldId); }); document.getElementById("btn-boundary-actions-cancel").addEventListener("click", closeFieldBoundaryActions);
     document.getElementById("field-boundary-actions-backdrop").addEventListener("click", closeFieldBoundaryActions);
+    document.getElementById("btn-label-sathist").addEventListener("click", function(){
+      var fieldId = fieldLabelActionsFieldId;
+      closeFieldLabelActions();
+      openSatHistory(fieldId);
+    });
+    document.getElementById("sh-exit").addEventListener("click", closeSatHistory);
+    Array.prototype.forEach.call(document.querySelectorAll("#sh-bar .sh-chip"), function(b){ b.addEventListener("click", function(){ shSetSrc(b.getAttribute("data-shsrc")); }); });
+    document.getElementById("sh-slider").addEventListener("input", function(){ shShow(Number(this.value)); });
+    document.getElementById("sh-prev").addEventListener("click", function(){ var sl = document.getElementById("sh-slider"); if(Number(sl.value) > 0){ sl.value = Number(sl.value) - 1; shShow(Number(sl.value)); } });
+    document.getElementById("sh-next").addEventListener("click", function(){ var sl = document.getElementById("sh-slider"); if(Number(sl.value) < Number(sl.max)){ sl.value = Number(sl.value) + 1; shShow(Number(sl.value)); } });
     document.getElementById("btn-label-navigate-field").addEventListener("click", function(){
       var fieldId = fieldLabelActionsFieldId;
       closeFieldLabelActions();
