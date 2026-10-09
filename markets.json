@@ -1,12 +1,12 @@
 {
- "updated": "2026-10-09T07:45:00-05:00",
- "note": "overnight trade",
+ "updated": "2026-10-09T13:45:00-05:00",
+ "note": "Friday close",
  "futures": [
-  {"name": "Spring wheat", "short": "Spr wheat", "month": "Dec", "exch": "MGEX", "last": 7.06, "chg": 0.00},
-  {"name": "Soybeans", "short": "Soybeans", "month": "Nov", "exch": "CBOT", "last": 12.925, "chg": 0.05},
-  {"name": "Corn", "short": "Corn", "month": "Dec", "exch": "CBOT", "last": 5.0025, "chg": 0.00},
-  {"name": "Chicago wheat", "short": "Chi wheat", "month": "Dec", "exch": "CBOT", "last": 6.825, "chg": -0.0075},
-  {"name": "Canola (C$/tonne)", "short": "Canola", "month": "Nov", "exch": "ICE", "last": 820.30, "chg": -3.40}
+  {"name": "Spring wheat", "short": "Spr wheat", "month": "Dec", "exch": "MGEX", "last": 6.9525, "chg": -0.1075},
+  {"name": "Soybeans", "short": "Soybeans", "month": "Nov", "exch": "CBOT", "last": 12.9225, "chg": 0.0475},
+  {"name": "Corn", "short": "Corn", "month": "Dec", "exch": "CBOT", "last": 4.805, "chg": -0.1975},
+  {"name": "Chicago wheat", "short": "Chi wheat", "month": "Dec", "exch": "CBOT", "last": 6.7075, "chg": -0.125},
+  {"name": "Canola (C$/tonne)", "short": "Canola", "month": "Nov", "exch": "ICE", "last": 816.90, "chg": 1.00}
  ],
  "cash": [
   {"crop": "Spring wheat 13%", "where": "Minneapolis terminal · Oct 8", "price": 7.06, "basis": 0.00},
@@ -16,18 +16,18 @@
  "cropPrice": {"Wheat": 7.06, "Soybeans": 12.275, "Corn": 4.3775},
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "reports": [
-  {"name": "USDA WASDE + Crop Production", "when": "Fri Oct 9 · 11 am CT"},
+  {"name": "USDA Grain Export Inspections", "when": "Tue Oct 13 · 10 am CT"},
   {"name": "USDA Crop Progress (after Columbus Day)", "when": "Tue Oct 13 · 3 pm CT"},
   {"name": "USDA Weekly Export Sales", "when": "Thu Oct 15 · 7:30 am CT"},
   {"name": "USDA Crop Progress", "when": "Mon Oct 19 · 3 pm CT"}
  ],
- "outlook": "Overnight trade was quiet ahead of USDA's October WASDE and Crop Production reports at 11 am CT today. November soybeans were up about 5 cents near $12.92½, helped by hopes China resumes buying new-crop U.S. beans after its Golden Week holiday, while December corn was unchanged at $5.00¼ and December Chicago wheat slipped less than a penny. Analysts expect USDA to trim the corn yield to about 177.8 bu/acre and put soybean yield near 52.8, with corn ending stocks around 1.68 billion bushels and soybeans around 305 million. Minneapolis December spring wheat saw little overnight trade near Thursday's $7.06 settlement, ICE canola last settled at C$820.30, and clear weather is pushing harvest along quickly.",
+ "outlook": "USDA's October reports surprised the trade by raising the U.S. corn yield 2.7 bushels to 181.2 bu/acre, lifting the crop to about 16.03 billion bushels and 2026-27 ending stocks to 1.849 billion — roughly 180 million above what analysts expected. December corn fell close to its 30-cent daily limit after the 11 am CT release and settled 19¾ cents lower at $4.80½. USDA put the soybean yield at a record 53.1 bu/acre with ending stocks up 5 million to 315 million; November beans dropped as much as 16 cents before recovering to close about 4¾ cents higher at $12.92¼. Wheat ending stocks rose to 740 million on a 25-million-bushel export cut (hard red spring stocks were trimmed 8 million), and December Chicago wheat lost 12½ cents while Minneapolis December spring wheat fell 10¾ cents to $6.95¼; ICE canola edged up C$1 to C$816.90. Minneapolis cash bids shown are from Thursday's final USDA report, before today's drop in corn and wheat futures.",
  "news": [
-  {"title": "AgMarket Early Morning Market Analysis 10/09/26", "source": "AgMarket.Net", "url": "https://agmarket.net/agmarket-early-morning-market-analysis-10-09-26"},
-  {"title": "USDA WASDE report looms as corn, soybean and wheat prices fall ahead of key data", "source": "Agrolatam", "url": "https://www.agrolatam.com/usa/news/usda-wasde-report-corn-soybean-wheat-prices-october-2026/"},
-  {"title": "Evening Report: It's all eyes on WASDE", "source": "Pro Farmer", "url": "https://www.profarmer.com/news/first-thing-today/evening-report-its-all-eyes-wasde"},
-  {"title": "Closing Grain and Livestock Futures: October 8, 2026", "source": "Brownfield Ag News", "url": "https://www.brownfieldagnews.com/market-news/closing-grain-and-livestock-futures-october-8-2026/"},
+  {"title": "USDA yield stunner sends corn sinking 30 cents to 6-week low", "source": "Farm Progress", "url": "https://www.farmprogress.com/marketing/usda-yield-stunner-sends-corn-sinking-30-cents-to-6-week-low"},
+  {"title": "Report Reaction: Corn leads slide after USDA production figures surprise to upside", "source": "Pro Farmer", "url": "https://www.profarmer.com/news/report-reactions/report-reaction-corn-leads-slide-after-usda-production-figures-surprise-upside"},
+  {"title": "USDA Oct 9: bearish corn, neutral wheat", "source": "ADM Investor Services", "url": "https://www.admis.com/usda-oct-9-usda-bearish-corn-neutral-wheat/"},
+  {"title": "Global export pressures keep seasonal lows out of reach for wheat in October WASDE report", "source": "Oklahoma Farm Report", "url": "https://www.oklahomafarmreport.com/2026/10/09/global-export-pressures-keep-seasonal-lows-out-of-reach-for-wheat-in-october-wasde-report/"},
   {"title": "Minneapolis daily grain report (USDA)", "source": "USDA AMS", "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"}
  ],
- "sources": "Delayed CBOT quotes (Yahoo Finance, ~7:30 am CT Oct 9), AgMarket.Net early morning analysis (Oct 9), Farmbucks (MGEX overnight), Investing.com (ICE canola Oct 8 settle), USDA AMS Minneapolis Daily Grain Report (Oct 8 final), USDA report calendar"
+ "sources": "Closing futures from Farmbucks and Yahoo Finance delayed quotes (~1:20 pm CT Oct 9; MGEX 1:30 pm CT), ICE canola via Farmbucks, USDA October WASDE/Crop Production coverage (Pro Farmer, ADM Investor Services, Farm Progress), USDA AMS Minneapolis Daily Grain Report (Oct 8 final), USDA report calendar"
 }
