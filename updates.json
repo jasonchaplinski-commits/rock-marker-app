@@ -198,6 +198,26 @@
       ]
     },
     {
+      "id": "g-demo-howto",
+      "tab": "grant",
+      "owner": true,
+      "icon": "🚜",
+      "title": "How to get an equipment demo on your farm",
+      "tag": "HOW-TO · BUYING HELP",
+      "sub": "Plain English · works for tractors, combines, carts — and dryers",
+      "color": "b",
+      "bullets": [
+        "Call the dealer and ask for the salesman who covers your area — Titan Machinery in Thief River Falls (Case IH) or True North in Warren (John Deere).",
+        "Tell him what you're shopping for and when: “We're looking at replacing X in the next year — can we demo one?”",
+        "Ask him to put you on his demo / prospect list — that's how you get first call on demo units, field days and early-order deals.",
+        "Book 1–2 months ahead — demo units for harvest and spring get spoken for fast.",
+        "Expect a short demo agreement (insurance, damage, hours or acres). Some are free; some charge by the hour, often credited if you buy. You usually supply fuel.",
+        "Dryers, pits and legs can't be test-driven — ask the dealer to take you to a farm already running that system.",
+        "Also: sign up for dealer emails / Facebook, and fill in the interest sheets at farm-show booths.",
+        "After a demo, jot what you liked and the price talk in your 📋 project notes."
+      ]
+    },
+    {
       "id": "n-diesel-price",
       "tab": "news",
       "icon": "📰",
