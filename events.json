@@ -1,0 +1,53 @@
+{
+  "checked": "2026-10-12",
+  "events": [
+    {
+      "id": "nae-2026",
+      "cat": "show",
+      "title": "Northern Ag Expo",
+      "month": "2026-12",
+      "tba": true,
+      "usual": "Usually late Nov or early Dec · 2 days",
+      "town": "Fargodome, Fargo, ND",
+      "mi": 150,
+      "note": "Big winter farm show — equipment, seed, grain handling and dryer dealers. Good place to collect quotes for the dryer, pit & leg project.",
+      "tags": ["New equipment", "Dryer dealers"]
+    },
+    {
+      "id": "pgc-2026",
+      "cat": "learn",
+      "title": "Prairie Grains Conference",
+      "month": "2026-12",
+      "tba": true,
+      "usual": "Usually mid-December",
+      "town": "Grand Forks, ND",
+      "mi": 70,
+      "note": "Wheat and barley talks plus a trade show.",
+      "tags": ["Wheat", "Trade show"]
+    },
+    {
+      "id": "ncse-2027",
+      "cat": "learn",
+      "title": "Northern Corn & Soybean Expo",
+      "month": "2027-02",
+      "tba": true,
+      "usual": "Usually February · free to attend",
+      "town": "Fargo, ND",
+      "mi": 150,
+      "note": "Free expo — corn and soybean education, exhibitors and networking.",
+      "tags": ["Corn", "Soybeans", "Free"]
+    },
+    {
+      "id": "bigiron-2027",
+      "cat": "show",
+      "title": "Big Iron Farm Show",
+      "month": "2027-09",
+      "tba": true,
+      "usual": "Usually mid-September · 3 days",
+      "town": "Red River Valley Fairgrounds, West Fargo, ND",
+      "mi": 150,
+      "note": "One of the biggest outdoor farm shows in the region — field demos and new iron.",
+      "tags": ["New equipment", "Field demos"]
+    }
+  ]
+}
