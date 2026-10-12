@@ -1,0 +1,233 @@
+{
+  "checked": "2026-10-12",
+  "items": [
+    {
+      "id": "mn-weight-2026",
+      "tab": "alert",
+      "icon": "🚛",
+      "title": "Haul 10% heavier during harvest",
+      "sub": "Minnesota · Governor's executive order 26-11",
+      "start": "2026-10-01",
+      "end": "2026-10-30",
+      "color": "g",
+      "banner": "Haul 10% heavier through Oct 30",
+      "bullets": [
+        "Trucks hauling corn, soybeans, wheat, potatoes, sugar beets, carrots or timber can be up to 10% over normal weight limits.",
+        "Applies on state and local highways. Interstates aren't mentioned — check before using them.",
+        "The truck's registration has to cover the heavier total weight.",
+        "Also eases federal driving-hours (hours-of-service) limits for these hauls."
+      ],
+      "links": [
+        {"t": "MN Corn summary", "u": "https://www.mncorn.org/2026/10/02/walz-executive-order-increases-truck-weight-limits-during-harvest"},
+        {"t": "News story", "u": "https://www.cbsnews.com/minnesota/news/minnesota-governor-tim-walz-diesel-fuel-executive-order-farmers-harvest/"}
+      ]
+    },
+    {
+      "id": "red-diesel-2026",
+      "tab": "alert",
+      "icon": "🔴",
+      "title": "Red diesel on the road",
+      "tag": "NOT ALLOWED IN MN YET",
+      "sub": "Federal penalty pause through Dec 31 · Minnesota law unchanged",
+      "start": "2026-10-05",
+      "end": "2026-12-31",
+      "color": "r",
+      "bullets": [
+        "The federal government paused its penalties for red (dyed) diesel in road vehicles through the end of 2026 — reports say the federal tax may still be owed later.",
+        "Minnesota says its law has NOT changed: no red diesel in road trucks, and the state diesel tax (about 33¢/gal) still applies.",
+        "Iowa paused its penalties — rules differ by state.",
+        "We'll update this card if Minnesota changes."
+      ],
+      "links": [
+        {"t": "MN position (KTTC)", "u": "https://www.kttc.com/2026/10/07/minnesota-diesel-taxes-unchanged-despite-trumps-red-dye-fuel-order/"},
+        {"t": "Federal order", "u": "https://www.whitehouse.gov/releases/2026/10/president-trump-takes-decisive-action-to-lower-diesel-costs-for-american-truckers-farmers/"}
+      ]
+    },
+    {
+      "id": "arc-plc-2026",
+      "tab": "alert",
+      "icon": "🗓",
+      "title": "ARC / PLC sign-up for 2026",
+      "tag": "DEADLINE · DEC 11",
+      "sub": "USDA Farm Service Agency · sign every year",
+      "end": "2026-12-11",
+      "color": "y",
+      "owner": true,
+      "bullets": [
+        "Pick ARC or PLC for each crop and sign the contract at your FSA office.",
+        "Marshall County USDA Service Center (FSA and NRCS share the office)."
+      ],
+      "links": [
+        {"t": "USDA deadlines", "u": "https://www.farmers.gov/working-with-us/program-deadlines"}
+      ]
+    },
+    {
+      "id": "law-red-road",
+      "tab": "law",
+      "icon": "⛽",
+      "title": "Red diesel vs. road diesel — the basics",
+      "sub": "Plain English · Minnesota",
+      "color": "b",
+      "bullets": [
+        "Red (dyed) diesel has no road tax — it's for off-road farm use: tractors, combines, loaders, generators.",
+        "Trucks driven on public roads need clear (taxed) road diesel, unless the law changes (see the Alerts tab).",
+        "Keep every delivery ticket — the app's ⛽ Fuel tanks page keeps them for your accountant."
+      ],
+      "links": [
+        {"t": "MN Dept. of Revenue", "u": "https://www.revenue.state.mn.us/"}
+      ]
+    },
+    {
+      "id": "law-hos-ag",
+      "tab": "law",
+      "icon": "⏱",
+      "title": "Driving hours during planting & harvest",
+      "sub": "Federal ag exemption · plain English",
+      "color": "b",
+      "bullets": [
+        "During planting and harvest, drivers hauling farm crops within about 150 air-miles of the farm are generally exempt from federal hours-of-service limits.",
+        "Outside that distance or season, the normal limits apply.",
+        "This year's governor's order also eases hours limits for harvest hauling."
+      ],
+      "links": [
+        {"t": "MnDOT trucking", "u": "https://www.dot.state.mn.us/cvo/"}
+      ]
+    },
+    {
+      "id": "law-weight-basics",
+      "tab": "law",
+      "icon": "⚖️",
+      "title": "Truck weight — what to check",
+      "sub": "Plain English",
+      "color": "b",
+      "bullets": [
+        "Registration (license) weight must cover what you actually haul.",
+        "Posted bridges and spring load limits still apply, even during harvest relief.",
+        "Elevator scale tickets are your proof of weight — keep them with the load."
+      ],
+      "links": [
+        {"t": "MnDOT trucking", "u": "https://www.dot.state.mn.us/cvo/"}
+      ]
+    },
+    {
+      "id": "g-eqip-energy",
+      "tab": "grant",
+      "owner": true,
+      "icon": "🔥",
+      "title": "NRCS EQIP On-Farm Energy",
+      "tag": "BEST BET NOW · DRYER PROJECT",
+      "sub": "USDA NRCS · year-round sign-up · ranking cutoffs",
+      "color": "g",
+      "bullets": [
+        "Step 1: helps pay for an energy audit (Agricultural Energy Management Plan).",
+        "Step 2: cost-share to buy or retrofit equipment — grain dryers are on the list.",
+        "Scores on energy saved: bushels dried and points of moisture removed — mostly your corn.",
+        "Don't buy or put a deposit down before the contract is signed."
+      ],
+      "links": [
+        {"t": "Energy plan fact sheet", "u": "https://www.nrcs.usda.gov/sites/default/files/2022-10/Agricultural_Energy_Management_Plan_SD-FS-66_0.pdf"},
+        {"t": "USDA deadlines", "u": "https://www.farmers.gov/working-with-us/program-deadlines"}
+      ]
+    },
+    {
+      "id": "g-fsfl",
+      "tab": "grant",
+      "owner": true,
+      "icon": "🏗",
+      "title": "FSA Farm Storage Facility Loan",
+      "tag": "LOW-INTEREST LOAN · OPEN",
+      "sub": "USDA FSA · up to $500,000 · 15% down · up to 12 years",
+      "color": "g",
+      "bullets": [
+        "Covers grain drying and handling equipment that's essential to your storage — conveyors listed; concrete pits may qualify (ask about the dump pit and leg).",
+        "Microloan option up to $50,000 with 5% down.",
+        "Must be approved BEFORE any site work or equipment delivery."
+      ],
+      "links": [
+        {"t": "FSA fact sheet", "u": "https://www.fsa.usda.gov/sites/default/files/2024-12/FSA-FactSheet-Farm%20Storage%20Facility%20Loans.pdf"}
+      ]
+    },
+    {
+      "id": "g-reap",
+      "tab": "grant",
+      "owner": true,
+      "icon": "⚡",
+      "title": "USDA REAP",
+      "tag": "GRANTS PAUSED · LOANS OPEN",
+      "sub": "Paused March 31, 2026 until USDA rewrites the rules",
+      "color": "y",
+      "bullets": [
+        "No grants right now — before the pause, most Minnesota REAP grants went to grain dryers.",
+        "The loan guarantee still works: ask your bank about a REAP guarantee (up to 75% of project cost).",
+        "We'll update this card when grants reopen."
+      ],
+      "links": [
+        {"t": "Agri-Pulse story", "u": "https://www.agri-pulse.com/articles/24519-some-farmers-could-lose-expected-funds-under-reap-program-pause-experts-say"},
+        {"t": "Grants vs loans", "u": "https://opengrants.io/reap-grant-grants-stopped-loans-still-open/"}
+      ]
+    },
+    {
+      "id": "g-coop",
+      "tab": "grant",
+      "owner": true,
+      "icon": "🔌",
+      "title": "Electric co-op rebates",
+      "tag": "CALL BEFORE YOU BUY",
+      "sub": "Fans · motors · variable-speed drives on new handling",
+      "color": "b",
+      "bullets": [
+        "Call the co-op that serves the bin site (Red Lake Electric or PKM).",
+        "Most rebates need pre-approval before you buy."
+      ]
+    },
+    {
+      "id": "g-mda",
+      "tab": "grant",
+      "owner": true,
+      "icon": "🛠",
+      "title": "MN Dept. of Agriculture grants",
+      "tag": "WATCH · NEXT ROUND",
+      "sub": "Electric Farm Equipment (last round closed Aug 11) · AGRI programs (usually winter)",
+      "color": "b",
+      "bullets": [
+        "Electric Farm Equipment Grant: $1,500–$150,000, 25% match — electric augers, motors and similar.",
+        "We'll post here when the next rounds open."
+      ],
+      "links": [
+        {"t": "Electric equipment grant", "u": "https://www.mda.state.mn.us/applications-open-new-electric-farm-equipment-grant"}
+      ]
+    },
+    {
+      "id": "n-diesel-price",
+      "tab": "news",
+      "icon": "📰",
+      "title": "Diesel well above last harvest",
+      "sub": "October 2026",
+      "date": "2026-10-02",
+      "color": "b",
+      "bullets": [
+        "Farm groups report diesel costs up about 70% from last harvest; national average was about $6.38/gal in early October.",
+        "MN Corn Growers are asking for red diesel on the road and a state fuel-tax break."
+      ],
+      "links": [
+        {"t": "MN Corn", "u": "https://www.mncorn.org/2026/10/02/walz-executive-order-increases-truck-weight-limits-during-harvest"}
+      ]
+    },
+    {
+      "id": "n-mn-tax",
+      "tab": "news",
+      "icon": "📰",
+      "title": "Minnesota diesel tax unchanged",
+      "sub": "October 7, 2026",
+      "date": "2026-10-07",
+      "color": "b",
+      "bullets": [
+        "MN Revenue says the federal red-diesel order doesn't change state law; a change would need the Legislature.",
+        "The governor's office says it is still evaluating options on fuel costs."
+      ],
+      "links": [
+        {"t": "KTTC", "u": "https://www.kttc.com/2026/10/07/minnesota-diesel-taxes-unchanged-despite-trumps-red-dye-fuel-order/"}
+      ]
+    }
+  ]
+}
