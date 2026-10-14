@@ -1,46 +1,46 @@
 {
- "updated": "2026-10-14T08:30:00-05:00",
- "note": "Wednesday morning trade",
+ "updated": "2026-10-14T13:45:00-05:00",
+ "note": "Wednesday close",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.915,
-   "chg": -0.025
+   "last": 6.9075,
+   "chg": -0.0325
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Nov",
    "exch": "CBOT",
-   "last": 12.9125,
-   "chg": 0.075
+   "last": 12.7725,
+   "chg": -0.065
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.8225,
-   "chg": -0.005
+   "last": 4.8075,
+   "chg": -0.02
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 6.66,
-   "chg": -0.0325
+   "last": 6.7325,
+   "chg": 0.04
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Nov",
    "exch": "ICE",
-   "last": 819.5,
-   "chg": 6.2
+   "last": 811.8,
+   "chg": -1.5
   }
  ],
  "cash": [
@@ -71,8 +71,8 @@
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "reports": [
   {
-   "name": "USDA Weekly Export Sales",
-   "when": "Thu Oct 15 · 7:30 am CT"
+   "name": "USDA Weekly Export Sales (delayed by Monday holiday)",
+   "when": "Fri Oct 16 · 7:30 am CT"
   },
   {
    "name": "USDA Grain Export Inspections",
@@ -83,31 +83,35 @@
    "when": "Mon Oct 19 · 3 pm CT"
   },
   {
+   "name": "AAFC Outlook for Principal Field Crops (Canada)",
+   "when": "Tue Oct 20 · time TBA"
+  },
+  {
    "name": "USDA Weekly Export Sales",
    "when": "Thu Oct 22 · 7:30 am CT"
   }
  ],
- "outlook": "Grains were mixed in Wednesday morning trade. November soybeans were up 7½ cents at $12.91¼, staying inside their recent range, after China reported September soybean imports of 11.88 million tonnes, down 7.7% from a year earlier, and the EPA on Tuesday proposed that larger refiners blend more biofuels over the next two years, which could support demand for soybean oil and corn. December corn eased ½ cent to $4.82¼ as the market keeps consolidating after the October WASDE, with mostly dry weather letting harvest speed up and some rain expected in the western Corn Belt later this week. Wheat was lower across all three exchanges, with Minneapolis December spring wheat down 2½ cents at $6.91½, after USDA put winter wheat planting at 51% versus a 58% five-year average and IKAR trimmed Russia's crop to 88.0 million tonnes, in line with USDA; ICE November canola was up C$6.20.",
+ "outlook": "Soybeans and corn finished lower on Wednesday while Chicago wheat gained. November soybeans fell 6½ cents to $12.77¼, giving back the morning's gains, as dry weather sped up the Midwest harvest following USDA's record soybean crop estimate, and Chinese buying of U.S. beans stayed thin. December corn slipped 2 cents to $4.80¾, still consolidating after the October WASDE raised the yield. December Chicago wheat rose 4 cents to $6.73¼, but Minneapolis December spring wheat lost 3¼ cents to $6.90¾ and ICE November canola eased C$1.50 to C$811.80 with Prairie harvest pressure; drone attacks on ships in the Black Sea added some risk but drew little lasting reaction.",
  "news": [
+  {
+   "title": "Soybeans extend losses as US harvest expands",
+   "source": "Business Recorder (Reuters)",
+   "url": "https://brecorder.com/news/amp/40444045"
+  },
+  {
+   "title": "Daily Market Wire 14 October 2026",
+   "source": "Grain Central",
+   "url": "https://www.graincentral.com/markets/daily-market-wire-14-october-2026/"
+  },
   {
    "title": "TFM Morning Update 10-14-2026",
    "source": "Total Farm Marketing",
    "url": "https://www.totalfarmmarketing.com/tfm-morning-update-10-14-2026/"
   },
   {
-   "title": "Canola Futures (ICE RS) quotes",
+   "title": "Grain & oilseed futures quotes",
    "source": "Farmbucks",
-   "url": "https://farmbucks.com/futures/grain-oilseeds/canola"
-  },
-  {
-   "title": "October 13 Closing Commodity Prices",
-   "source": "GX94 Radio",
-   "url": "https://www.gx94radio.com/2026/10/13/october-13-closing-commodity-prices-2/"
-  },
-  {
-   "title": "USDA Crop Progress Report October 13, 2026: Harvest advances across major U.S. crops",
-   "source": "IndexBox",
-   "url": "https://www.indexbox.io/blog/usda-crop-progress-report-harvest-advances-across-major-us-crops-as-of-october-11-2026/"
+   "url": "https://farmbucks.com/futures/grain-oilseeds"
   },
   {
    "title": "Minneapolis daily grain report (USDA)",
@@ -115,5 +119,5 @@
    "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Futures from Total Farm Marketing morning update (Oct 14, early trade), checked against USDA AMS Oct 13 settlements; ICE canola from Farmbucks (Oct 14, delayed quote); cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 13 final, middle of bid range); USDA report calendar"
+ "sources": "Futures from Farmbucks delayed quotes after Wednesday's close (Oct 14), checked against USDA AMS Oct 13 settlements; ICE canola from Farmbucks; cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 13 final, middle of bid range — Oct 14 report not yet posted); report times from Farmbucks/USDA calendar"
 }
