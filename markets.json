@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-15T21:49:00-05:00",
+ "updated": "2026-10-16T07:50:00-05:00",
  "note": "overnight trade",
  "futures": [
   {
@@ -7,40 +7,40 @@
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.87,
-   "chg": 0.01
+   "last": 6.855,
+   "chg": -0.005
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Nov",
    "exch": "CBOT",
-   "last": 12.6225,
-   "chg": -0.0075
+   "last": 12.5975,
+   "chg": -0.0325
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.785,
-   "chg": 0.005
+   "last": 4.7625,
+   "chg": -0.0175
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 6.6725,
-   "chg": -0.0275
+   "last": 6.61,
+   "chg": -0.09
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Nov",
    "exch": "ICE",
-   "last": 802.3,
-   "chg": 0.6
+   "last": 801.7,
+   "chg": -10.0
   }
  ],
  "cash": [
@@ -95,33 +95,33 @@
    "when": "Mon Oct 26 · 3 pm CT"
   }
  ],
- "outlook": "Soybeans fell again Thursday, with November beans settling near $12.63 (down about 14 cents) as dry Midwest weather pushed the harvest to 46% done, even though USDA confirmed a second straight day of flash sales to China (330,000 tonnes). December corn eased about 3 cents to around $4.78 on harvest pressure and the bigger supply picture from the October WASDE, which put ending stocks at 1.849 billion bushels. Wheat gave back midday gains, with Minneapolis December spring wheat near $6.86 and Chicago December near $6.70, as a strong U.S. dollar weighed on export prospects. In Thursday evening trade, prices were little changed, and ICE November canola was at C$802.30.",
+ "outlook": "Grains were lower in Friday morning trade. December corn slipped to about $4.76, an eight-week low, as the October WASDE's bigger crop (181.2 bpa yield, 1.849 billion bushels of ending stocks) outweighed a slower harvest pace. November soybeans eased to about $12.60 and are headed for a weekly loss, as expectations for a record U.S. harvest and a weaker-than-expected NOPA crush report offset roughly 1.2–1.5 million tonnes of Chinese buying this week. Winter wheat fell hardest, with Chicago December down 9 cents to $6.61 on reports of a much larger Australian crop, while Minneapolis December spring wheat was nearly unchanged near $6.86; ICE November canola settled Thursday at C$801.70, down C$10.",
  "news": [
   {
-   "title": "Chicago soybeans fall on active harvests despite China buying demand",
-   "source": "Business Recorder (Reuters)",
-   "url": "https://www.brecorder.com/news/40444349/chicago-soybeans-fall-on-active-harvests-despite-china-buying-demand"
-  },
-  {
-   "title": "TFM Midday Update 10-15-2026",
+   "title": "TFM Morning Update 10-16-2026",
    "source": "Total Farm Marketing",
-   "url": "https://www.totalfarmmarketing.com/tfm-midday-update-10-15-2026/"
+   "url": "https://www.totalfarmmarketing.com/tfm-morning-update-10-16-2026/"
   },
   {
-   "title": "Daily Market Wire 15 October 2026",
+   "title": "Soybeans set for weekly loss as US harvest outweighs China buying",
+   "source": "Business Recorder (Reuters)",
+   "url": "https://www.brecorder.com/news/40444529/soybeans-set-for-weekly-loss-as-us-harvest-outweighs-china-buying"
+  },
+  {
+   "title": "First Thing Today: Grains drift lower ahead of weekly export sales",
+   "source": "Pro Farmer",
+   "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-grains-drift-lower-ahead-weekly-export-sales"
+  },
+  {
+   "title": "Daily Weather Briefing: U.S. harvest window widens as Brazil's heavier rains shift later",
+   "source": "Ag Bull Trading",
+   "url": "https://www.agbull.com/daily-weather-briefing-u-s-harvest-window-widens-as-brazils-heavier-rains-shift-later/"
+  },
+  {
+   "title": "Daily Market Wire 16 October 2026",
    "source": "Grain Central",
-   "url": "https://www.graincentral.com/markets/daily-market-wire-15-october-2026/"
-  },
-  {
-   "title": "Grains Report 10/15/2026",
-   "source": "PRICE Futures Group",
-   "url": "https://blog.pricegroup.com/2026/10/15/grains-report-10-15-2026/"
-  },
-  {
-   "title": "Minneapolis daily grain report (USDA)",
-   "source": "USDA AMS",
-   "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
+   "url": "https://www.graincentral.com/markets/daily-market-wire-16-october-2026/"
   }
  ],
- "sources": "Futures from Farmbucks delayed quotes in Thursday evening trade (Oct 15; change vs. Thursday settlement), with Thursday settlements cross-checked against USDA AMS Oct 15 cash bids and basis; ICE canola from Farmbucks; cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 15 final, middle of bid range); report times from Farmbucks/USDA calendar"
+ "sources": "Futures from Total Farm Marketing morning update (Fri Oct 16, change vs. Thursday settlement), cross-checked with Pro Farmer 6 am CT changes and USDA AMS Oct 15 settlements; ICE canola is Thursday's settlement (Grain Central/Farmbucks), as no Friday quote was available; cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 15 final, middle of bid range); report times from USDA calendar"
 }
