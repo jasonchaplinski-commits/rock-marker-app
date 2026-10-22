@@ -1,11 +1,11 @@
 {
- "updated": "2026-10-22T07:50:00-05:00",
- "note": "overnight trade",
+ "updated": "2026-10-22T13:45:00-05:00",
+ "note": "midday",
  "futures": [
-  {"name": "Spring wheat", "short": "Spr wheat", "month": "Dec", "exch": "MGEX", "last": 6.515, "chg": -0.1025},
-  {"name": "Soybeans", "short": "Soybeans", "month": "Nov", "exch": "CBOT", "last": 12.47, "chg": 0.0175},
-  {"name": "Corn", "short": "Corn", "month": "Dec", "exch": "CBOT", "last": 4.64, "chg": 0.0075},
-  {"name": "Chicago wheat", "short": "Chi wheat", "month": "Dec", "exch": "CBOT", "last": 6.275, "chg": -0.0075},
+  {"name": "Spring wheat", "short": "Spr wheat", "month": "Dec", "exch": "MGEX", "last": 6.45, "chg": -0.065},
+  {"name": "Soybeans", "short": "Soybeans", "month": "Nov", "exch": "CBOT", "last": 12.5325, "chg": 0.08},
+  {"name": "Corn", "short": "Corn", "month": "Dec", "exch": "CBOT", "last": 4.605, "chg": -0.0275},
+  {"name": "Chicago wheat", "short": "Chi wheat", "month": "Dec", "exch": "CBOT", "last": 6.23, "chg": -0.0525},
   {"name": "Canola (C$/tonne)", "short": "Canola", "month": "Nov", "exch": "ICE", "last": 774.6, "chg": 2.6}
  ],
  "cash": [
@@ -24,13 +24,13 @@
   {"name": "USDA Agricultural Prices", "when": "Fri Oct 30 · 2 pm CT"},
   {"name": "USDA Crop Progress", "when": "Mon Nov 2 · 3 pm CT"}
  ],
- "outlook": "Grains were mostly a little higher overnight after Wednesday's mixed close, with analysts calling corn, soybeans and wheat oversold. On Wednesday December corn hit new lows early but reversed to close up 1¼ cents at $4.63¼, ending a six-day losing streak, while November soybeans fell for an eighth straight session to $12.45¼ despite sales to China and Spain. Wheat dropped sharply on talk of a Ukraine peace deal and possible U.S.-Russia-China talks: December Chicago lost 15 cents to $6.28¼ and Minneapolis December spring wheat lost 10¼ cents to $6.51½. Crude oil rallied toward $100 a barrel on Middle East tensions overnight, and rain in the Upper Midwest this weekend could slow harvest.",
+ "outlook": "Soybeans traded higher Thursday after USDA's weekly export sales came in strong at 2.84 million metric tons for the week ending October 15, near the top of trade expectations; November soybeans were up about 8 cents at midday. Corn slipped a few cents even though export sales of 1.53 million tons beat expectations, as harvest pressure and a large crop weighed on prices. Wheat extended its losses, with December Chicago down about 5 cents and Minneapolis December spring wheat down 6½ cents, after weak wheat export sales of about 240,000 tons and talk of renewed Russia-Ukraine talks that could reduce the Black Sea risk premium. Brazil's soybean planting was 26% complete, slightly ahead of last year.",
  "news": [
-  {"title": "TFM Daily Market Summary 10-21-2026", "source": "Total Farm Marketing", "url": "https://www.totalfarmmarketing.com/tfm-daily-market-summary-10-21-2026/"},
-  {"title": "First Thing Today: Oversold grains need catalyst", "source": "Pro Farmer", "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-oversold-grains-need-catalyst"},
-  {"title": "Closing Grain and Livestock Futures: October 21, 2026", "source": "Brownfield Ag News", "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-october-21-2026/"},
-  {"title": "Corn closes mixed, with more losses for soybeans, wheat", "source": "Brownfield Ag News", "url": "https://brownfieldagnews.com/news/corn-closes-mixed-with-more-losses-for-soybeans-wheat/"},
-  {"title": "AgMarket Early Morning Market Analysis 10/22/26", "source": "AgMarket", "url": "https://www.agmarket.net/agmarket-early-morning-market-analysis-10-22-26/"}
+  {"title": "TFM Midday Update 10-22-2026", "source": "Total Farm Marketing", "url": "https://www.totalfarmmarketing.com/tfm-midday-update-10-22-2026/"},
+  {"title": "Grains Report 10/22/2026", "source": "The Price Group", "url": "https://blog.pricegroup.com/2026/10/22/grains-report-10-22-2026/"},
+  {"title": "Soybeans flat as US harvest pressure weighs; corn firms", "source": "Business Recorder", "url": "https://www.brecorder.com/news/40445433/soybeans-flat-as-us-harvest-pressure-weighs-corn-firms"},
+  {"title": "AgMarket Early Morning Market Analysis 10/22/26", "source": "AgMarket", "url": "https://www.agmarket.net/agmarket-early-morning-market-analysis-10-22-26/"},
+  {"title": "Closing Grain and Livestock Futures: October 21, 2026", "source": "Brownfield Ag News", "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-october-21-2026/"}
  ],
- "sources": "CBOT corn, soybeans and wheat: Oct 21 USDA AMS settlements plus overnight changes as of 6 am CT from Pro Farmer; MGEX spring wheat: Oct 21 settlement (USDA AMS) — no overnight quote found; ICE canola: Farmbucks delayed quote (Oct 22, ~2 am CT); cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 21 final, middle of bid range); market drivers from Total Farm Marketing, Pro Farmer and AgMarket; report dates from USDA NASS/AMS release calendars"
+ "sources": "CBOT corn, soybeans, wheat and MGEX spring wheat: Total Farm Marketing midday update (Oct 22, ~10:15 am CT), changes vs. Oct 21 settlement; ICE canola: Farmbucks delayed quote (Oct 22, ~2 am CT) — no newer quote found; cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 21 final, middle of bid range — Oct 22 report not yet posted); market drivers from Total Farm Marketing and Business Recorder; report dates from USDA NASS/AMS release calendars"
 }
