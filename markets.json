@@ -1,46 +1,46 @@
 {
- "updated": "2026-10-23T07:45:00-05:00",
- "note": "Thursday close · canola Friday a.m.",
+ "updated": "2026-10-23T14:20:00-05:00",
+ "note": "Friday close",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.4175,
-   "chg": -0.0975
+   "last": 6.415,
+   "chg": -0.0025
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Nov",
    "exch": "CBOT",
-   "last": 12.53,
-   "chg": 0.0775
+   "last": 12.565,
+   "chg": 0.035
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.605,
-   "chg": -0.0275
+   "last": 4.56,
+   "chg": -0.045
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 6.2475,
-   "chg": -0.035
+   "last": 6.25,
+   "chg": 0.0025
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Nov",
    "exch": "ICE",
-   "last": 776.9,
-   "chg": -0.6
+   "last": 777.4,
+   "chg": -0.1
   }
  ],
  "cash": [
@@ -71,14 +71,6 @@
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "reports": [
   {
-   "name": "USDA Cattle on Feed",
-   "when": "Fri Oct 23 · 2 pm CT"
-  },
-  {
-   "name": "USDA Cold Storage",
-   "when": "Fri Oct 23 · 2 pm CT"
-  },
-  {
    "name": "USDA Grain Export Inspections",
    "when": "Mon Oct 26 · 10 am CT"
   },
@@ -95,21 +87,30 @@
    "when": "Fri Oct 30 · 2 pm CT"
   },
   {
+   "name": "USDA Grain Export Inspections",
+   "when": "Mon Nov 2 · 10 am CT"
+  },
+  {
    "name": "USDA Crop Progress",
    "when": "Mon Nov 2 · 3 pm CT"
   }
  ],
- "outlook": "Soybeans closed up 7¾ cents Thursday, ending an eight-session losing streak, as crude oil jumped on reports of damaged tankers in the Strait of Hormuz and strong export sales of about 2.8 million tons plus a 202,000-ton flash sale to China. Corn slipped 2¾ cents under harvest pressure despite solid export sales, while wheat fell again — Minneapolis December down 9¾ cents — on growing hopes for a Russia-Ukraine peace deal and weak wheat export sales. Overnight into Friday, corn was about 2 cents lower and wheat and soybeans near unchanged as traders squared positions ahead of the weekend, with crude oil higher on renewed U.S.-Iran tensions. November soybean options expire today, and rain is moving into parts of the Midwest after a long stretch of good harvest weather.",
+ "outlook": "Grains ended a weak week mixed Friday. December corn fell 4½ cents to $4.56, a 3½-month low, and was down 18¼ cents on the week under harvest pressure despite a USDA flash sale of 116,000 tons to unknown destinations. November soybeans gained 3½ cents on short covering but still lost 4¾ cents for the week as harvest and farmer hedge selling capped gains. Wheat paused after another drop: Minneapolis December spring wheat slipped ¼ cent and lost 35 cents on the week, and Chicago wheat posted an eighth straight weekly loss — its longest losing run since 1997 — as the Black Sea risk premium faded, U.S. export sales lagged and Southern Hemisphere harvests advanced. Crude oil held above $100 a barrel on U.S.-Iran tensions, while canola traded near unchanged.",
  "news": [
   {
-   "title": "TFM Daily Market Summary 10-22-2026",
-   "source": "Total Farm Marketing",
-   "url": "https://www.totalfarmmarketing.com/tfm-daily-market-summary-10-22-2026/"
+   "title": "After the Bell: Corn fails to find support from flash sale",
+   "source": "Pro Farmer",
+   "url": "https://www.profarmer.com/news/after-bell/after-bell-corn-fails-find-support-flash-sale"
   },
   {
-   "title": "First Thing Today: Grain markets limp into weekend as geopolitical heat keeps traders on edge",
+   "title": "Wheat futures fall for eighth consecutive week for first time since 1997",
+   "source": "UkrAgroConsult",
+   "url": "https://ukragroconsult.com/en/news/wheat-futures-fall-for-eighth-consecutive-week-for-first-time-since-1997/"
+  },
+  {
+   "title": "Ahead of the Open: Soybeans, wheat find a bid",
    "source": "Pro Farmer",
-   "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-grain-markets-limp-weekend-geopolitical-heat-keeps-traders-edge"
+   "url": "https://www.profarmer.com/news/ahead-open/ahead-open-soybeans-wheat-find-bid"
   },
   {
    "title": "AgMarket Early Morning Market Analysis 10/23/26",
@@ -117,15 +118,10 @@
    "url": "https://www.agmarket.net/agmarket-early-morning-market-analysis-10-23-26/"
   },
   {
-   "title": "Closing Grain and Livestock Futures: October 22, 2026",
-   "source": "Brownfield Ag News",
-   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-october-22-2026/"
-  },
-  {
-   "title": "Soybeans rise on strong export sales, but harvest keeps weekly loss in view",
-   "source": "Business Recorder",
-   "url": "https://www.brecorder.com/news/40445602/soybeans-rise-on-strong-export-sales-but-harvest-keeps-weekly-loss-in-view"
+   "title": "Canola futures break buoyancy as prices dip",
+   "source": "Manitoba Co-operator",
+   "url": "https://www.manitobacooperator.ca/markets/canola-futures-break-buoyancy-as-prices-slip/"
   }
  ],
- "sources": "CBOT corn, soybeans, wheat and MGEX spring wheat: Oct 22 settlements from USDA AMS Minneapolis Daily Grain Report, Brownfield and Total Farm Marketing daily summary (changes vs. Oct 21 settlement); overnight direction from Pro Farmer First Thing Today (Oct 23, 6 am CT) and AgMarket; ICE canola: Farmbucks delayed quote (Oct 23, ~6:10 am CT); cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 22 final, middle of bid range); report dates from USDA NASS/AMS release calendars"
+ "sources": "CBOT corn, soybeans, wheat and MGEX spring wheat: Oct 23 closes from Pro Farmer After the Bell (changes vs. Oct 22 settlement); ICE canola: Farmbucks delayed quote (Oct 23); cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 22 final, latest available; middle of bid range); report dates from USDA NASS/AMS release calendars"
 }
