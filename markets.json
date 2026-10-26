@@ -1,38 +1,38 @@
 {
- "updated": "2026-10-26T07:50:00-05:00",
- "note": "overnight trade",
+ "updated": "2026-10-26T10:30:00-05:00",
+ "note": "midday",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.4025,
-   "chg": -0.0125
+   "last": 6.335,
+   "chg": -0.08
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Nov",
    "exch": "CBOT",
-   "last": 12.4125,
-   "chg": -0.1525
+   "last": 12.335,
+   "chg": -0.23
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.53,
-   "chg": -0.03
+   "last": 4.54,
+   "chg": -0.02
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 6.255,
-   "chg": 0.005
+   "last": 6.15,
+   "chg": -0.1
   },
   {
    "name": "Canola (C$/tonne)",
@@ -71,10 +71,6 @@
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "reports": [
   {
-   "name": "USDA Grain Export Inspections",
-   "when": "Mon Oct 26 · 10 am CT"
-  },
-  {
    "name": "USDA Crop Progress",
    "when": "Mon Oct 26 · 3 pm CT"
   },
@@ -99,33 +95,33 @@
    "when": "Thu Nov 5 · 7:30 am CT"
   }
  ],
- "outlook": "Soybeans led grains lower overnight: November beans fell about 15 cents to a two-month low after Lula's surprise win in Brazil's presidential runoff sent the Brazilian real sharply lower and funds sold soybeans alongside it. December corn slipped 3 cents to its lowest since mid-July as harvest moves quickly and crude oil eased about 2% to near $101 a barrel. Wheat was steady after an eighth straight weekly loss, with Chicago up slightly and Minneapolis spring wheat down about a penny; USDA also said a processing error affected September corn data for Kansas and Nebraska but its October yield and production estimates stand. ICE canola eased about C$4.60 with the softer soy complex and crude.",
+ "outlook": "Soybeans extended their slide at midday, with November beans down about 23 cents to a two-month low after Lula's surprise win in Brazil's election knocked the Brazilian real down roughly 7%, which can make Brazilian soybeans cheaper for export buyers; China is estimated to have bought about 19 of the 25 million tonnes of U.S. soybeans it pledged. December corn was off about 2 cents under harvest pressure; USDA corrected processing errors in September's Kansas and Nebraska corn estimates, raising the September national yield to 178.8 bu/acre while leaving October's 181.2 unchanged. Wheat was lower with corn and beans: Minneapolis spring wheat fell about 8 cents and is on track for a tenth straight lower close, and Chicago wheat lost about 10 cents as Black Sea peace-deal talk continues without real progress. ICE canola eased early with the weaker soy complex.",
  "news": [
+  {
+   "title": "TFM Midday Update 10-26-2026",
+   "source": "Total Farm Marketing",
+   "url": "https://www.totalfarmmarketing.com/tfm-midday-update-10-26-2026/"
+  },
+  {
+   "title": "Soybeans Hit Two-Month Low as Lula Win Lifts China Trade Outlook",
+   "source": "Bloomberg",
+   "url": "https://www.bloomberg.com/news/articles/2026-10-26/soybeans-hit-2-month-low-as-lula-s-win-lifts-china-trade-outlook"
+  },
   {
    "title": "First Thing Today: Soybeans sink in tandem with Brazilian real after Lula's presidential victory",
    "source": "Pro Farmer",
    "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-soybeans-sink-tandem-brazilian-real-after-lulas-presidential-victory"
   },
   {
-   "title": "Closing Grain and Livestock Futures: October 23, 2026",
-   "source": "Brownfield Ag News",
-   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-october-23-2026/"
+   "title": "Soybeans drop to 2-month low on US harvest pressure, weaker oil",
+   "source": "Reuters via Business Recorder",
+   "url": "https://www.brecorder.com/news/40445968/soybeans-drop-to-2-month-low-on-us-harvest-pressure-weaker-oil"
   },
   {
-   "title": "Consus Ag Consulting AM Market Brief",
-   "source": "Consus Ag Consulting",
-   "url": "https://consusconsensus.substack.com/p/consus-ag-consulting-am-market-brief-435"
-  },
-  {
-   "title": "Daily Market Wire 26 October 2026",
-   "source": "Grain Central",
-   "url": "https://www.graincentral.com/markets/daily-market-wire-26-october-2026/"
-  },
-  {
-   "title": "Wheat and corn prices fall, while soybeans gain in Chicago on Friday",
-   "source": "UkrAgroConsult",
-   "url": "https://ukragroconsult.com/en/news/wheat-and-corn-prices-fall-while-soybeans-gain-in-chicago-on-friday/"
+   "title": "What's Hot What's Not in the Markets",
+   "source": "Red River Farm Network",
+   "url": "https://www.rrfn.com/2026/10/26/whats-hot-whats-not-in-the-markets-352/"
   }
  ],
- "sources": "CBOT corn, soybeans and wheat: Pro Farmer First Thing Today overnight changes as of 6 am CT Oct 26 vs. Oct 23 closes (Brownfield); MGEX spring wheat and ICE canola: Farmbucks delayed quotes (~7 am CT Oct 26); cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 23 final, latest available; middle of bid range); report dates from USDA NASS/AMS release calendars and CME Group 2026 USDA report schedule"
+ "sources": "CBOT corn, soybeans, wheat and MGEX/MIAX spring wheat: TFM Midday Update (~10:30 am CT Oct 26) vs. Oct 23 settlements; ICE canola: Farmbucks delayed quote (~7 am CT Oct 26, no fresher trustworthy quote found); cash bids from USDA AMS Minneapolis Daily Grain Report (Oct 23, latest available; middle of bid range); report dates from USDA NASS/AMS release calendars"
 }
