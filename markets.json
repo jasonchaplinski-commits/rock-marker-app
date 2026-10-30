@@ -1,46 +1,46 @@
 {
- "updated": "2026-10-30T06:00:00-05:00",
- "note": "overnight trade",
+ "updated": "2026-10-30T10:30:00-05:00",
+ "note": "midday",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.245,
-   "chg": 0.0475
+   "last": 6.22,
+   "chg": -0.025
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.335,
-   "chg": -0.0125
+   "last": 12.37,
+   "chg": 0.0225
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.495,
-   "chg": -0.0175
+   "last": 4.485,
+   "chg": -0.0275
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 6.06,
-   "chg": 0.0225
+   "last": 6.005,
+   "chg": -0.0325
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
-   "month": "Nov",
+   "month": "Jan",
    "exch": "ICE",
-   "last": 771.7,
-   "chg": -2.1
+   "last": 787.5,
+   "chg": 4.4
   }
  ],
  "cash": [
@@ -91,27 +91,27 @@
    "when": "Tue Nov 10 · 11 am CT"
   }
  ],
- "outlook": "As of 6 a.m. CT Friday, December corn was down 1¾ cents at about $4.49½ and January soybeans were off 1¼ cents near $12.33½ as traders square positions for month-end and November soybean first notice day, with harvest moving quickly across the Corn Belt. Chicago December wheat added 2¼ cents to about $6.06, looking for follow-through after Thursday's reports that China's state buyer inquired about U.S. soft red winter wheat. Crude oil jumped over 2% to about $104 on Middle East tensions and a Ukrainian strike on a Russian refinery, while a weaker U.S. dollar offered some support. Soybeans now track January since November is in delivery; spring wheat and canola show Thursday's close (no overnight quote found), and cash bids are from Thursday's USDA Minneapolis report.",
+ "outlook": "At midday Friday (about 10:30 a.m. CT), December corn was down 2¾ cents at $4.48½ and December Chicago wheat was off 3¼ cents at $6.00½, as funds kept selling ahead of the weekend and month-end with harvest moving quickly. January soybeans were up 2¼ cents at $12.37 and January canola gained C$4.40 to C$787.50, lifted by firmer vegetable oils as crude oil rose on reports of possible renewed U.S.–Iran fighting. December Minneapolis spring wheat slipped 2½ cents to $6.22 after Thursday's gains on China's inquiry for U.S. wheat. Prices are midday levels, not final closes; canola now tracks January, and cash bids are from Thursday's USDA Minneapolis report.",
  "news": [
+  {
+   "title": "ICE Canola Midday: Comparable oils pull up canola",
+   "source": "The Western Producer",
+   "url": "https://www.producer.com/market-update/ice-canola-midday-comparable-oils-pull-up-canola/"
+  },
+  {
+   "title": "Ahead of the Open | Funds continue to sell",
+   "source": "Pro Farmer",
+   "url": "https://www.profarmer.com/news/ahead-open/ahead-open-funds-continue-sell"
+  },
   {
    "title": "First Thing Today | Corn, soybeans drift lower as traders prepare to close books on October",
    "source": "Pro Farmer",
    "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-corn-soybeans-drift-lower-traders-prepare-close-books-october"
   },
   {
-   "title": "Closing Grain and Livestock Futures: October 29, 2026",
-   "source": "Brownfield Ag News",
-   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-october-29-2026/"
-  },
-  {
-   "title": "Wheat was higher Thursday",
-   "source": "Brownfield Ag News",
-   "url": "https://brownfieldagnews.com/news/wheat-was-higher-thursday-closing-market-minute/"
-  },
-  {
-   "title": "Wheat prices rise in Chicago on Thursday, while corn and soybeans trade mixed",
-   "source": "UkrAgroConsult",
-   "url": "https://ukragroconsult.com/en/news/wheat-prices-rise-in-chicago-on-thursday-while-corn-and-soybeans-trade-mixed/"
+   "title": "Wheat Recovers from 16-Week Low",
+   "source": "Trading Economics",
+   "url": "https://tradingeconomics.com/commodity/wheat/news/596398"
   },
   {
    "title": "Minneapolis Daily Grain Report (Oct 29)",
@@ -119,5 +119,5 @@
    "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Overnight futures: Pro Farmer First Thing Today 10-30 (as of 6 a.m. CT), applied to Oct 29 settlements from the USDA AMS Minneapolis Daily Grain Report. Spring wheat and canola: Oct 29 close kept (no overnight quote found). Cash bids: USDA AMS Minneapolis Daily Grain Report, Oct 29 final (middle of bid range). Report dates: USDA NASS/AMS release calendars."
+ "sources": "Futures: The Western Producer midday price table, Oct 30 (about 10:30 a.m. CT), checked against Oct 29 settlements in the USDA AMS Minneapolis Daily Grain Report. Cash bids: USDA AMS Minneapolis Daily Grain Report, Oct 29 final (middle of bid range; Oct 30 report not yet posted). Report dates: USDA NASS/AMS release calendars."
 }
