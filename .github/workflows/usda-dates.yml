@@ -1,0 +1,133 @@
+name: USDA crop insurance dates
+# Created by Jason Chaplinski. Pulls county crop insurance dates from USDA RMA public data every Monday.
+on:
+  schedule:
+    - cron: "17 9 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install remotezip
+      - name: Pull USDA dates
+        run: |
+          cat > /tmp/usda_dates.py <<'PYEOF'
+          import io, json, os, sys, datetime, collections
+          from remotezip import RemoteZip
+
+          # Pulls crop insurance dates for every county from USDA RMA's public Actuarial Data Master
+          # and writes one small file per state: usda/<state code>.json
+          BASE = "https://pubfs-rma.fpac.usda.gov/pub/References/actuarial_data_master/"
+          CROPS = {"0011": "Wheat", "0015": "Canola", "0041": "Corn", "0081": "Soybeans", "0091": "Barley", "0016": "Oats", "0078": "Sunflowers", "0039": "Sugar Beets", "0047": "Dry Beans"}
+          PREF = {"0011": [["012", "Spring"], ["011", "Winter"], ["018", "Durum"]], "0015": [["286", ""], ["384", ""]], "0041": [["016", "Grain"], ["026", "Silage"]], "0081": [["091", ""]]}
+          PLANS = {"01", "02", "03", "90"}
+          COLS = [["sc", 23, 24], ["ep", 26, None], ["fp", 27, None], ["lp", 38, None], ["ar", 29, 30], ["pr", 36, 37], ["bill", 35, None], ["eoi", 31, None]]
+
+
+          def iso(v):
+              v = (v or "").strip()
+              return v[0:4] + "-" + v[4:6] + "-" + v[6:8] if len(v) == 8 else ""
+
+
+          def lines(z, name):
+              with z.open(name) as f:
+                  for raw in io.TextIOWrapper(f, encoding="latin-1"):
+                      yield raw.rstrip("\r\n").split("|")
+
+
+          def year_data(y):
+              url = BASE + str(y) + "/" + str(y) + "_ADM_YTD.zip"
+              try:
+                  z = RemoteZip(url)
+              except Exception as e:
+                  print("skip", y, e)
+                  return None
+              with z:
+                  names = {n.split("_", 2)[1]: n for n in z.namelist()}
+                  st = {}
+                  for r in lines(z, names["A00520"]):
+                      if r[0] == "A00520" and not r[10].strip():
+                          st[r[3]] = r[5]
+                  cname = {}
+                  for r in lines(z, names["A00440"]):
+                      if r[0] == "A00440" and not r[8].strip():
+                          cname[r[3] + r[4]] = r[5] + ", " + st.get(r[3], r[3])
+                  best = {}
+                  for r in lines(z, names["A00200"]):
+                      if r[0] != "A00200" or len(r) < 49 or r[5] not in CROPS or r[6] not in PLANS or r[48].strip():
+                          continue
+                      k = r[2]
+                      if k not in best or r[47] >= best[k][47]:
+                          best[k] = r
+                  group = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
+                  for r in best.values():
+                      d = {}
+                      for key, a, b in COLS:
+                          v = iso(r[b]) if b is not None and r[b].strip() else ""
+                          d[key] = v or iso(r[a])
+                      group[(r[7] + r[8], r[5])][r[10]][json.dumps(d, sort_keys=True)] += 1
+              out = collections.defaultdict(dict)
+              for (co, cc), types in sorted(group.items()):
+                  picks = []
+                  if cc in PREF:
+                      for t, label in PREF[cc]:
+                          if t in types:
+                              picks.append([label, types[t]])
+                      if picks and not PREF[cc][0][1]:
+                          picks = picks[:1]
+                  if not picks:
+                      total = collections.Counter()
+                      for v in types.values():
+                          total.update(v)
+                      picks = [["", total]]
+                  ent = out[co[:2]].setdefault(co, {"name": cname.get(co, co), "crops": []})
+                  for label, cnt in picks:
+                      d = json.loads(cnt.most_common(1)[0][0])
+                      ent["crops"].append({"crop": CROPS[cc], "type": label, "d": {k: v for k, v in d.items() if v}})
+              return out
+
+
+          def main():
+              folder = sys.argv[1] if len(sys.argv) > 1 else "usda"
+              os.makedirs(folder, exist_ok=True)
+              y0 = datetime.date.today().year
+              by_state = collections.defaultdict(dict)
+              for y in [y0, y0 + 1]:
+                  d = year_data(y)
+                  for s, counties in (d or {}).items():
+                      by_state[s][str(y)] = counties
+              if not by_state:
+                  print("nothing found")
+                  return
+              today = datetime.date.today().isoformat()
+              for s, years in by_state.items():
+                  path = os.path.join(folder, s + ".json")
+                  old = None
+                  if os.path.exists(path):
+                      try:
+                          old = json.load(open(path))
+                      except Exception:
+                          old = None
+                  made = old.get("made", today) if old and old.get("years") == years else today
+                  res = {"src": "USDA Risk Management Agency, Actuarial Data Master", "made": made, "checked": today, "years": years}
+                  json.dump(res, open(path, "w"), separators=(",", ":"))
+              print("wrote", len(by_state), "state files")
+
+
+          if __name__ == "__main__":
+              main()
+          PYEOF
+          python /tmp/usda_dates.py usda
+      - name: Save
+        run: |
+          git config user.name "usda-dates-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add usda
+          git diff --cached --quiet || git commit -m "USDA dates checked $(date +%Y-%m-%d)"
+          git push
