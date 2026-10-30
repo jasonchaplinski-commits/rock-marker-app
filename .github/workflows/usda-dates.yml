@@ -27,7 +27,7 @@ jobs:
           CROPS = {"0011": "Wheat", "0015": "Canola", "0041": "Corn", "0081": "Soybeans", "0091": "Barley", "0016": "Oats", "0078": "Sunflowers", "0039": "Sugar Beets", "0047": "Dry Beans"}
           PREF = {"0011": [["012", "Spring"], ["011", "Winter"], ["018", "Durum"]], "0015": [["286", ""], ["384", ""]], "0041": [["016", "Grain"], ["026", "Silage"]], "0081": [["091", ""]]}
           PLANS = {"01", "02", "03", "90"}
-          COLS = [["sc", 23, 24], ["ep", 26, None], ["fp", 27, None], ["lp", 38, None], ["ar", 29, 30], ["pr", 36, 37], ["bill", 35, None], ["eoi", 31, None]]
+          COLS = [["sc", 23, 24], ["ep", 26, None], ["fp", 27, None], ["lp", 38, None], ["ar", 29, 30], ["pr", 36, 37], ["bill", 35, None], ["eoi", 31, None], ["can", 32, 33], ["term", 34, None], ["cc", 22, None]]
 
 
           def iso(v):
