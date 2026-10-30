@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-28T13:45:00-05:00",
+ "updated": "2026-10-29T13:20:00-05:00",
  "note": "closing",
  "futures": [
   {
@@ -7,15 +7,15 @@
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.21,
-   "chg": -0.075
+   "last": 6.245,
+   "chg": 0.0475
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Nov",
    "exch": "CBOT",
-   "last": 12.245,
+   "last": 12.1975,
    "chg": -0.0475
   },
   {
@@ -23,24 +23,24 @@
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.5175,
-   "chg": 0.03
+   "last": 4.5125,
+   "chg": -0.005
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 5.99,
-   "chg": -0.1125
+   "last": 6.0375,
+   "chg": 0.0475
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Nov",
    "exch": "ICE",
-   "last": 773.7,
-   "chg": -2.0
+   "last": 771.7,
+   "chg": -2.1
   }
  ],
  "cash": [
@@ -71,10 +71,6 @@
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "reports": [
   {
-   "name": "USDA Weekly Export Sales",
-   "when": "Thu Oct 29 · 7:30 am CT"
-  },
-  {
    "name": "USDA Agricultural Prices",
    "when": "Fri Oct 30 · 2 pm CT"
   },
@@ -95,33 +91,33 @@
    "when": "Tue Nov 10 · 11 am CT"
   }
  ],
- "outlook": "Wheat led grains lower Wednesday as progress toward U.S.-Ukraine-Russia peace talks, expected in Abu Dhabi in November, eased Black Sea supply worries: Chicago December wheat fell 11¼ cents to $5.99 and Minneapolis December spring wheat lost 7½ cents to $6.21, despite IKAR cutting its Russian wheat export forecast to 29 million tonnes. December corn gained 3 cents to $4.51¾ on slow harvest progress (60% done vs. 66% average, with rain expected), while November soybeans slipped 4¾ cents to $12.24½ as a weaker Brazilian real makes Brazilian beans more competitive. ICE November canola eased C$2.00 to C$773.70 alongside lower soybean oil. Cash bids shown are from Tuesday's USDA Minneapolis report; Wednesday's report was not yet posted.",
+ "outlook": "Wheat bounced Thursday after reports that China's COFCO inquired about U.S. soft red winter wheat for shipment after the New Year: Minneapolis December spring wheat rose 4¾ cents to $6.24½ and Chicago December wheat gained 4¾ cents to $6.03¾. December corn slipped ½ cent to $4.51¼, finishing mid-range after touching a 3½-month low early in the session. November soybeans fell 4¾ cents to $12.19¾ on technical selling, with soybean meal hitting a two-month low, and ICE November canola eased C$2.10 to C$771.70. Cash bids shown are still from Tuesday's USDA Minneapolis report, the latest available.",
  "news": [
   {
-   "title": "TFM Midday Update 10-28-2026",
+   "title": "After the Bell | Wheat bounces on strong export sales",
+   "source": "Pro Farmer",
+   "url": "https://www.profarmer.com/news/after-bell/after-bell-wheat-bounces-strong-export-sales"
+  },
+  {
+   "title": "TFM Daily Market Summary 10-29-2026",
    "source": "Total Farm Marketing",
-   "url": "https://www.totalfarmmarketing.com/tfm-midday-update-10-28-2026/"
+   "url": "https://www.totalfarmmarketing.com/tfm-daily-market-summary-10-29-2026/"
   },
   {
-   "title": "gMarket Early Morning Market Analysis 10/28/26",
-   "source": "AgMarket.Net",
-   "url": "https://www.agmarket.net/gmarket-early-morning-market-analysis-10-28-26/"
-  },
-  {
-   "title": "Grains Report 10/28/2026",
+   "title": "Grains Report 10/29/2026",
    "source": "Price Futures Group",
-   "url": "https://blog.pricegroup.com/2026/10/28/grains-report-10-28-2026/"
+   "url": "https://blog.pricegroup.com/2026/10/29/grains-report-10-29-2026/"
   },
   {
-   "title": "Wheat Futures Drop as Russia Considers Black Sea Grain Shipping Proposals",
-   "source": "Bloomberg",
-   "url": "https://www.bloomberg.com/news/articles/2026-10-26/wheat-erases-black-sea-premium-as-russia-signals-shipping-talks"
+   "title": "AgMarket Early Morning Market Analysis 10/29/26",
+   "source": "AgMarket.Net",
+   "url": "https://www.agmarket.net/agmarket-early-morning-market-analysis-10-29-26/"
   },
   {
-   "title": "Closing Grain and Livestock Futures: October 27, 2026",
-   "source": "Brownfield Ag News",
-   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-october-27-2026/"
+   "title": "October 29 Closing Commodity Prices",
+   "source": "GX94 Radio",
+   "url": "https://www.gx94radio.com/2026/10/29/october-29-closing-commodity-prices-4/"
   }
  ],
- "sources": "Oct 28 closing futures: Farmbucks delayed quotes (DTN/CME/ICE data, ~1:45 pm CT). Market drivers: Total Farm Marketing midday update 10-28. Cash bids: USDA AMS Minneapolis Daily Grain Report (Oct 27 final; middle of bid range). Report dates: USDA NASS/AMS release calendars and Farmbucks report calendar."
+ "sources": "Oct 29 closing futures: GX94 Radio closing commodity prices and Pro Farmer After the Bell (delayed CME/ICE data). Market drivers: Pro Farmer After the Bell 10-29. Cash bids: USDA AMS Minneapolis Daily Grain Report (Oct 27 final kept; newer report not yet available; middle of bid range). Report dates: USDA NASS/AMS release calendars."
 }
