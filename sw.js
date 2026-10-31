@@ -7,11 +7,12 @@
 //  - Satellite map tiles you have looked at: kept on the phone (up to about
 //    2,000 tiles) so fields still show with no signal.
 //  - Shared-farm data never goes through here — Firebase keeps its own copy.
-var CACHE_NAME = "rock-marker-shell-v6";
+var CACHE_NAME = "rock-marker-shell-v7";
+var SHARE_CACHE = "rock-marker-share";
 var LIB_CACHE = "rock-marker-libs-v1";
 var TILE_CACHE = "rock-marker-tiles-v1";
 var TILE_MAX = 2000;
-var KEEP = [CACHE_NAME, LIB_CACHE, TILE_CACHE];
+var KEEP = [CACHE_NAME, LIB_CACHE, TILE_CACHE, SHARE_CACHE];
 var SHELL_FILES = [
   "./",
   "./index.html",
@@ -59,6 +60,27 @@ function trimTiles(){
 }
 
 self.addEventListener("fetch", function(event){
+  // Share to Rock Marker: files shared from Gmail or another app (elevator
+  // tickets, statements) are kept on the phone, then the app opens and reads them.
+  if(event.request.method === "POST" && event.request.url.indexOf("/share-target") !== -1){
+    event.respondWith((function(){
+      return event.request.formData().then(function(form){
+        var files = form.getAll("files").filter(function(f){ return f && typeof f === "object" && f.size; });
+        return caches.open(SHARE_CACHE).then(function(cache){
+          return cache.keys().then(function(old){
+            return Promise.all(old.map(function(k){ return cache.delete(k); }));
+          }).then(function(){
+            return Promise.all(files.map(function(f, i){
+              return cache.put(new Request("./shared/" + Date.now() + "-" + i), new Response(f, {headers: {"Content-Type": f.type || "application/octet-stream", "X-Name": encodeURIComponent(f.name || ("shared-" + i))}}));
+            }));
+          });
+        });
+      }).catch(function(){}).then(function(){
+        return Response.redirect(new URL("./index.html?share=1", self.registration.scope).href, 303);
+      });
+    })());
+    return;
+  }
   if(event.request.method !== "GET"){ return; }
   var url = event.request.url;
 
