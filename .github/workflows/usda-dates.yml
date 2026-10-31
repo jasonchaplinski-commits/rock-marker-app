@@ -98,7 +98,7 @@ jobs:
               os.makedirs(folder, exist_ok=True)
               y0 = datetime.date.today().year
               by_state = collections.defaultdict(dict)
-              for y in [y0, y0 + 1]:
+              for y in [y0 - 1, y0, y0 + 1]:
                   d = year_data(y)
                   for s, counties in (d or {}).items():
                       by_state[s][str(y)] = counties
