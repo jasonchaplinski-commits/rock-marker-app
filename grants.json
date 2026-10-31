@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-12",
+ "updated": "2026-10-31",
  "programs": [
   {
    "id": "mn_safety",
@@ -11,7 +11,11 @@
    "statusNote": "Open for FY2026–2027 · first come, first served",
    "pays": "75% of safety equipment, up to $400 per bin and $2,400 per farm each year",
    "checked": "2026-10-12",
-   "fits": ["Bury power line over augers", "Auger guards", "Bins"],
+   "fits": [
+    "Bury power line over augers",
+    "Auger guards",
+    "Bins"
+   ],
    "warn": "Get the signed grant contract BEFORE you buy anything or start work. You’re paid back after the work is done and paid for.",
    "key": [
     "For Minnesota farms with on-farm grain bins or silos. One application per farm each state fiscal year.",
@@ -21,20 +25,68 @@
     "Apply online in the MDA grant system (create an account, pick “FY 2026-2027 Grain Storage Facility Safety Grant”)."
    ],
    "steps": [
-    {"t": "Make a list of the safety items you want (power line, auger guards, etc.)", "help": "Use “Your project” below — the app fills in your bins."},
-    {"t": "Get written quotes (and from your electric co-op for burying the line)", "help": "Save each quote below."},
-    {"t": "Create an account and apply online", "link": "https://www.grantinterface.com/Home/Logon?urlkey=mdagrants"},
-    {"t": "Wait for the signed grant contract — don’t buy before this"},
-    {"t": "Call 811 (Gopher State One Call) before anyone digs"},
-    {"t": "Do the work and pay the bills"},
-    {"t": "Send receipts / proof of payment to MDA to get reimbursed", "help": "Take before/after photos."}
+    {
+     "t": "Make a list of the safety items you want (power line, auger guards, etc.)",
+     "help": "Use “Your project” below — the app fills in your bins."
+    },
+    {
+     "t": "Get written quotes (and from your electric co-op for burying the line)",
+     "help": "Save each quote below."
+    },
+    {
+     "t": "Create an account and apply online",
+     "link": "https://www.grantinterface.com/Home/Logon?urlkey=mdagrants"
+    },
+    {
+     "t": "Wait for the signed grant contract — don’t buy before this"
+    },
+    {
+     "t": "Call 811 (Gopher State One Call) before anyone digs"
+    },
+    {
+     "t": "Do the work and pay the bills"
+    },
+    {
+     "t": "Send receipts / proof of payment to MDA to get reimbursed",
+     "help": "Take before/after photos."
+    }
    ],
-   "docs": ["Quotes for each item", "Receipts / paid invoices", "Before & after photos"],
-   "fields": [{"k": "farm", "l": "Farm name"}, {"k": "bins", "l": "Number of bins"}, {"k": "items", "l": "Safety items wanted"}, {"k": "cost", "l": "Estimated total cost ($)"}],
+   "docs": [
+    "Quotes for each item",
+    "Receipts / paid invoices",
+    "Before & after photos"
+   ],
+   "fields": [
+    {
+     "k": "farm",
+     "l": "Farm name"
+    },
+    {
+     "k": "bins",
+     "l": "Number of bins"
+    },
+    {
+     "k": "items",
+     "l": "Safety items wanted"
+    },
+    {
+     "k": "cost",
+     "l": "Estimated total cost ($)"
+    }
+   ],
    "links": [
-    {"t": "Program page (MDA)", "u": "https://mda.state.mn.us/grainstoragesafetycostshare"},
-    {"t": "Request for proposals (PDF)", "u": "https://www.mda.state.mn.us/sites/default/files/docs/2025-08/GrainStorageFacilitySafetyGrantRFP_FY26-FY27.pdf"},
-    {"t": "Apply online (MDA grant system)", "u": "https://www.grantinterface.com/Home/Logon?urlkey=mdagrants"}
+    {
+     "t": "Program page (MDA)",
+     "u": "https://mda.state.mn.us/grainstoragesafetycostshare"
+    },
+    {
+     "t": "Request for proposals (PDF)",
+     "u": "https://www.mda.state.mn.us/sites/default/files/docs/2025-08/GrainStorageFacilitySafetyGrantRFP_FY26-FY27.pdf"
+    },
+    {
+     "t": "Apply online (MDA grant system)",
+     "u": "https://www.grantinterface.com/Home/Logon?urlkey=mdagrants"
+    }
    ],
    "phone": "651-201-6500",
    "phoneNote": "MDA Grants Line"
@@ -46,38 +98,169 @@
    "agency": "USDA NRCS",
    "kind": "Cost-share",
    "status": "open",
-   "statusNote": "Apply any time · ranked in batches by state cutoff dates",
+   "statusNote": "Apply any time · Minnesota’s sign-up deadline for 2027 funding was Sept 11, 2026, so a new application will likely wait for the next round",
    "pays": "Part of the cost of energy-saving upgrades like a more efficient grain dryer — after an energy audit",
-   "checked": "2026-10-12",
-   "fits": ["New grain dryer", "Grain fans / motors", "Lighting"],
+   "checked": "2026-10-31",
+   "fits": [
+    "New grain dryer",
+    "Grain fans / motors",
+    "Lighting"
+   ],
    "warn": "Don’t buy or start work until your EQIP contract is signed — costs before that aren’t paid.",
    "key": [
+    "Minnesota’s sign-up deadline for 2027 EQIP funding was Friday, September 11, 2026. NRCS takes applications any time, but ones after that date usually wait for the next ranking round. Ask your office for the next date.",
     "NRCS cost-share: it pays part of the cost of the practice, after it’s installed and checked.",
     "For a dryer, NRCS usually wants an on-farm energy audit / energy management plan first.",
-    "Sign-up is continuous, but applications are ranked in batches — ask your office for the next ranking cutoff.",
     "Your farm records must be up to date at FSA (farm & tract numbers, AD-1026 conservation form, income form).",
     "Beginning, veteran and limited-resource farmers can get higher payment rates.",
     "Rates and cutoffs change by state and year — your county USDA Service Center has the final word."
    ],
    "steps": [
-    {"t": "Farm records up to date at FSA (farm/tract #, AD-1026, CCC-941, CCC-902)", "link": "https://www.farmers.gov/working-with-us/service-center-locator"},
-    {"t": "Call your county USDA Service Center (NRCS) — ask about EQIP On-Farm Energy and sign the application", "help": "Ask Farm AI: “What do I say when I call?”"},
-    {"t": "Energy audit of the dryer and grain system", "help": "The app has your dryer, bins and propane info for the auditor."},
-    {"t": "Get 2–3 dealer quotes for the same size and features", "help": "Save quotes below."},
-    {"t": "Application ranked at the cutoff date"},
-    {"t": "Approved → sign the EQIP contract"},
-    {"t": "Install to NRCS standards", "help": "Take before/after photos, keep receipts."},
-    {"t": "Certify it’s done → get paid"}
+    {
+     "t": "Farm records up to date at FSA (farm/tract #, AD-1026, CCC-941, CCC-902)",
+     "link": "https://www.farmers.gov/working-with-us/service-center-locator"
+    },
+    {
+     "t": "Call your county USDA Service Center (NRCS) — ask about EQIP On-Farm Energy and sign the application",
+     "help": "Ask Farm AI: “What do I say when I call?”"
+    },
+    {
+     "t": "Energy audit of the dryer and grain system",
+     "help": "The app has your dryer, bins and propane info for the auditor."
+    },
+    {
+     "t": "Get 2–3 dealer quotes for the same size and features",
+     "help": "Save quotes below."
+    },
+    {
+     "t": "Application ranked at the cutoff date"
+    },
+    {
+     "t": "Approved → sign the EQIP contract"
+    },
+    {
+     "t": "Install to NRCS standards",
+     "help": "Take before/after photos, keep receipts."
+    },
+    {
+     "t": "Certify it’s done → get paid"
+    }
    ],
-   "docs": ["FSA farm & tract numbers", "AD-1026 (conservation compliance)", "CCC-941 (income / AGI)", "CCC-902 (farm operating plan)", "Energy audit report", "2–3 dealer quotes", "Receipts & photos after install"],
-   "fields": [{"k": "farm", "l": "Farm name"}, {"k": "acres", "l": "Crop acres"}, {"k": "dryer", "l": "Current dryer"}, {"k": "bushels", "l": "Bushels dried per year"}, {"k": "propane", "l": "Propane used for drying (gal/yr)"}, {"k": "project", "l": "What you want to do"}],
+   "docs": [
+    "FSA farm & tract numbers",
+    "AD-1026 (conservation compliance)",
+    "CCC-941 (income / AGI)",
+    "CCC-902 (farm operating plan)",
+    "Energy audit report",
+    "2–3 dealer quotes",
+    "Receipts & photos after install"
+   ],
+   "fields": [
+    {
+     "k": "farm",
+     "l": "Farm name"
+    },
+    {
+     "k": "acres",
+     "l": "Crop acres"
+    },
+    {
+     "k": "dryer",
+     "l": "Current dryer"
+    },
+    {
+     "k": "bushels",
+     "l": "Bushels dried per year"
+    },
+    {
+     "k": "propane",
+     "l": "Propane used for drying (gal/yr)"
+    },
+    {
+     "k": "project",
+     "l": "What you want to do"
+    }
+   ],
    "links": [
-    {"t": "EQIP program page (NRCS)", "u": "https://www.nrcs.usda.gov/programs-initiatives/eqip-environmental-quality-incentives"},
-    {"t": "Find your USDA Service Center", "u": "https://www.farmers.gov/working-with-us/service-center-locator"},
-    {"t": "AD-1026 form (PDF)", "u": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/AD1026.PDF"},
-    {"t": "CCC-941 income form (PDF)", "u": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/CCC941.PDF"},
-    {"t": "CCC-902 farm operating plan (PDF)", "u": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/CCC902I.PDF"}
-   ]
+    {
+     "t": "EQIP in Minnesota (NRCS)",
+     "u": "https://www.nrcs.usda.gov/programs-initiatives/environmental-quality-incentives-program/minnesota/environmental-quality"
+    },
+    {
+     "t": "EQIP program page (NRCS)",
+     "u": "https://www.nrcs.usda.gov/programs-initiatives/eqip-environmental-quality-incentives"
+    },
+    {
+     "t": "Find your USDA Service Center",
+     "u": "https://www.farmers.gov/working-with-us/service-center-locator"
+    },
+    {
+     "t": "AD-1026 form (PDF)",
+     "u": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/AD1026.PDF"
+    },
+    {
+     "t": "CCC-941 income form (PDF)",
+     "u": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/CCC941.PDF"
+    },
+    {
+     "t": "CCC-902 farm operating plan (PDF)",
+     "u": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/CCC902I.PDF"
+    }
+   ],
+   "history": [
+    {
+     "d": "2026-10-31",
+     "old": {
+      "status": "open",
+      "statusNote": "Apply any time · ranked in batches by state cutoff dates",
+      "pays": "Part of the cost of energy-saving upgrades like a more efficient grain dryer — after an energy audit",
+      "warn": "Don’t buy or start work until your EQIP contract is signed — costs before that aren’t paid.",
+      "key": [
+       "NRCS cost-share: it pays part of the cost of the practice, after it’s installed and checked.",
+       "For a dryer, NRCS usually wants an on-farm energy audit / energy management plan first.",
+       "Sign-up is continuous, but applications are ranked in batches — ask your office for the next ranking cutoff.",
+       "Your farm records must be up to date at FSA (farm & tract numbers, AD-1026 conservation form, income form).",
+       "Beginning, veteran and limited-resource farmers can get higher payment rates.",
+       "Rates and cutoffs change by state and year — your county USDA Service Center has the final word."
+      ],
+      "steps": [
+       {
+        "t": "Farm records up to date at FSA (farm/tract #, AD-1026, CCC-941, CCC-902)",
+        "link": "https://www.farmers.gov/working-with-us/service-center-locator"
+       },
+       {
+        "t": "Call your county USDA Service Center (NRCS) — ask about EQIP On-Farm Energy and sign the application",
+        "help": "Ask Farm AI: “What do I say when I call?”"
+       },
+       {
+        "t": "Energy audit of the dryer and grain system",
+        "help": "The app has your dryer, bins and propane info for the auditor."
+       },
+       {
+        "t": "Get 2–3 dealer quotes for the same size and features",
+        "help": "Save quotes below."
+       },
+       {
+        "t": "Application ranked at the cutoff date"
+       },
+       {
+        "t": "Approved → sign the EQIP contract"
+       },
+       {
+        "t": "Install to NRCS standards",
+        "help": "Take before/after photos, keep receipts."
+       },
+       {
+        "t": "Certify it’s done → get paid"
+       }
+      ]
+     }
+    }
+   ],
+   "changed": {
+    "d": "2026-10-31",
+    "t": "Minnesota’s 2027 EQIP sign-up deadline was Sept 11, 2026. A new application now will most likely be ranked in the next round. You still need a signed contract before you buy."
+   }
   },
   {
    "id": "fsfl",
@@ -89,30 +272,85 @@
    "statusNote": "Apply any time · must be approved before any work",
    "pays": "Low-interest loan up to $500,000 for bins, dryers and handling equipment · 15% down (microloan: up to $50,000, 5% down)",
    "checked": "2026-10-12",
-   "fits": ["Dump pit / handling", "New bins", "Grain dryer"],
+   "fits": [
+    "Dump pit / handling",
+    "New bins",
+    "Grain dryer"
+   ],
    "warn": "The loan must be approved BEFORE any site prep, construction or equipment delivery — even accepting delivery early can make you ineligible.",
    "key": [
     "A loan, not a grant — low fixed interest, terms up to 12 years depending on the amount.",
-    "Covers storage bins and structures, grain drying equipment, and handling equipment like conveyors, hoppers and dumpers. Ask your office about a bucket leg — it isn’t listed by name.",
+    "Covers storage bins and structures, grain drying equipment, and handling equipment like conveyors, hoppers and dumpers. Ask your office about a bucket leg — it isn’t listed by name. A leg is handling equipment, so it likely won’t fit REAP, EQIP or the MN safety grant. This loan is the best fit for it.",
     "Standard loan: up to $500,000, minimum 15% down. Microloan: up to $50,000, 5% down, less paperwork.",
     "Standard loans need storage needs based on 3 years of production history; microloans can self-certify.",
     "$100 non-refundable application fee. Every loan needs an environmental review before approval.",
     "Apply at the FSA county office that keeps your farm records."
    ],
    "steps": [
-    {"t": "Decide what you need (pit, conveyors, bins, dryer) and get quotes", "help": "Save quotes below."},
-    {"t": "Pull 3 years of production history", "help": "The app has your bins and harvest records."},
-    {"t": "Apply at your FSA county office (application CCC-185, $100 fee)", "link": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/CCC185.PDF"},
-    {"t": "Environmental review + loan approval — don’t start before this"},
-    {"t": "Build / install, keep invoices"},
-    {"t": "Loan funds paid out — ask FSA about partial payments during the build"}
+    {
+     "t": "Decide what you need (pit, conveyors, bins, dryer) and get quotes",
+     "help": "Save quotes below."
+    },
+    {
+     "t": "Pull 3 years of production history",
+     "help": "The app has your bins and harvest records."
+    },
+    {
+     "t": "Apply at your FSA county office (application CCC-185, $100 fee)",
+     "link": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/CCC185.PDF"
+    },
+    {
+     "t": "Environmental review + loan approval — don’t start before this"
+    },
+    {
+     "t": "Build / install, keep invoices"
+    },
+    {
+     "t": "Loan funds paid out — ask FSA about partial payments during the build"
+    }
    ],
-   "docs": ["Dealer quotes / bids", "3 years of production records", "Site plan / sketch", "Insurance on the facility", "Invoices after install"],
-   "fields": [{"k": "farm", "l": "Farm name"}, {"k": "bins", "l": "Number of bins"}, {"k": "bincap", "l": "Total bin capacity (bu)"}, {"k": "project", "l": "What you want to build"}, {"k": "cost", "l": "Estimated total cost ($)"}],
+   "docs": [
+    "Dealer quotes / bids",
+    "3 years of production records",
+    "Site plan / sketch",
+    "Insurance on the facility",
+    "Invoices after install"
+   ],
+   "fields": [
+    {
+     "k": "farm",
+     "l": "Farm name"
+    },
+    {
+     "k": "bins",
+     "l": "Number of bins"
+    },
+    {
+     "k": "bincap",
+     "l": "Total bin capacity (bu)"
+    },
+    {
+     "k": "project",
+     "l": "What you want to build"
+    },
+    {
+     "k": "cost",
+     "l": "Estimated total cost ($)"
+    }
+   ],
    "links": [
-    {"t": "Farm Storage Facility Loan fact sheet (PDF)", "u": "https://www.fsa.usda.gov/sites/default/files/2024-12/FSA-FactSheet-Farm%20Storage%20Facility%20Loans.pdf"},
-    {"t": "Find your FSA county office", "u": "https://www.farmers.gov/working-with-us/service-center-locator"},
-    {"t": "Application form CCC-185 (PDF)", "u": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/CCC185.PDF"}
+    {
+     "t": "Farm Storage Facility Loan fact sheet (PDF)",
+     "u": "https://www.fsa.usda.gov/sites/default/files/2024-12/FSA-FactSheet-Farm%20Storage%20Facility%20Loans.pdf"
+    },
+    {
+     "t": "Find your FSA county office",
+     "u": "https://www.farmers.gov/working-with-us/service-center-locator"
+    },
+    {
+     "t": "Application form CCC-185 (PDF)",
+     "u": "https://forms.sc.egov.usda.gov/efcommon/eFileServices/eForms/CCC185.PDF"
+    }
    ]
   },
   {
@@ -125,7 +363,11 @@
    "statusNote": "Varies by co-op · call to check",
    "pays": "Rebates for LED shop lights, fan speed controls (VFDs), efficient motors, sometimes grain dryers",
    "checked": "2026-10-12",
-   "fits": ["LED shop lights", "Fan VFDs / motors", "Bury power line"],
+   "fits": [
+    "LED shop lights",
+    "Fan VFDs / motors",
+    "Bury power line"
+   ],
    "warn": "Many rebates need pre-approval or a spec sheet — ask before you buy.",
    "key": [
     "Most electric co-ops offer agricultural and commercial efficiency rebates — the co-op on your bill decides what and how much.",
@@ -134,15 +376,44 @@
     "Rebates can often be combined with grants — ask."
    ],
    "steps": [
-    {"t": "Call your electric co-op (number on your bill) — ask for ag/commercial efficiency rebates", "help": "Ask Farm AI for a call script."},
-    {"t": "Ask what needs pre-approval and what paperwork they want"},
-    {"t": "Buy qualifying items (keep spec sheets and invoices)"},
-    {"t": "Send the rebate form + invoices"}
+    {
+     "t": "Call your electric co-op (number on your bill) — ask for ag/commercial efficiency rebates",
+     "help": "Ask Farm AI for a call script."
+    },
+    {
+     "t": "Ask what needs pre-approval and what paperwork they want"
+    },
+    {
+     "t": "Buy qualifying items (keep spec sheets and invoices)"
+    },
+    {
+     "t": "Send the rebate form + invoices"
+    }
    ],
-   "docs": ["Rebate form from the co-op", "Invoices", "Product spec sheets (DLC listing for LEDs)"],
-   "fields": [{"k": "coop", "l": "Electric co-op name"}, {"k": "items", "l": "What you’re upgrading"}, {"k": "cost", "l": "Estimated cost ($)"}],
+   "docs": [
+    "Rebate form from the co-op",
+    "Invoices",
+    "Product spec sheets (DLC listing for LEDs)"
+   ],
+   "fields": [
+    {
+     "k": "coop",
+     "l": "Electric co-op name"
+    },
+    {
+     "k": "items",
+     "l": "What you’re upgrading"
+    },
+    {
+     "k": "cost",
+     "l": "Estimated cost ($)"
+    }
+   ],
    "links": [
-    {"t": "DSIRE — rebates by utility", "u": "https://www.dsireusa.org/"}
+    {
+     "t": "DSIRE — rebates by utility",
+     "u": "https://www.dsireusa.org/"
+    }
    ]
   },
   {
@@ -152,28 +423,109 @@
    "agency": "USDA Rural Development",
    "kind": "Grant / loan guarantee",
    "status": "paused",
-   "statusNote": "Paused — waiting on new rules",
-   "pays": "Has paid grants for energy-efficiency upgrades like grain dryers in past years",
-   "checked": "2026-10-12",
-   "changed": {"d": "2026-04-15", "t": "USDA cancelled the open REAP funding round and will take new applications after it rewrites the rules. Earlier applicants without a signed agreement must re-apply."},
-   "fits": ["New grain dryer", "Lighting", "Motors"],
+   "statusNote": "New rules in effect Oct 16, 2026 · not taking applications yet (waiting for USDA’s funding notice)",
+   "pays": "Part of the cost of energy-efficiency upgrades for your own operation, paid only after the project is built and has a year of real savings data. Not guaranteed.",
+   "checked": "2026-10-31",
+   "changed": {
+    "d": "2026-10-31",
+    "t": "USDA’s new REAP rule took effect Oct 16, 2026. Projects must now be finished and running before you apply (12–24 months after completion), with a year of real savings data. Applications aren’t open yet."
+   },
+   "fits": [
+    "New grain dryer",
+    "Lighting",
+    "Motors"
+   ],
    "key": [
-    "In April 2026 USDA rescinded the FY2025–2027 REAP funding notice. New applications will open after the updated regulation is published.",
-    "If you applied before and don’t have a signed agreement, you’ll need to apply again under the new rules.",
-    "Good to prepare now: an energy audit and dealer quotes work for EQIP and REAP.",
-    "The app will flag here and on Today when REAP reopens."
+    "New REAP rule took effect October 16, 2026 (USDA is taking comments until November 2, 2026).",
+    "Build first, apply later: the project must be completed 12 to 24 months before you apply. For the first application window under the new rule, it can be up to 36 months.",
+    "You apply with real numbers: 12 months of energy use after the upgrade plus 12 months from before it.",
+    "One application per owner per federal fiscal year, judged in one national competition. USDA will publish yearly application windows in a funding notice, which isn’t out yet.",
+    "Energy-efficiency upgrades for your own operation are still covered. The rule uses grain drying as an example, but it doesn’t name grain dryers as eligible. Confirm with your USDA Rural Development office.",
+    "If you applied under the old rules and don’t have a signed agreement, you’ll need to apply again under the new rules.",
+    "Can a dryer use both EQIP and REAP? Not answered here. Ask NRCS and Rural Development before you buy, because EQIP needs a signed contract first."
    ],
    "steps": [
-    {"t": "Watch for reopening (the app checks weekly)"},
-    {"t": "Line up an energy audit and quotes (same as EQIP)"},
-    {"t": "Apply through your USDA Rural Development state office when it opens"}
+    {
+     "t": "Pick your dryer path first: EQIP needs a signed contract before you buy; REAP is applied for after it’s installed. Ask NRCS and Rural Development"
+    },
+    {
+     "t": "Before replacing the old dryer, save 12 months of fuel and power bills plus bushels dried (REAP needs a year of “before” numbers)"
+    },
+    {
+     "t": "Install the dryer and keep every invoice"
+    },
+    {
+     "t": "Keep 12 months of fuel, power and bushels-dried records after it’s running"
+    },
+    {
+     "t": "Watch for USDA’s REAP funding notice (the app checks weekly)"
+    },
+    {
+     "t": "Apply in a window that opens 12–24 months after the project was finished (up to 36 months for the first window)"
+    }
    ],
-   "docs": ["Energy audit", "Quotes", "Farm financials"],
-   "fields": [{"k": "project", "l": "Project"}, {"k": "cost", "l": "Estimated cost ($)"}],
+   "docs": [
+    "12 months of energy bills before the upgrade",
+    "12 months of energy bills after it’s running",
+    "Invoices / proof of payment",
+    "Bushels dried both years"
+   ],
+   "fields": [
+    {
+     "k": "project",
+     "l": "Project"
+    },
+    {
+     "k": "cost",
+     "l": "Estimated cost ($)"
+    }
+   ],
    "links": [
-    {"t": "Federal Register notice (Apr 15, 2026)", "u": "https://www.govinfo.gov/content/pkg/FR-2026-04-15/html/2026-07332.htm"},
-    {"t": "REAP program page (USDA RD)", "u": "https://www.rd.usda.gov/programs-services/energy-programs/rural-energy-america-program-renewable-energy-systems-energy-efficiency-improvement-guaranteed-loans"}
-   ]
+    {
+     "t": "New REAP rule (Federal Register, Oct 1, 2026)",
+     "u": "https://www.federalregister.gov/documents/2026/10/01/2026-20178/unleashing-american-energy-and-economic-prosperity-rural-energy-for-america-program-reap"
+    },
+    {
+     "t": "REAP program page (USDA RD)",
+     "u": "https://www.rd.usda.gov/programs-services/energy-programs/rural-energy-america-program-renewable-energy-systems-energy-efficiency-improvement-guaranteed-loans"
+    },
+    {
+     "t": "Federal Register notice (Apr 15, 2026)",
+     "u": "https://www.govinfo.gov/content/pkg/FR-2026-04-15/html/2026-07332.htm"
+    }
+   ],
+   "history": [
+    {
+     "d": "2026-10-31",
+     "old": {
+      "status": "paused",
+      "statusNote": "Paused — waiting on new rules",
+      "pays": "Has paid grants for energy-efficiency upgrades like grain dryers in past years",
+      "key": [
+       "In April 2026 USDA rescinded the FY2025–2027 REAP funding notice. New applications will open after the updated regulation is published.",
+       "If you applied before and don’t have a signed agreement, you’ll need to apply again under the new rules.",
+       "Good to prepare now: an energy audit and dealer quotes work for EQIP and REAP.",
+       "The app will flag here and on Today when REAP reopens."
+      ],
+      "steps": [
+       {
+        "t": "Watch for reopening (the app checks weekly)"
+       },
+       {
+        "t": "Line up an energy audit and quotes (same as EQIP)"
+       },
+       {
+        "t": "Apply through your USDA Rural Development state office when it opens"
+       }
+      ],
+      "changed": {
+       "d": "2026-04-15",
+       "t": "USDA cancelled the open REAP funding round and will take new applications after it rewrites the rules. Earlier applicants without a signed agreement must re-apply."
+      }
+     }
+    }
+   ],
+   "warn": "REAP is now “build first, apply later.” You pay for and install the project yourself, then apply 12–24 months after it’s finished. There’s no promise of a grant, so plan as if you’ll pay the full cost."
   }
  ]
 }
