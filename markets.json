@@ -1,46 +1,46 @@
 {
- "updated": "2026-11-02T08:45:00-05:00",
- "note": "overnight trade",
+ "updated": "2026-11-02T14:43:00-05:00",
+ "note": "after the close",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.2625,
-   "chg": 0.025
+   "last": 6.25,
+   "chg": 0.0125
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.3,
-   "chg": -0.0425
+   "last": 12.1675,
+   "chg": -0.175
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.49,
-   "chg": 0.0125
+   "last": 4.4825,
+   "chg": 0.005
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 6.045,
-   "chg": 0.01
+   "last": 6.065,
+   "chg": 0.03
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Jan",
    "exch": "ICE",
-   "last": 782.1,
-   "chg": -5.9
+   "last": 788.4,
+   "chg": 0.4
   }
  ],
  "cash": [
@@ -76,10 +76,6 @@
  },
  "reports": [
   {
-   "name": "USDA Grain Export Inspections",
-   "when": "Mon Nov 2 · 10 am CT"
-  },
-  {
    "name": "USDA Crop Progress",
    "when": "Mon Nov 2 · 3 pm CT"
   },
@@ -94,10 +90,24 @@
   {
    "name": "USDA WASDE & Crop Production",
    "when": "Tue Nov 10 · 11 am CT"
+  },
+  {
+   "name": "USDA Weekly Export Sales",
+   "when": "Thu Nov 12 · 7:30 am CT"
   }
  ],
- "outlook": "In overnight trade Monday (about 7:45 a.m. CT), January soybeans were down 4¼ cents at $12.30, still near recent lows as funds keep selling, while December corn was up 1¼ cents at $4.49 after USDA announced a 1.73 million-tonne corn sale to Mexico. December Minneapolis spring wheat gained 2½ cents to $6.26¼ and December Chicago wheat rose a penny to $6.04½. January canola fell C$5.90 to C$782.10 as crude oil dropped sharply on hopes for a U.S.–Iran deal. Friday's CFTC data showed funds cut large net long positions in corn and soybeans; prices are overnight levels, not closes, and cash bids are from Friday's USDA Minneapolis report.",
+ "outlook": "Soybeans led Monday's grain trade lower, with January futures down 17½ cents at $12.16¾ on harvest pressure, continued fund selling and a sharp drop in soybean oil and meal, despite new export sales including one to China. December corn finished nearly flat, up half a cent at $4.48¼, as USDA's 1.7 million-tonne sale to Mexico — the largest of the marketing year — offset fund liquidation and rain expected to slow harvest this week. Wheat edged higher from oversold levels after nine straight weekly losses in Chicago: December Minneapolis spring wheat rose 1¼ cents to $6.25 and Chicago wheat 3 cents to $6.06½, while January canola gained C$0.40 to C$788.40. Crude oil fell more than 7% on progress toward a U.S.–Iran deal; cash bids shown are still from Friday's USDA Minneapolis report.",
  "news": [
+  {
+   "title": "TFM Midday Update 11-2-2026",
+   "source": "Total Farm Marketing",
+   "url": "https://www.totalfarmmarketing.com/tfm-midday-update-11-2-2026/"
+  },
+  {
+   "title": "Cattle Futures Bounce But Can They Recover After an Ugly Week? Corn Up on Big Mexican Buy",
+   "source": "AgWeb",
+   "url": "https://agweb.com/markets/market-analysis/cattle-futures-bounce-can-they-recover-after-ugly-week-corn-big-mexican-b"
+  },
   {
    "title": "Ahead of the Open | Soybeans continue bleeding lower",
    "source": "Pro Farmer",
@@ -109,20 +119,10 @@
    "url": "https://www.barchart.com/story/news/8591663/corn-bulls-battling-back-on-monday-morning"
   },
   {
-   "title": "Wheat Kicking Off Monday with Slight Gains",
-   "source": "Barchart",
-   "url": "https://www.barchart.com/story/news/8591683/wheat-kicking-off-monday-with-slight-gains"
-  },
-  {
-   "title": "Canola holds its own through eventful year",
-   "source": "The Western Producer",
-   "url": "https://www.producer.com/news/canola-holds-its-own-through-eventful-year/"
-  },
-  {
    "title": "Minneapolis Daily Grain Report (Oct 30)",
    "source": "USDA AMS",
    "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Futures: Farmbucks delayed quotes, Nov 2 overnight (about 7:40–8:00 a.m. CT), checked against Oct 30 settlements in the USDA AMS Minneapolis Daily Grain Report. Cash bids: USDA AMS Minneapolis Daily Grain Report, Oct 30 final (middle of bid range). Exchange rate: Bank of Canada, Oct 30. Market news: Pro Farmer Ahead of the Open, Nov 2. Report dates: USDA NASS/AMS release calendars."
+ "sources": "Futures: Farmbucks delayed quotes (DTN/CME/ICE) after the Nov 2 close (about 1:45 p.m. CT), checked against Oct 30 settlements in the USDA AMS Minneapolis Daily Grain Report and TFM midday levels. Cash bids: USDA AMS Minneapolis Daily Grain Report, Oct 30 final (middle of bid range); Nov 2 report not yet posted. Exchange rate: Bank of Canada, Oct 30 (Nov 2 rate not yet published). Market news: Total Farm Marketing midday update, Nov 2. Report dates: Farmbucks/USDA release calendars."
 }
