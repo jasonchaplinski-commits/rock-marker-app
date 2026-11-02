@@ -1,23 +1,25 @@
 {
-  "checked": "2026-10-12",
+  "checked": "2026-11-02",
   "items": [
     {
       "id": "mn-weight-2026",
       "tab": "alert",
       "icon": "🚛",
       "title": "Haul 10% heavier during harvest",
-      "sub": "Minnesota · Governor's executive order 26-11",
+      "sub": "Minnesota · Governor's executive order 26-11 · extended Nov 1",
       "start": "2026-10-01",
-      "end": "2026-10-30",
+      "end": "2026-11-29",
       "color": "g",
-      "banner": "Haul 10% heavier through Oct 30",
+      "banner": "Haul 10% heavier through Nov 29",
       "bullets": [
         "Trucks hauling corn, soybeans, wheat, potatoes, sugar beets, carrots or timber can be up to 10% over normal weight limits.",
         "Applies on state and local highways. Interstates aren't mentioned — check before using them.",
         "The truck's registration has to cover the heavier total weight.",
-        "Also eases federal driving-hours (hours-of-service) limits for these hauls."
+        "Also eases federal driving-hours (hours-of-service) limits for these hauls.",
+        "Extended on Nov 1 through Nov 29 for crops moved from the field to the first unloading point. Timber isn't mentioned in the extension, so check before hauling logs."
       ],
       "links": [
+        {"t": "Extension to Nov 29 (RRFN)", "u": "https://www.rrfn.com/2026/11/01/walz-extends-emergency-relief-for-minnesota-agriculture/"},
         {"t": "MN Corn summary", "u": "https://www.mncorn.org/2026/10/02/walz-executive-order-increases-truck-weight-limits-during-harvest"},
         {"t": "News story", "u": "https://www.cbsnews.com/minnesota/news/minnesota-governor-tim-walz-diesel-fuel-executive-order-farmers-harvest/"}
       ]
