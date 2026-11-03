@@ -1,38 +1,38 @@
 {
- "updated": "2026-11-03T08:32:00-05:00",
- "note": "overnight trade",
+ "updated": "2026-11-03T14:20:00-05:00",
+ "note": "Tuesday close; spring wheat midday",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.2325,
-   "chg": -0.025
+   "last": 6.215,
+   "chg": -0.0425
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.1375,
-   "chg": -0.03
+   "last": 12.135,
+   "chg": -0.0325
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.44,
-   "chg": -0.0425
+   "last": 4.415,
+   "chg": -0.0675
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 6.0175,
-   "chg": -0.0475
+   "last": 5.9875,
+   "chg": -0.0775
   },
   {
    "name": "Canola (C$/tonne)",
@@ -92,17 +92,22 @@
    "when": "Thu Nov 12 · 7:30 am CT"
   }
  ],
- "outlook": "Grains were mostly lower in overnight trade as of about 7:30 a.m. CT on Election Day: December corn was down 4¼ cents at $4.44, January soybeans down 3 cents at $12.13¾, December Minneapolis spring wheat down 2½ cents at $6.23¼ and Chicago wheat down 4¾ cents at $6.01¾, while January canola fell C$9.10 to C$779.30. USDA's Monday Crop Progress report put corn harvest at 74% complete (vs. 60% a week earlier and a 77% five-year average) and soybean harvest at 94%. Crude oil recovered about 2% after Monday's plunge, following reports of U.S. strikes on Iran's Qeshm Island, and traders are awaiting midterm election results that could shape the farm bill. Steady rain is forecast over the Northern Plains and upper Midwest today.",
+ "outlook": "Grains closed lower on Election Day: December corn fell 6¾ cents to $4.41½, January soybeans slipped 3¼ cents to $12.13½ and December Chicago wheat dropped 7¾ cents to $5.98¾, while December Minneapolis spring wheat was down about 4¼ cents near $6.21½ at midday. Wheat was pressured by news that the U.S. will host Russia–Ukraine peace talks in Abu Dhabi on Nov. 10–11, which traders see as possibly freeing up more Black Sea grain. USDA's Monday Crop Progress report put corn harvest at 74% complete (77% five-year average) and soybeans at 88% (84% average), and USDA confirmed a 1.73 million-tonne corn sale to Mexico and 136,000 tonnes of soybeans to China. September soybean crush of 198.8 million bushels came in below trade expectations.",
  "news": [
+  {
+   "title": "TFM Midday Update 11-3-2026",
+   "source": "Total Farm Marketing",
+   "url": "https://www.totalfarmmarketing.com/tfm-midday-update-11-3-2026/"
+  },
+  {
+   "title": "Chicago wheat falls on Russia-Ukraine peace talk hopes",
+   "source": "Business Recorder (Reuters)",
+   "url": "https://www.brecorder.com/news/40447194/chicago-wheat-falls-on-russia-ukraine-peace-talk-hopes"
+  },
   {
    "title": "First Thing Today | Will markets find their footing after Election Day?",
    "source": "Pro Farmer",
    "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-markets-attempt-find-their-footing-election-day"
-  },
-  {
-   "title": "Wheat and corn rise, while soybeans fall in Chicago on Monday",
-   "source": "UkrAgroConsult",
-   "url": "https://ukragroconsult.com/en/news/wheat-and-corn-rise-while-soybeans-fall-in-chicago-on-monday/"
   },
   {
    "title": "Daily Market Wire 3 November 2026",
@@ -110,15 +115,10 @@
    "url": "https://www.graincentral.com/markets/daily-market-wire-3-november-2026/"
   },
   {
-   "title": "Morning Market Review",
-   "source": "Farm Progress",
-   "url": "https://www.farmprogress.com/markets-and-quotes/morning-market-review"
-  },
-  {
    "title": "Minneapolis Daily Grain Report (Nov 2)",
    "source": "USDA AMS",
    "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Futures: Barchart delayed quotes (CBOT/MIAX/ICE) around 7:20–7:30 a.m. CT Nov 3, checked against Nov 2 settlements in the USDA AMS Minneapolis Daily Grain Report. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 2 final (middle of bid range). Exchange rate: Bank of Canada daily rate, Nov 2. Market news: Pro Farmer First Thing Today, Nov 3. Report dates: USDA release calendars."
+ "sources": "Futures: CBOT corn, soybean and Chicago wheat closes (1:20 p.m. CT Nov 3, Yahoo Finance delayed data), changes vs. Nov 2 settlements in the USDA AMS Minneapolis Daily Grain Report. Spring wheat: Total Farm Marketing midday update, Nov 3 (closing figure not yet published). Canola: carried over from the early-morning Nov 3 Barchart quote (closing figure not yet available). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 2 final (middle of bid range; Nov 3 report not yet out). Exchange rate: Bank of Canada daily rate, Nov 2. News: TFM, Reuters via Business Recorder, Pro Farmer. Report dates: USDA release calendars."
 }
