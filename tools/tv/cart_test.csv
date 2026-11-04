@@ -1,0 +1,6 @@
+Grower,Farm,Field,Crop,Truck,Destination,Date,Net Weight (lbs),Bushels
+Chaplinski,Home,North Quarter,Wheat,Brown,Elevator,10/02/2026,60120,1002
+Chaplinski,Home,North Quarter,Wheat,Volvo,Elevator,10/02/2026,59880,998
+Chaplinski,Home,Tree Lin,Soybeans,Brown,Bin 4,10/05/2026,56400,940
+Chaplinski,Home,Coulee,Soybeans,Volvo,Elevator,10/06/2026,57000,950
+Total,,,,,,,233400,3890
