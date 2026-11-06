@@ -2,13 +2,13 @@ import os, subprocess
 from playwright.sync_api import sync_playwright
 D=os.path.dirname(os.path.abspath(__file__)); S=D+'/shots/'; C=D+'/cards/'; O=os.path.abspath(D+'/../../videos')+'/'
 os.makedirs(C,exist_ok=True)
-SC=['map1','map2','map6','p_rain','p_snow','map5','field1','field3','field2','field4','harv1','harv2','harv3','harv4','harv5','s1','s2','o1','o2','n1']
-FEAT=['🪨 Mark rocks, find piles','📷 Rock camera','🌧 Weather on the map','🗣 Hey Farm voice','🌱 Planting and tillage','🌾 Bins, grain checks, dryer','🎬 Season replay','🔧 Shop and service','🛡 Insurance papers','⭐ Your own favorites']
+SC=['map1','map2','map6','p_rain','p_snow','p_crop','p_cropf','map5','field1','field3','field2','field4','harv1','harv2','harv3','harv4','harv5','s1','s2','o1','o2','n1']
+FEAT=['🪨 Mark rocks, find piles','📷 Rock camera','🌧 Weather on the map','🌱 Crop health from satellite','🗣 Hey Farm voice','🌱 Planting and tillage','🌾 Bins, grain checks, dryer','🎬 Season replay','🔧 Shop and service','🛡 Insurance papers','⭐ Your own favorites']
 CSS="""body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#fff}
 .card{width:720px;height:1280px;background:radial-gradient(ellipse at 50% 38%,#3d6b35 0%,#1f3a1d 45%,#111a0e 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .e{font-size:120px;line-height:1}.t{color:#f5d40f;font-weight:900;font-size:76px;margin:26px 30px 16px}.s{font-size:32px;margin:0 60px;line-height:1.35}.u{display:inline-block;margin-top:26px;background:#f5d40f;color:#1f3a1d;font-weight:900;font-size:24px;padding:8px 18px;border-radius:20px}.c{font-size:22px;opacity:.85;margin-top:34px}
 .side{width:1280px;height:720px;position:relative;background:transparent}.L{position:absolute;left:40px;top:230px;width:380px}.L .e{font-size:64px}.L .t{font-size:52px;margin:10px 0 10px;text-align:left}.L .s{font-size:21px;margin:0;text-align:left}.L .c{font-size:15px;margin-top:20px;text-align:left}
-.R{position:absolute;left:880px;top:170px;width:380px;font-size:24px;font-weight:800;line-height:1.75}"""
+.R{position:absolute;left:880px;top:150px;width:390px;font-size:23px;font-weight:800;line-height:1.7}"""
 def shot(pg,html,path,w,h,transparent=False):
     pg.set_viewport_size({'width':w,'height':h})
     pg.set_content('<html><head><meta charset=utf-8><style>'+CSS+'</style></head><body style="background:transparent">'+html+'</body></html>')

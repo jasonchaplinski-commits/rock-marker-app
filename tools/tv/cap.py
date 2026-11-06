@@ -194,6 +194,15 @@ with sync_playwright() as p:
         snap(pg, 'p_snow', '❄️ Snow and ice too', 'Blowing snow and freezing rain warn the crew to go slow.', '40%')
         x(pg, "WXM.test=null; wxmApply(); 1")
     step(pw, 'p_rain')
+    def pc():
+        x(pg, "crpOn(); 1"); pg.wait_for_timeout(12000)
+        x(pg, "var i=CRP.dates.findIndex(function(o){return o.d<=String(currentYear)+'-07-31';}); if(i>=0){ CRP.i=i; crpShow(); } 1"); pg.wait_for_timeout(25000)
+        snap(pg, 'p_crop', '🌱 Crop health from satellite', 'Free pictures every few clear days. Green is strong, red is weak.', '40%')
+        x(pg, "var f=fields.find(function(f){return f.points&&f.points.length>2;}); openFieldLabelActions(f.id); crpFdRun(f); 1"); pg.wait_for_timeout(25000)
+        x(pg, "document.getElementById('crp-fd-box').scrollIntoView({block:'start'}); 1"); pg.wait_for_timeout(500)
+        snap(pg, 'p_cropf', '📊 Check any field', 'See how the crop did all season, from free satellite pictures.', '74%')
+        x(pg, "hideSheet('field-label-actions-modal','field-label-actions-backdrop'); crpOff(); 1")
+    step(pc, 'p_crop')
     b.close()
 
     # ---------- WHAT'S NEW (menu) ----------
