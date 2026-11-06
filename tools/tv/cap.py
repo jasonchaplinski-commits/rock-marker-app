@@ -184,6 +184,18 @@ with sync_playwright() as p:
     step(o5, 'o5')
     b.close()
 
+    # ---------- PROMO extras ----------
+    b, ctx, pg = fresh(p); hide_demo(pg)
+    def pw():
+        x(pg, "var B=L.latLngBounds([]); fields.forEach(function(f){ if(f.points) f.points.forEach(function(q){B.extend(q);}); }); map.fitBounds(B,{padding:[20,20]}); 1"); pg.wait_for_timeout(2000)
+        x(pg, "WXM.test={obs:{st:{name:'Thief River Falls'},vis:16000,txt:'Heavy Rain',at:Date.now()},al:[],wx:{hours:[]}}; wxmApply(); 1"); pg.wait_for_timeout(7000)
+        snap(pg, 'p_rain', '🌧 Rain right on the map', 'When it rains at the farm, it rains in the app.', '40%')
+        x(pg, "WXM.test={obs:{st:{name:'Thief River Falls'},vis:4000,txt:'Snow',at:Date.now()},al:[],wx:{hours:[]}}; wxmApply(); 1"); pg.wait_for_timeout(8000)
+        snap(pg, 'p_snow', '❄️ Snow and ice too', 'Blowing snow and freezing rain warn the crew to go slow.', '40%')
+        x(pg, "WXM.test=null; wxmApply(); 1")
+    step(pw, 'p_rain')
+    b.close()
+
     # ---------- WHAT'S NEW (menu) ----------
     b, ctx, pg = fresh(p, geo={'latitude': 0, 'longitude': 0}); hide_demo(pg)
     def n1():
