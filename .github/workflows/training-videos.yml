@@ -18,6 +18,6 @@ jobs:
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898341+github-actions[bot]@users.noreply.github.com"
-          git add videos/clip_map_v2.* videos/clip_field_v2.* videos/clip_harvest_v2.* videos/clip_shop_v2.* videos/clip_office_v2.* videos/clip_new.*
-          git commit -m "Training videos refresh Nov 2026"
+          git add videos/clip_map_v2.* videos/clip_field_v2.* videos/clip_harvest_v2.* videos/clip_shop_v2.* videos/clip_office_v2.* videos/clip_new.* videos/promo_phone_v2.* videos/promo_wide_v2.* videos/promo_poster_phone_v2.* videos/promo_poster_v2.*
+          git commit -m "Training and promo videos refresh"
           git push
