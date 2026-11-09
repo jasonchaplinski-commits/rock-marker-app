@@ -18,7 +18,7 @@ BEN = {
  'field3': ('🗣 Just ask', '“How full is bin 1?” “Mark a big rock here.”'),
  'p_heat': ('🌽 Know when it will be ready', 'Crop stage and harvest dates from your own weather.'),
  'harv3': ('🚜 Every load accounted for', 'Grain cart loads checked against the combine.'),
- 'harv1': ('🌡 Catch warm grain early', 'Log bin checks. It warns before grain goes bad.'),
+ 'harv1': ('🌡 Stay on top of grain checks', 'Log a bin check. It flags warm grain and reminds you when the next one is due.'),
  'p_stl': ('📄 Catch settlement mistakes', 'Snap the elevator sheet. It checks every ticket and price.'),
  'p_sos': ('📦 Store or sell? See the math', 'Later bids minus storage and interest, side by side.'),
  's1': ('🔧 Service on time, every machine', 'Hours, parts and what is coming due.'),

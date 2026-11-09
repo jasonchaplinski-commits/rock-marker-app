@@ -17,7 +17,7 @@ BEN = {
  'field3': ('🗣', 'Just ask', '“How full is bin 1?”<br>“Mark a big rock here.”'),
  'p_heat': ('🌽', 'Know when it will be ready', 'Crop stage and harvest dates from your own weather.'),
  'harv3': ('🚜', 'Every load accounted for', 'Grain cart loads checked against the combine.'),
- 'harv1': ('🌡', 'Catch warm grain early', 'Log bin checks. It warns before grain goes bad.'),
+ 'harv1': ('🌡', 'Stay on top of grain checks', 'Log a bin check. It flags warm grain and reminds you when the next one is due.'),
  'p_stl': ('📄', 'Catch settlement mistakes', 'Snap the elevator sheet. It checks every ticket and price.'),
  'p_sos': ('📦', 'Store or sell? See the math', 'Later bids minus storage and interest, side by side.'),
  's1': ('🔧', 'Service on time, every machine', 'Hours, parts and what is coming due.'),
@@ -136,6 +136,9 @@ def music(total, t_go, t_end, path):
                 f = hz(m - 12) * (1 + dt)
                 for k in range(1, 6):
                     sig += np.sin(2 * np.pi * f * k * tt + k * 0.7) / (k ** 1.6)
+                f2 = hz(m) * (1 - dt)
+                for k in range(1, 4):
+                    sig += 0.55 * np.sin(2 * np.pi * f2 * k * tt + k * 1.3) / (k ** 1.8)
         sig *= env * 0.022
         L[a:b2] += sig; R[a:b2] += np.roll(sig, 220)
         # bass on beats 1 and 3
@@ -159,7 +162,7 @@ def music(total, t_go, t_end, path):
         a = int(s0 * SR); ln = int(0.9 * SR); b2 = min(N, a + ln); tt = np.arange(b2 - a) / SR
         f = hz(m)
         pl = (np.sin(2 * np.pi * f * tt) + 0.25 * np.sin(4 * np.pi * f * tt) + 0.08 * np.sin(6 * np.pi * f * tt)) * np.exp(-tt * 5.5) * np.minimum(1, tt / 0.004)
-        g = 0.055 * (1.0 if k8 % 2 == 0 else 0.75)
+        g = 0.075 * (1.0 if k8 % 2 == 0 else 0.75)
         pan = 0.5 + 0.25 * np.sin(k8 * 0.7)
         arpL[a:b2] += pl * g * (1 - pan) * 2; arpR[a:b2] += pl * g * pan * 2
         if s0 < t_end:
@@ -185,16 +188,39 @@ def music(total, t_go, t_end, path):
     n2 = int(total * SR); pcm = (np.stack([L[:n2], R[:n2]], 1) * 32767).astype('<i2')
     w = wave.open(path, 'wb'); w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes()); w.close()
 
-def build(tag, items, w, h, outmp4):
+VOD = D + '/vo3/'
+def voice_track(total, starts):
+    import json
+    meta = json.load(open(VOD + 'lines.json'))['lines']
+    N = int(total * SR); v = np.zeros(N, np.float32)
+    for (t0, m) in starts:
+        w = wave.open(VOD + m['f']); sr = w.getframerate(); a = np.frombuffer(w.readframes(w.getnframes()), '<i2').astype(np.float32) / 32768; w.close()
+        if sr != SR: a = np.interp(np.arange(int(len(a) * SR / sr)) * (sr / SR), np.arange(len(a)), a).astype(np.float32)
+        i0 = int(t0 * SR); n = min(len(a), N - i0)
+        if n > 0: v[i0:i0 + n] += a[:n]
+    return v
+
+def mixdown(total, t_go, t_end, vstarts, path):
+    tmp = path + '.m.wav'; music(total, t_go, t_end, tmp)
+    w = wave.open(tmp); m = np.frombuffer(w.readframes(w.getnframes()), '<i2').astype(np.float32).reshape(-1, 2) / 32768; w.close(); os.remove(tmp)
+    N = m.shape[0]
+    if vstarts:
+        v = voice_track(total, vstarts)[:N]
+        on = (np.abs(v) > 0.02).astype(np.float32)
+        k = int(0.25 * SR); env = np.convolve(on, np.ones(k) / k, 'same'); env = np.clip(env * 3, 0, 1)
+        k2 = int(0.4 * SR); env = np.convolve(env, np.ones(k2) / k2, 'same')
+        g = 1.0 - 0.62 * env
+        out = m * (1.7 * g)[:, None] + (v * 0.92)[:, None]
+    else:
+        out = m * 1.9
+    pk = np.abs(out).max()
+    if pk > 0.97: out *= 0.97 / pk
+    w = wave.open(path, 'wb'); w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((out * 32767).astype('<i2').tobytes()); w.close()
+
+def build(tag, items, w, h, outmp4, st, wav):
     segs = []
     for i, (img, d) in enumerate(items):
         f = O + '_p3%s_%d.mp4' % (tag, i); seg(img, d, f, w, h); segs.append((f, d))
-    st = [0.0]
-    for i in range(1, len(segs)): st.append(st[-1] + segs[i - 1][1] - XF)
-    total = st[-1] + segs[-1][1]
-    wav = O + '_p3music.wav'
-    if not os.path.exists(wav):
-        music(total, st[1], st[-1], wav)
     args = ['ffmpeg', '-v', 'error', '-y']
     for f, _ in segs: args += ['-i', f]
     fc = []; last = '[0:v]'
@@ -206,20 +232,40 @@ def build(tag, items, w, h, outmp4):
              '-c:a', 'aac', '-b:a', '160k', '-shortest', '-movflags', '+faststart', outmp4]
     subprocess.run(args, check=True)
     for f, _ in segs: os.remove(f)
-    return total, st
 
 names = render_all()
-DUR = {'prob1': 3.6, 'prob2': 2.0, 'title': 3.0, 'proof': 3.4, 'end': 5.0}
-order = ['prob1', 'prob2', 'title'] + names + ['proof', 'end']
+GROUPS = [['prob1'], ['prob2'], ['title'], ['map6', 'map2'], ['p_crop', 'p_rain'], ['field1', 'field3'], ['p_heat'], ['harv3', 'harv1'],
+          ['p_stl', 'p_sos'], ['s1'], ['p_jl'], ['harv4', 'o4', 'o1'], ['proof'], ['end']]
+CARDS = ['prob1', 'prob2', 'title', 'proof', 'end']
+MIND = {'prob1': 3.0, 'prob2': 1.6, 'title': 2.6, 'end': 4.0}
+HAVE_VO = os.path.exists(VOD + 'lines.json')
+VM = __import__('json').load(open(VOD + 'lines.json'))['lines'] if HAVE_VO else []
+FIXED = {'prob1': 3.6, 'prob2': 2.0, 'title': 3.0, 'proof': 3.4, 'end': 5.0}
+order = []; dur = []; vstarts = []
+for gi, g in enumerate(GROUPS):
+    g = [n for n in g if n in CARDS or n in names]
+    if not g: continue
+    if HAVE_VO and gi < len(VM):
+        need = VM[gi]['dur'] + 0.4 + len(g) * XF + (1.6 if g == ['end'] else 0)
+        d = max(need / len(g), max(MIND.get(n, 2.5) for n in g))
+    else:
+        d = None
+    for j, n in enumerate(g):
+        order.append(n); dur.append(d if d else FIXED.get(n, 3.1))
+        if j == 0 and HAVE_VO and gi < len(VM): vstarts.append([len(order) - 1, VM[gi]])
+st = [0.0]
+for i in range(1, len(dur)): st.append(st[-1] + dur[i - 1] - XF)
+total = st[-1] + dur[-1]
+vst = [(st[i] + (0.25 if i else 0.35), m) for i, m in vstarts]
 def pick(n, wide):
-    if n in DUR: return C + n + ('_w.png' if wide else '_p.png'), DUR[n]
-    return (C + n + '_w.png') if wide else (S + n + '.png'), 3.1
-w_items = [pick(n, True) for n in order]; p_items = [pick(n, False) for n in order]
-if os.path.exists(O + '_p3music.wav'): os.remove(O + '_p3music.wav')
-tot, st = build('p', p_items, 1080, 1920, O + 'promo_phone_v3.mp4')
-build('w', w_items, 1920, 1080, O + 'promo_wide_v3.mp4')
-os.remove(O + '_p3music.wav')
+    if n in CARDS: return C + n + ('_w.png' if wide else '_p.png')
+    return (C + n + '_w.png') if wide else (S + n + '.png')
+wav = O + '_p3mix.wav'
+mixdown(total, st[1], st[-1], vst, wav)
+build('p', [(pick(n, False), d) for n, d in zip(order, dur)], 1080, 1920, O + 'promo_phone_v3.mp4', st, wav)
+build('w', [(pick(n, True), d) for n, d in zip(order, dur)], 1920, 1080, O + 'promo_wide_v3.mp4', st, wav)
+os.remove(wav)
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', C + 'title_w.png', '-vf', 'scale=1280:720', '-q:v', '3', O + 'promo_poster_v3.jpg'], check=True)
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', C + 'title_p.png', '-vf', 'scale=720:1280', '-q:v', '3', O + 'promo_poster_phone_v3.jpg'], check=True)
-print('promo3 %.1fs scenes=%d' % (tot, len(names)), os.path.getsize(O + 'promo_phone_v3.mp4') // 1024, os.path.getsize(O + 'promo_wide_v3.mp4') // 1024)
-print('starts', ' '.join('%s=%.1f' % (n, s) for n, s in zip(order, st)))
+print('promo3 %.1fs scenes=%d voice=%s' % (total, len(names), HAVE_VO), os.path.getsize(O + 'promo_phone_v3.mp4') // 1024, os.path.getsize(O + 'promo_wide_v3.mp4') // 1024)
+print('starts', ' '.join('%s=%.1f' % (n, x) for n, x in zip(order, st)))
