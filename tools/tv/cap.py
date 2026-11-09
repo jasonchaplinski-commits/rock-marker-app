@@ -7,7 +7,31 @@ CAPJS = """(function(t,s){ var c=document.getElementById('tvcap'); if(!c){ c=doc
 c.style.cssText='position:fixed;left:12px;right:12px;top:9%;z-index:2147483647;background:rgba(18,20,18,.88);color:#fff;border-radius:14px;padding:11px 14px 11px 16px;border-left:6px solid #f2c94c;box-shadow:0 6px 20px rgba(0,0,0,.45);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;pointer-events:none';
 c.innerHTML='<div style="font-weight:900;font-size:18px;line-height:1.2">'+t+'</div>'+(s?'<div style="font-size:13px;opacity:.9;margin-top:3px;line-height:1.3">'+s+'</div>':''); })"""
 def x(pg, c): return pg.evaluate("c=>__x(c)", c)
+JOBS = open(SP + 'build.txt').read().split() if os.path.exists(SP + 'build.txt') else []
+P3 = 'promo3' in JOBS
+BEN = {
+ 'map6': ('📍 Never lose a rock again', 'Hold up your phone. It points to every marked rock.'),
+ 'map2': ('🪨 Pick rocks in fewer trips', 'Every rock shows its closest pile.'),
+ 'p_crop': ('🛰 Spot problem areas from space', 'Satellite crop health for every field, all season.'),
+ 'p_rain': ('🌧 Weather right on your fields', 'Rain, snow and fog show up where they are falling.'),
+ 'field1': ('☀️ Know what needs doing today', 'Jobs, weather, bins and service on one screen.'),
+ 'field3': ('🗣 Just ask', '“How full is bin 1?” “Mark a big rock here.”'),
+ 'p_heat': ('🌽 Know when it will be ready', 'Crop stage and harvest dates from your own weather.'),
+ 'harv3': ('🚜 Every load accounted for', 'Grain cart loads checked against the combine.'),
+ 'harv1': ('🌡 Catch warm grain early', 'Log bin checks. It warns before grain goes bad.'),
+ 'p_stl': ('📄 Catch settlement mistakes', 'Snap the elevator sheet. It checks every ticket and price.'),
+ 'p_sos': ('📦 Store or sell? See the math', 'Later bids minus storage and interest, side by side.'),
+ 's1': ('🔧 Service on time, every machine', 'Hours, parts and what is coming due.'),
+ 'p_jl': ('🔗 Send a job, not a phone call', 'Outside help gets the field, the map and the job.'),
+ 'harv4': ('🎬 Your season, like a movie', 'Rocks, planting and harvest play back day by day.'),
+ 'o4': ('💰 See which fields make money', 'Profit for every field, right on the map.'),
+ 'o1': ('🛡 Insurance papers in one place', 'Your agent sends PDFs to a private link.'),
+}
 def snap(pg, name, t, s, pos=None):
+    if P3 and name in BEN:
+        pg.evaluate("var c=document.getElementById('tvcap'); if(c) c.remove()"); pg.wait_for_timeout(150)
+        pg.screenshot(path=os.path.join(OUT, name + '_nc.png'))
+        t, s = BEN[name]
     pg.evaluate(CAPJS + "(%s,%s)" % (json.dumps(t), json.dumps(s)))
     if pos: pg.evaluate("document.getElementById('tvcap').style.top=%s" % json.dumps(pos))
     pg.evaluate("document.querySelectorAll('.show').forEach(function(e){ if(/Menu switched/.test(e.textContent||'')) e.classList.remove('show'); })")
@@ -15,19 +39,20 @@ def snap(pg, name, t, s, pos=None):
     pg.screenshot(path=os.path.join(OUT, name + '.png'))
     pg.evaluate("var c=document.getElementById('tvcap'); if(c) c.remove()")
     print('snap', name)
-def fresh(p, geo=None):
+def fresh(p, geo=None, when=None):
     args = ['--use-fake-ui-for-media-stream']
     b = p.chromium.launch(args=args)
-    kw = dict(viewport={'width': 405, 'height': 720}, device_scale_factor=720/405)
+    kw = dict(viewport={'width': 405, 'height': 720}, device_scale_factor=(1080 if P3 else 720)/405)
     if geo: kw.update(permissions=['geolocation'], geolocation=geo)
     ctx = b.new_context(**kw); pg = ctx.new_page()
+    if when: pg.clock.install(time=when)
     pg.on('pageerror', lambda z: print('PAGEERR', str(z)[:200]))
     pg.add_init_script("localStorage.setItem('rockMarkerInstallDismissed','1');localStorage.setItem('rmTodayAuto','0');localStorage.setItem('rmUpBan_mn-weight-2026_'+new Date().toISOString().slice(0,10),'1')")
     pg.goto('http://localhost:8768/ktest.html?demo=1', wait_until='domcontentloaded'); pg.wait_for_timeout(7000)
     x(pg, "try{ var db=document.querySelector('#demo-bar, .demo-bar, #demo-pill'); if(db) db.style.display='none'; }catch(e){} 1")
     return b, ctx, pg
 def hide_demo(pg):
-    pg.add_style_tag(content="#demo-banner,#demo-bar,.demo-bar,#demo-pill,.demo-pill,[id^=demo-]{display:none !important}")
+    pg.add_style_tag(content="#demo-banner,#demo-bar,.demo-bar,#demo-pill,.demo-pill,[id^=demo-]{display:none !important}" + ("#bell-n,.menu-badge{display:none !important}" if P3 else ""))
 def step(fn, name):
     try: fn()
     except Exception as e: print('FAIL', name, str(e)[:300])
@@ -204,6 +229,53 @@ with sync_playwright() as p:
         x(pg, "hideSheet('field-label-actions-modal','field-label-actions-backdrop'); crpOff(); 1")
     step(pc, 'p_crop')
     b.close()
+
+    # ---------- PROMO v3 extras ----------
+    if P3:
+        import datetime
+        b, ctx, pg = fresh(p); hide_demo(pg)
+        def pstl():
+            x(pg, """moneyLoad(function(){}); var T=skList(); T.push({id:'tq1',date:'2026-10-02',num:'6612',buyer:'CHS Thief River',crop:'Soybeans',bu:1302,truck:'Pete'},{id:'tq2',date:'2026-10-03',num:'6619',buyer:'CHS Thief River',crop:'Soybeans',bu:1214,truck:'Volvo'},{id:'tq3',date:'2026-10-03',num:'6625',buyer:'CHS Thief River',crop:'Soybeans',bu:1190}); gcList().push({id:'gq',buyer:'CHS Thief River Falls',crop:'Soybeans',num:'22-114',bu:10000,price:9.98,del:[],done:false}); stlOpen(); 1"""); pg.wait_for_timeout(1200)
+            pg.click('[data-stl=type]'); pg.wait_for_timeout(400)
+            for k, v in [('buyer','CHS Thief River Falls'),('num','48211'),('crop','Soybeans'),('contract','22-114'),('price','9.86'),('net','2480'),('total','24120'),('moist','12.8')]:
+                pg.fill('#stl-'+k, v)
+            pg.fill('#stl-lt0','6612'); pg.fill('#stl-ld0','2026-10-02'); pg.fill('#stl-lb0','1302')
+            pg.click('[data-stl=addload]'); pg.fill('#stl-lt1','6619'); pg.fill('#stl-ld1','2026-10-03'); pg.fill('#stl-lb1','1178')
+            pg.click('[data-stl=check]'); pg.wait_for_timeout(900)
+            snap(pg, 'p_stl', '📄 Settlement check', 'Checks tickets and price.', '66%')
+            x(pg, "hideSheet('stl-modal','stl-backdrop'); 1")
+        step(pstl, 'p_stl')
+        def psos():
+            x(pg, "sosOpen(); 1"); pg.wait_for_timeout(2500)
+            ins = pg.query_selector_all('#sos-body .sos-r input')
+            for i2, v in [(1,'9.99'),(3,'10.18'),(5,'10.35')]:
+                if i2 < len(ins):
+                    ins[i2].fill(v); ins[i2].dispatch_event('change'); pg.wait_for_timeout(200); ins = pg.query_selector_all('#sos-body .sos-r input')
+            pg.wait_for_timeout(500)
+            snap(pg, 'p_sos', '📦 Store or sell', 'Later bids minus costs.', '66%')
+            x(pg, "hideSheet('sos-modal','sos-backdrop'); 1")
+        step(psos, 'p_sos')
+        def pjl():
+            x(pg, "jlOpen(); 1"); pg.wait_for_timeout(800)
+            pg.click('[data-jl=new]'); pg.wait_for_timeout(300)
+            pg.fill('#jl-who','Lund Ag'); pg.fill('#jl-prod','Roundup PowerMax 3'); pg.fill('#jl-rate','32 oz/ac'); pg.fill('#jl-gate','East side off 220th St'); pg.fill('#jl-watch','Wet spot NE corner')
+            pg.click('[data-jl=look]'); pg.wait_for_timeout(5000)
+            snap(pg, 'p_jl', '🔗 Job link', 'For outside help.', '40%')
+            x(pg, "var e=document.getElementById('jl-app'); if(e) e.classList.add('hidden'); try{hideSheet('jl-modal','jl-backdrop');}catch(e){} 1")
+        step(pjl, 'p_jl')
+        b.close()
+        b, ctx, pg = fresh(p, when=datetime.datetime(2026, 8, 28, 10)); hide_demo(pg)
+        def pheat():
+            x(pg, """truckSizes.htV={}; fields.filter(function(f){return f.points&&f.points.length>2&&f.crop;}).forEach(function(f,i){ f.plantedOn=['2026-05-08','2026-05-20','2026-04-30'][i%3]; f.harvestStatus='Not Harvested'; if(/corn/i.test(f.crop)) truckSizes.htV[f.id]={v:'Pioneer P9188',rm:[91,98][i%2]}; if(/soy/i.test(f.crop)) truckSizes.htV[f.id]={v:'Asgrow AG05',mg:0.5}; }); htOpen(); 1"""); pg.wait_for_timeout(30000)
+            for r in range(3):
+                if not x(pg, "/Could not get weather/.test((document.getElementById('ht-body')||{}).textContent||'')"): break
+                print('heat retry', r); x(pg, "hideSheet('ht-modal','ht-backdrop'); HT.wx=null; htOpen(); 1"); pg.wait_for_timeout(30000)
+            ok = True
+            if not ok: print('FAIL p_heat no weather'); return
+            x(pg, "document.getElementById('ht-modal').scrollTop=120; 1"); pg.wait_for_timeout(400)
+            snap(pg, 'p_heat', '🌽 Heat and crop stage', 'Harvest dates.', '6%')
+        step(pheat, 'p_heat')
+        b.close()
 
     # ---------- WHAT'S NEW (menu) ----------
     b, ctx, pg = fresh(p, geo={'latitude': 0, 'longitude': 0}); hide_demo(pg)

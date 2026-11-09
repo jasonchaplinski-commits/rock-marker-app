@@ -10,4 +10,5 @@ runpy.run_path(D+'/cap.py', run_name='__main__')
 n=len([f for f in os.listdir(D+'/shots') if f.endswith('.png')]); print('shots',n); assert n>=23
 if 'clips' in JOBS: runpy.run_path(D+'/mk.py', run_name='__main__')
 if 'promo' in JOBS: runpy.run_path(D+'/promo.py', run_name='__main__')
+if 'promo3' in JOBS: runpy.run_path(D+'/promo3.py', run_name='__main__')
 os.remove(ROOT+'/ktest.html')
