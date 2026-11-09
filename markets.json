@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-06T15:00:00-05:00",
- "note": "Friday close",
+ "updated": "2026-11-09T07:55:00-05:00",
+ "note": "Friday close (overnight quotes unavailable)",
  "futures": [
   {
    "name": "Spring wheat",
@@ -70,8 +70,8 @@
  },
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "fx": {
-  "cadPerUsd": 1.3989,
-  "date": "2026-11-05",
+  "cadPerUsd": 1.4113,
+  "date": "2026-11-06",
   "source": "Bank of Canada"
  },
  "reports": [
@@ -92,22 +92,27 @@
    "when": "Mon Nov 16 · 3 pm CT"
   }
  ],
- "outlook": "Wheat kept sliding Friday while corn and soybeans bounced slightly. December Minneapolis spring wheat fell 4 cents to $6.16 (down 7¾ cents on the week) and December Chicago wheat lost 8 cents to $5.91¼, a four-month low, on technical selling that has had wheat trending lower since early September. January soybeans rose 5½ cents to $11.93¾ on late short covering after touching an 11-week low (still down 40½ cents on the week), and December corn gained 1½ cents to $4.41½ (down 6½ cents on the week); a sharp stock market sell-off and a stronger U.S. dollar weighed on grains this week. January canola eased C$1 to C$752.20 even as Canada and China extended their tariff agreement, and traders now turn to Tuesday's USDA WASDE report.",
+ "outlook": "Prices shown are Friday's settlements; no reliable overnight quotes were available this morning. Early commentary said corn and soybeans were higher and wheat was under pressure in Sunday night trade, with positioning ahead of Tuesday's USDA WASDE report and fund money flow the main drivers. Last week was rough: January soybeans fell 40½ cents to $11.93¾ after a nine-day losing streak, December corn lost 6¼ cents to $4.41½ after touching a four-month low, and December Chicago wheat dropped 12¼ cents to $5.91¼, its lowest since late June, as Russia–Ukraine talks weighed on wheat. China kept buying U.S. soybeans (136,000 tonnes announced Friday), and the Canadian dollar weakened to about C$1.41 per US$.",
  "news": [
   {
-   "title": "After the Bell: Soybeans snap losing streak",
-   "source": "Pro Farmer",
-   "url": "https://www.profarmer.com/news/after-bell/after-bell-soybeans-snap-losing-streak"
-  },
-  {
-   "title": "Closing Grain and Livestock Futures: November 5, 2026",
+   "title": "Corn sees a slight bounce, with soybeans mixed",
    "source": "Brownfield Ag News",
-   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-5-2026/"
+   "url": "https://brownfieldagnews.com/news/corn-sees-a-slight-bounce-with-soybeans-mixed/"
   },
   {
-   "title": "November WASDE: Why soybeans are the biggest wildcard",
-   "source": "Pro Farmer",
-   "url": "https://profarmer.com/news/agriculture-news/november-wasde-why-soybeans-are-biggest-wildcard"
+   "title": "Corn, Soybeans Bounce Friday But Grain and Livestock See Bloodbath This Week",
+   "source": "AgWeb",
+   "url": "https://www.agweb.com/markets/market-analysis/corn-soybeans-bounce-friday-grain-and-livestock-see-bloodbath-week"
+  },
+  {
+   "title": "Wheat Commercials Net Long as Corn Funds Flip Short",
+   "source": "Ag Optimus",
+   "url": "https://agoptimus.com/grain-livestock-cot-report-november-9-2026/"
+  },
+  {
+   "title": "Consus Ag Consulting AM Market Brief (Nov 9)",
+   "source": "Consus Ag Consulting",
+   "url": "https://consusconsensus.substack.com/p/consus-ag-consulting-am-market-brief-f0b"
   },
   {
    "title": "Minneapolis Daily Grain Report (Nov 6)",
@@ -115,5 +120,5 @@
    "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Futures: Nov 6 settlements from the USDA AMS Minneapolis Daily Grain Report (final), changes vs. Nov 5 settlements (Brownfield) and confirmed by Pro Farmer After the Bell and Farmbucks; canola from Farmbucks delayed quote after the ICE close. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 6 final. Exchange rate: Bank of Canada daily rate, Nov 5 (Nov 6 rate not yet posted). Report dates: USDA release calendars. News: Pro Farmer, Brownfield, USDA AMS."
+ "sources": "Futures: Nov 6 settlements from the USDA AMS Minneapolis Daily Grain Report (final), confirmed by Brownfield and Ag Optimus; Monday overnight quotes could not be retrieved from a trustworthy free source, so Friday's values are kept. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 6 final (latest available). Exchange rate: Bank of Canada daily rate, Nov 6. Report dates: USDA release calendars. News: Brownfield, AgWeb, Ag Optimus, Consus Ag Consulting, USDA AMS."
 }
