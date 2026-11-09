@@ -1,46 +1,46 @@
 {
- "updated": "2026-11-09T07:55:00-05:00",
- "note": "Friday close (overnight quotes unavailable)",
+ "updated": "2026-11-09T14:43:00-05:00",
+ "note": "Monday close (unofficial)",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.16,
-   "chg": -0.04
+   "last": 6.22,
+   "chg": 0.06
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 11.9375,
-   "chg": 0.055
+   "last": 11.87,
+   "chg": -0.0675
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.415,
-   "chg": 0.015
+   "last": 4.3875,
+   "chg": -0.0275
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 5.9125,
-   "chg": -0.08
+   "last": 5.88,
+   "chg": -0.0325
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Jan",
    "exch": "ICE",
-   "last": 752.2,
-   "chg": -1.0
+   "last": 757.4,
+   "chg": 5.2
   }
  ],
  "cash": [
@@ -84,35 +84,35 @@
    "when": "Tue Nov 10 · 11 am CT"
   },
   {
-   "name": "USDA Weekly Export Sales",
-   "when": "Thu Nov 12 · 7:30 am CT"
+   "name": "USDA Weekly Export Sales (delayed by Veterans Day)",
+   "when": "Fri Nov 13 · 7:30 am CT"
   },
   {
    "name": "USDA Crop Progress",
    "when": "Mon Nov 16 · 3 pm CT"
   }
  ],
- "outlook": "Prices shown are Friday's settlements; no reliable overnight quotes were available this morning. Early commentary said corn and soybeans were higher and wheat was under pressure in Sunday night trade, with positioning ahead of Tuesday's USDA WASDE report and fund money flow the main drivers. Last week was rough: January soybeans fell 40½ cents to $11.93¾ after a nine-day losing streak, December corn lost 6¼ cents to $4.41½ after touching a four-month low, and December Chicago wheat dropped 12¼ cents to $5.91¼, its lowest since late June, as Russia–Ukraine talks weighed on wheat. China kept buying U.S. soybeans (136,000 tonnes announced Friday), and the Canadian dollar weakened to about C$1.41 per US$.",
+ "outlook": "Corn slipped to a fresh four-month low Monday, with December down 2¾ cents to about $4.38¾, as traders expect Tuesday's USDA WASDE report to raise world supplies and funds have flipped to a net short. Soybeans rose early on news the U.S. pressed China to buy more farm goods and that the U.S.-China trade truce was extended two months, but faded to close about 6¾ cents lower near $11.87 for January. Spring wheat gained 6 cents to $6.22 while Chicago wheat lost 3¼ cents to $5.88, with funds heavily short wheat ahead of a Russia–Ukraine summit set for Nov 10–11. ICE canola rose C$5.20 to C$757.40, while crude oil fell about 4%.",
  "news": [
   {
-   "title": "Corn sees a slight bounce, with soybeans mixed",
+   "title": "Corn Hits Lowest Since July as USDA Expected to Raise World Stockpiles",
+   "source": "Bloomberg",
+   "url": "https://www.bloomberg.com/news/articles/2026-11-09/corn-hits-fresh-four-month-low-as-usda-seen-raising-world-supply"
+  },
+  {
+   "title": "Soybeans Rise as US Presses China to Boost Farm Goods Purchases",
+   "source": "Bloomberg",
+   "url": "https://www.bloomberg.com/news/articles/2026-11-09/soybeans-rise-as-us-presses-china-to-boost-farm-goods-purchases"
+  },
+  {
+   "title": "TFM Midday Update 11-09-2026",
+   "source": "Total Farm Marketing",
+   "url": "https://www.totalfarmmarketing.com/tfm-midday-update-11-09-2026/"
+  },
+  {
+   "title": "Grains and oilseeds were mixed overnight",
    "source": "Brownfield Ag News",
-   "url": "https://brownfieldagnews.com/news/corn-sees-a-slight-bounce-with-soybeans-mixed/"
-  },
-  {
-   "title": "Corn, Soybeans Bounce Friday But Grain and Livestock See Bloodbath This Week",
-   "source": "AgWeb",
-   "url": "https://www.agweb.com/markets/market-analysis/corn-soybeans-bounce-friday-grain-and-livestock-see-bloodbath-week"
-  },
-  {
-   "title": "Wheat Commercials Net Long as Corn Funds Flip Short",
-   "source": "Ag Optimus",
-   "url": "https://agoptimus.com/grain-livestock-cot-report-november-9-2026/"
-  },
-  {
-   "title": "Consus Ag Consulting AM Market Brief (Nov 9)",
-   "source": "Consus Ag Consulting",
-   "url": "https://consusconsensus.substack.com/p/consus-ag-consulting-am-market-brief-f0b"
+   "url": "https://brownfieldagnews.com/news/grains-and-oilseeds-were-mixed-overnight-morning-market-minute/"
   },
   {
    "title": "Minneapolis Daily Grain Report (Nov 6)",
@@ -120,5 +120,5 @@
    "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Futures: Nov 6 settlements from the USDA AMS Minneapolis Daily Grain Report (final), confirmed by Brownfield and Ag Optimus; Monday overnight quotes could not be retrieved from a trustworthy free source, so Friday's values are kept. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 6 final (latest available). Exchange rate: Bank of Canada daily rate, Nov 6. Report dates: USDA release calendars. News: Brownfield, AgWeb, Ag Optimus, Consus Ag Consulting, USDA AMS."
+ "sources": "Futures: Monday Nov 9 last trades near the close from Farmbucks (Barchart/DTN data, 10-min delayed); official settlements may differ slightly. Changes are versus Nov 6 settlements in the USDA AMS Minneapolis Daily Grain Report. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 6 final (latest available; Nov 9 report not yet posted). Exchange rate: Bank of Canada daily rate, Nov 6 (Nov 9 rate not yet published). Report dates: USDA release calendars and Farmbucks report calendar. News: Bloomberg, Total Farm Marketing, Brownfield, USDA AMS."
 }
