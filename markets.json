@@ -1,46 +1,46 @@
 {
- "updated": "2026-11-10T08:23:00-05:00",
- "note": "overnight trade",
+ "updated": "2026-11-10T14:45:00-05:00",
+ "note": "after the close",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.2,
-   "chg": -0.0225
+   "last": 6.2725,
+   "chg": 0.05
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 11.875,
-   "chg": -0.0075
+   "last": 12.2675,
+   "chg": 0.385
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.4025,
-   "chg": 0.01
+   "last": 4.48,
+   "chg": 0.0875
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 5.8775,
-   "chg": -0.0025
+   "last": 5.915,
+   "chg": 0.035
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Jan",
    "exch": "ICE",
-   "last": 755.0,
-   "chg": -2.4
+   "last": 770.4,
+   "chg": 13.0
   }
  ],
  "cash": [
@@ -76,10 +76,6 @@
  },
  "reports": [
   {
-   "name": "USDA WASDE & Crop Production",
-   "when": "Tue Nov 10 · 11 am CT"
-  },
-  {
    "name": "USDA Weekly Export Sales (delayed by Veterans Day)",
    "when": "Fri Nov 13 · 7:30 am CT"
   },
@@ -92,33 +88,33 @@
    "when": "Mon Nov 23 · 3 pm CT"
   }
  ],
- "outlook": "Grains were mostly steady to slightly mixed in early Tuesday trade as traders squared positions ahead of USDA's November Crop Production and WASDE reports at 11 am CT. December corn was up about a penny near $4.40 after hitting a four-month low Monday, with funds now net short; the trade expects USDA to trim the corn crop and raise soybean production. January soybeans were nearly unchanged near $11.87½, Minneapolis December spring wheat slipped 2¼ cents to $6.20, and Chicago wheat was flat near $5.88. ICE January canola eased C$2.40 to C$755, while Brent crude fell below $90 and markets awaited the October CPI inflation report.",
+ "outlook": "USDA's November reports lifted row crops on Tuesday. USDA cut the US corn yield to 179.6 bu/acre from 181.2 (trade expected about 180.6), dropping production to 15.89 billion bushels and ending stocks to 1.758 billion, well under the 1.846 billion trade guess; December corn finished near $4.48, up about 9 cents. Soybean yield rose only to 53.3 bu/acre, short of the bigger increase traders expected, and ending stocks fell to 300 million bushels, sending January soybeans up about 38 cents to near $12.27. Wheat ending stocks were nearly unchanged at 743 million bushels; Chicago wheat gained about 3 cents and Minneapolis spring wheat was up about a nickel at midday, with peace talks on Russia/Ukraine also in focus, while ICE January canola jumped C$13 to about C$770.",
  "news": [
   {
-   "title": "First Thing Today | Short covering lifts grains ahead of USDA's production and WASDE reports",
-   "source": "Pro Farmer",
-   "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-grain-firm-overnight-all-eyes-usdas-production-and-wasde-reports"
+   "title": "USDA Lowers U.S. Corn Yield, Ending Stocks",
+   "source": "Syngenta Canada / DePutter",
+   "url": "https://www.syngenta.ca/market-news/usda-lowers-u-s--corn-yield--ending-stocks"
   },
   {
-   "title": "November WASDE: Why soybeans are the biggest wildcard",
-   "source": "Pro Farmer",
-   "url": "https://www.profarmer.com/news/agriculture-news/november-wasde-why-soybeans-are-biggest-wildcard"
+   "title": "U.S. Soybean Production Up, but Ending Stocks Drop",
+   "source": "Syngenta Canada / DePutter",
+   "url": "https://www.syngenta.ca/market-news/u-s--soybean-production-up--but-ending-stocks-drop"
   },
   {
-   "title": "Wheat futures end mixed, while corn and soybeans decline in Chicago on Monday",
-   "source": "UkrAgroConsult",
-   "url": "https://ukragroconsult.com/en/news/wheat-futures-end-mixed-while-corn-and-soybeans-decline-in-chicago-on-monday/"
+   "title": "U.S. Wheat Estimates Little Changed; Global Stocks Heavier",
+   "source": "Syngenta Canada / DePutter",
+   "url": "https://www.syngenta.ca/market-news/u-s--wheat-estimates-little-changed--global-stocks-heavier"
   },
   {
-   "title": "Consus Ag Consulting AM Market Brief",
-   "source": "Consus Ag Consulting",
-   "url": "https://consusconsensus.substack.com/p/consus-ag-consulting-am-market-brief-592"
+   "title": "November WASDE: Bullish corn and soybeans",
+   "source": "Ohio's Country Journal",
+   "url": "https://ocj.com/2026/11/november-wasde-bullish-corn-and-soybeans/"
   },
   {
-   "title": "Minneapolis Daily Grain Report (Nov 9)",
-   "source": "USDA AMS",
-   "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
+   "title": "TFM Midday Update 11-10-2026",
+   "source": "Total Farm Marketing",
+   "url": "https://www.totalfarmmarketing.com/tfm-midday-update-11-10-2026/"
   }
  ],
- "sources": "Futures: Tuesday Nov 10 overnight/early trade from Farmbucks (Barchart/DTN data, delayed) as of about 7:20 am CT; changes are versus Nov 9 settlements in the USDA AMS Minneapolis Daily Grain Report. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 9 final. Exchange rate: Bank of Canada daily rate, Nov 9. Report dates: USDA release calendars. News: Pro Farmer, UkrAgroConsult, Consus Ag Consulting, USDA AMS."
+ "sources": "Futures: corn, soybeans, Chicago wheat and canola from the ADM 10-minute delayed futures snapshot at about 1:44 pm CT Nov 10 (after the close; changes vs Nov 9 settlements). Minneapolis spring wheat is the TFM Midday Update quote (about 10:30 am CT Nov 10) because no post-report quote was available. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 9 final (kept from the previous update; a newer report was not available). Exchange rate: Bank of Canada daily rate, Nov 9 (kept). WASDE figures: USDA Nov 10 via Syngenta Canada/DePutter and Ohio's Country Journal. Report dates: USDA release calendars."
 }
