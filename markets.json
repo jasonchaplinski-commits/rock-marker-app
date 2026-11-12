@@ -1,46 +1,46 @@
 {
- "updated": "2026-11-11T16:30:00-05:00",
- "note": "after the close",
+ "updated": "2026-11-12T08:45:00-05:00",
+ "note": "overnight trade",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.355,
-   "chg": 0.0675
+   "last": 6.3175,
+   "chg": -0.0375
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.3075,
-   "chg": 0.0275
+   "last": 12.295,
+   "chg": -0.0125
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.48,
-   "chg": -0.01
+   "last": 4.4825,
+   "chg": 0.0025
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 5.995,
-   "chg": 0.0675
+   "last": 5.98,
+   "chg": -0.015
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Jan",
    "exch": "ICE",
-   "last": 770.4,
-   "chg": 13.0
+   "last": 781.5,
+   "chg": 11.1
   }
  ],
  "cash": [
@@ -88,33 +88,33 @@
    "when": "Mon Nov 23 · 3 pm CT"
   }
  ],
- "outlook": "Grains mostly built on Tuesday's bullish USDA report. Soybeans, soymeal and soyoil gained again on short covering and bargain buying, with January soybeans settling up about 3 cents at $12.30 3/4. Wheat followed: December Chicago wheat and Minneapolis spring wheat each rose about 6 3/4 cents, to $5.99 1/2 and $6.35 1/2. December corn gave back early gains to finish down a penny at $4.48, held back as the U.S. dollar index jumped to a 1.5-year high after a warmer-than-expected CPI report. Minneapolis cash soybean and corn basis was steady to firmer.",
+ "outlook": "Grains were mostly a little lower overnight as the U.S. dollar index hit a 19-month high after this week's hotter-than-expected inflation data. As of early Thursday, December corn was up about a quarter cent, January soybeans were down about 1 1/4 cents, December Chicago wheat was off 1 1/2 cents and December Minneapolis spring wheat was down about 3 3/4 cents near $6.32. Wheat traders are watching reports that China is looking for more wheat after buying French wheat this week, and the end of Russia–Ukraine peace talks without a breakthrough; South American crop weather is seen as favorable. ICE January canola rose about C$11 to near C$781.50 per tonne in overnight trade. Cash bids below are from Wednesday's Minneapolis report; Thursday's report comes out after the close.",
  "news": [
   {
-   "title": "After the Bell: Soy complex sees another day of gains",
+   "title": "First Thing Today: Grains struggle to build on USDA rally as U.S. dollar strengthens",
    "source": "Pro Farmer",
-   "url": "https://www.profarmer.com/news/after-bell/after-bell-soy-complex-sees-another-day-gains"
+   "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-grains-struggle-build-usda-rally-u-s-dollar-strengthens"
   },
   {
-   "title": "TFM Daily Market Summary 11-11-2026",
+   "title": "AgMarket Early Morning Market Analysis 11/12/26",
+   "source": "AgMarket",
+   "url": "https://www.agmarket.net/agmarket-early-morning-market-analysis-11-12-26/"
+  },
+  {
+   "title": "TFM Morning Update 11-12-2026",
    "source": "Total Farm Marketing",
-   "url": "https://www.totalfarmmarketing.com/tfm-daily-market-summary-11-11-2026/"
+   "url": "https://www.totalfarmmarketing.com/tfm-morning-update-11-12-2026/"
   },
   {
-   "title": "TFM Morning Update 11-11-2026",
-   "source": "Total Farm Marketing",
-   "url": "https://www.totalfarmmarketing.com/tfm-morning-update-11-11-2026/"
+   "title": "Closing Grain and Livestock Futures: November 11, 2026",
+   "source": "Brownfield Ag News",
+   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-11-2026/"
   },
   {
-   "title": "Soybeans dip as market weighs tighter US stocks against broader supply outlook",
-   "source": "Business Recorder",
-   "url": "https://www.brecorder.com/news/40448398/soybeans-dip-as-market-weighs-tighter-us-stocks-against-broader-supply-outlook"
-  },
-  {
-   "title": "Grains Report 11/11/2026",
-   "source": "Price Futures Group",
-   "url": "https://blog.pricegroup.com/2026/11/11/grains-report-11-11-2026/"
+   "title": "USDA Lowers Corn Yield to 179.6 BPA, Drops Corn Production to 15.893 BB",
+   "source": "DTN/Progressive Farmer",
+   "url": "https://dtnpf.com/agriculture/web/ag/news/article/2026/11/10/usda-releases-november-crop-wasde"
   }
  ],
- "sources": "Futures: Nov 11 settlements for MGEX Dec spring wheat, CBOT Jan soybeans and Dec corn from the USDA AMS Minneapolis Daily Grain Report (Nov 11 final); changes and Chicago wheat from Pro Farmer After the Bell (1:55 pm CT Nov 11). Canola: no trustworthy Nov 11 quote found, so the Nov 10 value (C$770.40, +13.00, Farmbucks/ADM) is kept. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 11 final (middle of bid ranges). Exchange rate: Bank of Canada daily rate, Nov 10 (no Nov 11 rate, Remembrance Day). Report dates: USDA release calendars."
+ "sources": "Futures: MIAX/MGEX Dec spring wheat and ICE Jan canola from Farmbucks delayed quotes (Nov 12, 7:27 am CT and overnight); CBOT Dec corn, Jan soybeans and Dec Chicago wheat = Nov 11 settlements plus overnight changes as of 6 am CT Nov 12 from Pro Farmer First Thing Today. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 11 final (middle of bid ranges; Nov 12 report not yet out). Exchange rate: Bank of Canada daily rate, Nov 10 (latest published). Report dates: USDA release calendars."
 }
