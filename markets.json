@@ -1,46 +1,46 @@
 {
- "updated": "2026-11-16T08:45:00-05:00",
- "note": "early overnight",
+ "updated": "2026-11-16T14:45:00-05:00",
+ "note": "midday",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.2675,
-   "chg": 0.04
+   "last": 6.305,
+   "chg": 0.0375
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.2725,
-   "chg": -0.0425
+   "last": 12.26,
+   "chg": -0.055
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.455,
-   "chg": 0.03
+   "last": 4.4675,
+   "chg": 0.0125
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 5.9325,
-   "chg": 0.09
+   "last": 5.905,
+   "chg": -0.0275
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Jan",
    "exch": "ICE",
-   "last": 783.2,
-   "chg": 5.9
+   "last": 778.7,
+   "chg": -4.5
   }
  ],
  "cash": [
@@ -76,14 +76,6 @@
  },
  "reports": [
   {
-   "name": "USDA Grain Export Inspections",
-   "when": "Mon Nov 16 · 10 am CT"
-  },
-  {
-   "name": "NOPA October Crush",
-   "when": "Mon Nov 16 · 11 am CT"
-  },
-  {
    "name": "CFTC Commitments of Traders (delayed)",
    "when": "Mon Nov 16 · 2:30 pm CT"
   },
@@ -100,12 +92,31 @@
    "when": "Fri Nov 20 · 2 pm CT"
   },
   {
+   "name": "USDA Grain Export Inspections",
+   "when": "Mon Nov 23 · 10 am CT"
+  },
+  {
    "name": "USDA Crop Progress",
    "when": "Mon Nov 23 · 3 pm CT"
   }
  ],
- "outlook": "Grains started the week quietly and slightly lower overnight: January soybeans traded at $12.27 1/4, down 4 1/4 cents from Friday's $12.31 1/2 settle, with corn and wheat also reported a few cents lower early. A stronger U.S. dollar is weighing on prices, while mostly dry U.S. weather is helping finish harvest and South American crop weather still looks good, with some talk of drier conditions in December and January. Last week's corn export sales were a marketing-year high, and Black Sea tensions remain elevated. Traders are waiting on today's NOPA October crush figures, a holiday-delayed CFTC fund-position report, and the afternoon Crop Progress report.",
+ "outlook": "Grains were mixed at midday Monday: December corn was up about a penny at $4.46 3/4 and Minneapolis December spring wheat was a few cents higher near $6.30, while January soybeans slipped about 5 cents to $12.26 and Chicago wheat was lower. Outside markets are weighing on prices, with crude oil and stocks falling sharply and the U.S. dollar index reaching a 19-month high. Corn is getting support from last week's marketing-year-high export sales, and soybean sales to China continued after a virtual U.S.–China trade meeting, with Trump and Xi scheduled to meet at APEC this week. Traders are also watching a holiday-delayed CFTC fund-position report and this afternoon's Crop Progress report.",
  "news": [
+  {
+   "title": "TFM Midday Update 11-16-2026",
+   "source": "Total Farm Marketing",
+   "url": "https://www.totalfarmmarketing.com/tfm-midday-update-11-16-2026/"
+  },
+  {
+   "title": "Periodic Updates on the Grains, Livestock Futures Markets",
+   "source": "DTN/Progressive Farmer",
+   "url": "https://www.dtnpf.com/agriculture/web/ag/news/article/2026/11/16/periodic-updates-grains-livestock-2"
+  },
+  {
+   "title": "TFM Morning Update 11-16-2026",
+   "source": "Total Farm Marketing",
+   "url": "https://www.totalfarmmarketing.com/tfm-morning-update-11-16-2026/"
+  },
   {
    "title": "AgMarket Early Morning Market Analysis 11/16/26",
    "source": "AgMarket",
@@ -115,22 +126,7 @@
    "title": "Closing Grain and Livestock Futures: November 13, 2026",
    "source": "Brownfield Ag News",
    "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-13-2026/"
-  },
-  {
-   "title": "Soybeans Post Friday Gains Following Export Announcements",
-   "source": "Barchart",
-   "url": "https://www.barchart.com/story/news/8830325/soybeans-post-friday-gains-following-export-announcements"
-  },
-  {
-   "title": "Corn Firm into the Weekend as Export Business Picks Up",
-   "source": "Barchart",
-   "url": "https://www.barchart.com/story/news/8830315/corn-firm-into-the-weekend-as-export-business-picks-up"
-  },
-  {
-   "title": "Wheat Posts Friday Gains",
-   "source": "Barchart",
-   "url": "https://www.barchart.com/story/news/8830335/wheat-posts-friday-gains"
   }
  ],
- "sources": "Futures: Jan soybeans from Farmbucks overnight quote (Mon session, change vs Friday Nov 13 settle). Spring wheat, corn, Chicago wheat and canola could not be confirmed overnight, so they still show Friday Nov 13 settlements (changes vs Nov 12) from the USDA AMS Minneapolis Daily Grain Report and Barchart/Farmbucks for ICE canola. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 13 final (middle of bid ranges). Exchange rate: Bank of Canada daily rate, Nov 13. Market color: AgMarket early morning analysis, Nov 16. Report dates: USDA, NOPA and CFTC calendars."
+ "sources": "Futures: Total Farm Marketing midday update Nov 16 (spring wheat, soybeans, corn, Chicago wheat; changes vs Friday Nov 13 settle); ICE canola from Farmbucks (Nov 16 morning quote). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 13 final (middle of bid ranges) — the report currently online was older, so Nov 13 bids are kept. Exchange rate: Bank of Canada daily rate, Nov 13 (latest published). Market color: DTN and TFM midday, Nov 16. Report dates: USDA and CFTC calendars."
 }
