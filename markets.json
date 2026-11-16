@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-14T12:55:00-05:00",
- "note": "Friday close",
+ "updated": "2026-11-16T08:45:00-05:00",
+ "note": "early overnight",
  "futures": [
   {
    "name": "Spring wheat",
@@ -15,8 +15,8 @@
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.315,
-   "chg": 0.125
+   "last": 12.2725,
+   "chg": -0.0425
   },
   {
    "name": "Corn",
@@ -76,6 +76,18 @@
  },
  "reports": [
   {
+   "name": "USDA Grain Export Inspections",
+   "when": "Mon Nov 16 · 10 am CT"
+  },
+  {
+   "name": "NOPA October Crush",
+   "when": "Mon Nov 16 · 11 am CT"
+  },
+  {
+   "name": "CFTC Commitments of Traders (delayed)",
+   "when": "Mon Nov 16 · 2:30 pm CT"
+  },
+  {
    "name": "USDA Crop Progress",
    "when": "Mon Nov 16 · 3 pm CT"
   },
@@ -92,8 +104,18 @@
    "when": "Mon Nov 23 · 3 pm CT"
   }
  ],
- "outlook": "Grains closed higher Friday on fresh export business. January soybeans settled up 12 1/2 cents at $12.31 1/2 (up nearly 38 cents on the week) after USDA flash sales of 134,000 tonnes to China and 120,000 tonnes to Vietnam, though weekly export sales of 1.155 million tonnes were a four-week low. December corn gained 3 cents to $4.45 1/2 on a 303,800-tonne sale to Mexico and marketing-year-high weekly sales of 2.88 million tonnes, while December Minneapolis spring wheat rose 4 cents to $6.26 3/4 (up 10 3/4 cents on the week) and Chicago wheat gained 9 cents despite marketing-year-low wheat export sales. ICE January canola closed up C$5.90 at C$783.20 per tonne; NOPA's October crush figures are due Monday.",
+ "outlook": "Grains started the week quietly and slightly lower overnight: January soybeans traded at $12.27 1/4, down 4 1/4 cents from Friday's $12.31 1/2 settle, with corn and wheat also reported a few cents lower early. A stronger U.S. dollar is weighing on prices, while mostly dry U.S. weather is helping finish harvest and South American crop weather still looks good, with some talk of drier conditions in December and January. Last week's corn export sales were a marketing-year high, and Black Sea tensions remain elevated. Traders are waiting on today's NOPA October crush figures, a holiday-delayed CFTC fund-position report, and the afternoon Crop Progress report.",
  "news": [
+  {
+   "title": "AgMarket Early Morning Market Analysis 11/16/26",
+   "source": "AgMarket",
+   "url": "https://www.agmarket.net/agmarket-early-morning-market-analysis-11-16-26/"
+  },
+  {
+   "title": "Closing Grain and Livestock Futures: November 13, 2026",
+   "source": "Brownfield Ag News",
+   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-13-2026/"
+  },
   {
    "title": "Soybeans Post Friday Gains Following Export Announcements",
    "source": "Barchart",
@@ -108,17 +130,7 @@
    "title": "Wheat Posts Friday Gains",
    "source": "Barchart",
    "url": "https://www.barchart.com/story/news/8830335/wheat-posts-friday-gains"
-  },
-  {
-   "title": "TFM Morning Update 11-13-2026",
-   "source": "Total Farm Marketing",
-   "url": "https://www.totalfarmmarketing.com/tfm-morning-update-11-13-2026/"
-  },
-  {
-   "title": "USDA Lowers Corn Yield to 179.6 BPA, Drops Corn Production to 15.893 BB",
-   "source": "DTN/Progressive Farmer",
-   "url": "https://dtnpf.com/agriculture/web/ag/news/article/2026/11/10/usda-releases-november-crop-wasde"
   }
  ],
- "sources": "Futures: Friday Nov 13 settlements from the USDA AMS Minneapolis Daily Grain Report (MGEX Dec spring wheat, CBOT Dec corn, Jan soybeans, Dec Chicago wheat), changes vs Nov 12 settlements; ICE Jan canola settlement from Barchart. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 13 final (middle of bid ranges). Exchange rate: Bank of Canada daily rate, Nov 13. Market color: Barchart closing commentary, Nov 13. Report dates: USDA release calendars."
+ "sources": "Futures: Jan soybeans from Farmbucks overnight quote (Mon session, change vs Friday Nov 13 settle). Spring wheat, corn, Chicago wheat and canola could not be confirmed overnight, so they still show Friday Nov 13 settlements (changes vs Nov 12) from the USDA AMS Minneapolis Daily Grain Report and Barchart/Farmbucks for ICE canola. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 13 final (middle of bid ranges). Exchange rate: Bank of Canada daily rate, Nov 13. Market color: AgMarket early morning analysis, Nov 16. Report dates: USDA, NOPA and CFTC calendars."
 }
