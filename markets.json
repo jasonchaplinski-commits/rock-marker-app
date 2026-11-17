@@ -1,46 +1,46 @@
 {
- "updated": "2026-11-17T09:30:00-05:00",
- "note": "morning trade",
+ "updated": "2026-11-17T14:45:00-05:00",
+ "note": "closing trade",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.4125,
-   "chg": 0.1075
+   "last": 6.3975,
+   "chg": 0.0925
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.36,
-   "chg": 0.07
+   "last": 12.255,
+   "chg": -0.035
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.4975,
-   "chg": 0.01
+   "last": 4.4675,
+   "chg": -0.02
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 5.98,
-   "chg": 0.11
+   "last": 5.9525,
+   "chg": 0.0825
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Jan",
    "exch": "ICE",
-   "last": 779.3,
-   "chg": 6.9
+   "last": 782.2,
+   "chg": 9.8
   }
  ],
  "cash": [
@@ -96,27 +96,27 @@
    "when": "Thu Dec 10 · 11 am CT"
   }
  ],
- "outlook": "Wheat jumped Tuesday morning, with Minneapolis December spring wheat up about 11 cents near $6.41 and Chicago wheat up 11 cents, bouncing from oversold levels after Ukraine destroyed part of the Kerch Strait bridge and blocked a key Black Sea shipping channel used for Russian grain. December corn was up about a penny near $4.50 after a flash sale of 130,000 tonnes to Colombia, while January soybeans were up about 7 cents and ICE canola gained nearly C$7. Monday's NOPA report showed a record October soybean crush of 234.2 million bushels, and USDA's Crop Progress put the U.S. corn harvest at 88% and soybeans at 96%. Traders are watching new U.S. chip curbs on China ahead of Wednesday's Trump–Xi meeting at APEC, plus a strong U.S. dollar near 19-month highs.",
+ "outlook": "Wheat held most of its gains into Tuesday's close, with Minneapolis December spring wheat up about 9 cents near $6.40 and Chicago December wheat up about 8 cents near $5.95, as Black Sea shipping disruptions around the Kerch Strait added risk premium after a stretch of oversold trade. December corn gave back its early gains and closed about 2 cents lower near $4.47 despite a flash sale of 130,000 tonnes to Colombia, and January soybeans slipped about 3.5 cents to near $12.26. ICE January canola rose nearly C$10 to about C$782 per tonne. Traders are still watching U.S.–China trade tensions over new chip curbs ahead of this week's Trump–Xi meeting, a firm U.S. dollar, and Monday's record October NOPA soybean crush of 234.2 million bushels.",
  "news": [
+  {
+   "title": "Grains Report 11/17/2026",
+   "source": "Price Futures Group",
+   "url": "https://blog.pricegroup.com/2026/11/17/grains-report-11-17-2026/"
+  },
+  {
+   "title": "Tuesday AM Update",
+   "source": "Kluis Commodity Advisors",
+   "url": "https://www.kluiscommodities.com/tuesday-am-update-374/"
+  },
   {
    "title": "First Thing Today | China angry over new U.S. chip curbs ahead of Trump-Xi meeting",
    "source": "Pro Farmer",
    "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-china-angry-over-new-u-s-chip-curbs-ahead-trump-xi-meeting"
   },
   {
-   "title": "Ahead of the Open | Corn climbs above resistance",
-   "source": "Pro Farmer",
-   "url": "https://www.profarmer.com/news/ahead-open/ahead-open-corn-climbs-above-resistance"
-  },
-  {
-   "title": "AgMarket Early Morning Market Analysis 11/17/26",
-   "source": "AgMarket",
-   "url": "https://www.agmarket.net/agmarket-early-morning-market-analysis-11-17-26/"
-  },
-  {
-   "title": "Corn finds new buying interest, soybeans dip",
+   "title": "Analyst expects little progress from U.S.-China trade meeting",
    "source": "Brownfield Ag News",
-   "url": "https://brownfieldagnews.com/news/corn-finds-new-buying-interest-soybeans-dip/"
+   "url": "https://brownfieldagnews.com/news/analyst-expects-little-progress-from-u-s-china-trade-meeting/"
   },
   {
    "title": "Closing Grain and Livestock Futures: November 16, 2026",
@@ -124,5 +124,5 @@
    "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-16-2026/"
   }
  ],
- "sources": "Futures: Farmbucks delayed quotes, Tue Nov 17 morning (changes vs Mon Nov 16 settle, confirmed against USDA AMS settlements and Brownfield closing prices). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 16 final (middle of bid ranges). Exchange rate: Bank of Canada daily rate, Nov 16. Market color: Pro Farmer, AgMarket and Brownfield, Nov 16–17. Report dates: USDA calendars."
+ "sources": "Futures: Farmbucks delayed quotes (DTN/CME/ICE), Tue Nov 17 after the close (changes vs Mon Nov 16 settle; not yet confirmed against official settlements). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 16 final (middle of bid ranges; Nov 17 report not yet available). Exchange rate: Bank of Canada daily rate, Nov 16. Market color: Price Futures Group, Kluis, Pro Farmer and Brownfield, Nov 16–17. Report dates: USDA calendars."
 }
