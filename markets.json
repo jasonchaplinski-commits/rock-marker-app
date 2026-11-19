@@ -1,22 +1,22 @@
 {
- "updated": "2026-11-19T11:30:00-05:00",
- "note": "midday",
+ "updated": "2026-11-19T14:40:00-05:00",
+ "note": "close",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.41,
-   "chg": 0.1175
+   "last": 6.4225,
+   "chg": 0.13
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.1375,
-   "chg": -0.03
+   "last": 12.0725,
+   "chg": -0.095
   },
   {
    "name": "Corn",
@@ -31,16 +31,16 @@
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 5.78,
-   "chg": 0.08
+   "last": 5.7825,
+   "chg": 0.0825
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Jan",
    "exch": "ICE",
-   "last": 778.4,
-   "chg": 7.2
+   "last": 776.7,
+   "chg": 5.5
   }
  ],
  "cash": [
@@ -88,7 +88,7 @@
    "when": "Mon Nov 23 · 3 pm CT"
   },
   {
-   "name": "USDA Weekly Export Sales (Thanksgiving week — date may shift)",
+   "name": "USDA Weekly Export Sales (Thanksgiving week)",
    "when": "Fri Nov 27 · 7:30 am CT"
   },
   {
@@ -96,7 +96,7 @@
    "when": "Thu Dec 10 · 11 am CT"
   }
  ],
- "outlook": "Wheat is bouncing at midday Thursday after Wednesday's dollar-driven selloff pushed Chicago and Kansas City wheat to eight-month lows: Minneapolis December spring wheat is up about 12 cents near $6.41 and Chicago December up 8 cents near $5.78, helped by weekly wheat export sales of 345,000 tonnes (up 89%) and a Ukrainian ministry warning that its 2027 wheat crop could fall about a third to 17 million tonnes. December corn is up about 3.5 cents near $4.39 after hitting a 4.5-month low Wednesday, with weekly export sales of 1.59 million tonnes in line with expectations. January soybeans are off 3 cents near $12.14 despite strong weekly sales of 1.5 million tonnes, as Brazil rains support a record crop outlook and traders wait for any farm-purchase news from Thursday's Trump–Xi meeting at APEC. ICE January canola is up about C$7 near C$778 per tonne, while the U.S. dollar index sits near a 19-month high.",
+ "outlook": "Wheat led a mixed close Thursday, bouncing after Wednesday's dollar-driven selloff to eight-month lows: Minneapolis December spring wheat finished up 13 cents near $6.42 and Chicago December up about 8 cents near $5.78, helped by weekly wheat export sales of 345,000 tonnes (up 89%) and a Ukrainian ministry warning that its 2027 wheat crop could fall about a third to 17 million tonnes. December corn closed up 3.5 cents at $4.39 after Wednesday's 4.5-month low, with weekly export sales of 1.59 million tonnes in line with expectations. January soybeans slipped about 9.5 cents to near $12.07 despite strong weekly sales of 1.5 million tonnes, as Brazil rains support a record crop outlook and traders wait for any farm-purchase news from the Trump–Xi meeting at APEC. ICE January canola closed up C$5.50 at C$776.70 per tonne, while the U.S. dollar index stays near a 19-month high.",
  "news": [
   {
    "title": "TFM Midday Update 11-19-2026",
@@ -124,5 +124,5 @@
    "url": "https://www.graincentral.com/markets/daily-market-wire-19-november-2026/"
   }
  ],
- "sources": "Futures: Total Farm Marketing midday update (about 10 am CT Thu Nov 19) for MGEX, CBOT corn, soybeans and wheat; Farmbucks delayed ICE quote (10:16 am CT) for canola. Changes are vs Wed Nov 18 settlements (USDA AMS). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 18 final (middle of bid ranges). Exchange rate: Bank of Canada daily rate, Nov 18. Market color: TFM and Pro Farmer, Nov 19. Report dates: USDA calendars (Thanksgiving-week export sales date not confirmed)."
+ "sources": "Futures: Farmbucks delayed quotes (DTN/CME/ICE) taken after Thursday Nov 19 close, about 1:20 pm CT; final settlements may differ slightly. Changes are vs Wed Nov 18 settlements (USDA AMS). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 18 final (Nov 19 report not yet posted; middle of bid ranges). Exchange rate: Bank of Canada daily rate, Nov 18 (Nov 19 rate not yet published). Market color: TFM and Pro Farmer, Nov 19. Report dates: USDA calendars and Farmbucks report list."
 }
