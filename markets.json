@@ -1,30 +1,30 @@
 {
- "updated": "2026-11-19T14:40:00-05:00",
- "note": "close",
+ "updated": "2026-11-20T08:40:00-05:00",
+ "note": "overnight trade",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.4225,
-   "chg": 0.13
+   "last": 6.4675,
+   "chg": 0.0525
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.0725,
-   "chg": -0.095
+   "last": 12.145,
+   "chg": 0.07
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.39,
-   "chg": 0.035
+   "last": 4.375,
+   "chg": -0.015
   },
   {
    "name": "Chicago wheat",
@@ -32,46 +32,46 @@
    "month": "Dec",
    "exch": "CBOT",
    "last": 5.7825,
-   "chg": 0.0825
+   "chg": 0
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Jan",
    "exch": "ICE",
-   "last": 776.7,
-   "chg": 5.5
+   "last": 773.0,
+   "chg": -4.0
   }
  ],
  "cash": [
   {
    "crop": "Spring wheat 13%",
-   "where": "Minneapolis terminal · Nov 18",
-   "price": 6.2925,
+   "where": "Minneapolis terminal · Nov 19",
+   "price": 6.415,
    "basis": 0
   },
   {
    "crop": "Soybeans",
-   "where": "Minneapolis terminal · Nov 18",
-   "price": 11.6925,
+   "where": "Minneapolis terminal · Nov 19",
+   "price": 11.6,
    "basis": -0.475
   },
   {
    "crop": "Corn",
-   "where": "Minneapolis terminal · Nov 18",
-   "price": 3.88,
+   "where": "Minneapolis terminal · Nov 19",
+   "price": 3.915,
    "basis": -0.475
   }
  ],
  "cropPrice": {
-  "Wheat": 6.2925,
-  "Soybeans": 11.6925,
-  "Corn": 3.88
+  "Wheat": 6.415,
+  "Soybeans": 11.6,
+  "Corn": 3.915
  },
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "fx": {
-  "cadPerUsd": 1.4326,
-  "date": "2026-11-18",
+  "cadPerUsd": 1.4317,
+  "date": "2026-11-19",
   "source": "Bank of Canada"
  },
  "reports": [
@@ -96,22 +96,22 @@
    "when": "Thu Dec 10 · 11 am CT"
   }
  ],
- "outlook": "Wheat led a mixed close Thursday, bouncing after Wednesday's dollar-driven selloff to eight-month lows: Minneapolis December spring wheat finished up 13 cents near $6.42 and Chicago December up about 8 cents near $5.78, helped by weekly wheat export sales of 345,000 tonnes (up 89%) and a Ukrainian ministry warning that its 2027 wheat crop could fall about a third to 17 million tonnes. December corn closed up 3.5 cents at $4.39 after Wednesday's 4.5-month low, with weekly export sales of 1.59 million tonnes in line with expectations. January soybeans slipped about 9.5 cents to near $12.07 despite strong weekly sales of 1.5 million tonnes, as Brazil rains support a record crop outlook and traders wait for any farm-purchase news from the Trump–Xi meeting at APEC. ICE January canola closed up C$5.50 at C$776.70 per tonne, while the U.S. dollar index stays near a 19-month high.",
+ "outlook": "Grains were mixed in Friday's overnight trade after Thursday's wheat-led bounce. Minneapolis December spring wheat was up about 5 cents near $6.47, helped by South Korean and Taiwanese tenders for roughly 189,000 tonnes of U.S. milling wheat, while Chicago wheat was flat near $5.78 as Argentina's harvest points to its second-largest crop on record (23.4 million tonnes). January soybeans gained about 7 cents to near $12.15 after Thursday's slide, and December corn slipped 1.5 cents to $4.375 despite a flash sale of about 201,000 tonnes to Mexico. ICE January canola was down C$4 at C$773, the U.S. dollar index again tested its highs near 103.8, and December grain options expire today.",
  "news": [
+  {
+   "title": "TFM Morning Update 11-20-2026",
+   "source": "Total Farm Marketing",
+   "url": "https://www.totalfarmmarketing.com/tfm-morning-update-11-20-2026/"
+  },
+  {
+   "title": "AgMarket Early Morning Market Analysis 11/20/26",
+   "source": "AgMarket",
+   "url": "https://www.agmarket.net/agmarket-early-morning-market-analysis-11-20-26/"
+  },
   {
    "title": "TFM Midday Update 11-19-2026",
    "source": "Total Farm Marketing",
    "url": "https://www.totalfarmmarketing.com/tfm-midday-update-11-19-2026/"
-  },
-  {
-   "title": "First Thing Today | Trump asks Xi to 'do some more for our farmers'",
-   "source": "Pro Farmer",
-   "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-trump-asks-xi-do-some-more-our-farmers"
-  },
-  {
-   "title": "TFM Morning Update 11-19-2026",
-   "source": "Total Farm Marketing",
-   "url": "https://www.totalfarmmarketing.com/tfm-morning-update-11-19-2026/"
   },
   {
    "title": "Grains Report 11/19/2026",
@@ -124,5 +124,5 @@
    "url": "https://www.graincentral.com/markets/daily-market-wire-19-november-2026/"
   }
  ],
- "sources": "Futures: Farmbucks delayed quotes (DTN/CME/ICE) taken after Thursday Nov 19 close, about 1:20 pm CT; final settlements may differ slightly. Changes are vs Wed Nov 18 settlements (USDA AMS). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 18 final (Nov 19 report not yet posted; middle of bid ranges). Exchange rate: Bank of Canada daily rate, Nov 18 (Nov 19 rate not yet published). Market color: TFM and Pro Farmer, Nov 19. Report dates: USDA calendars and Farmbucks report list."
+ "sources": "Futures: Farmbucks delayed quotes (DTN/CME/ICE), Friday Nov 20 overnight trade about 7:40 am CT. Changes are vs Thu Nov 19 settlements (USDA AMS). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 19 final (middle of bid ranges). Exchange rate: Bank of Canada daily rate, Nov 19. Market color: TFM and AgMarket, Nov 20. Report dates: USDA calendars and Farmbucks report list."
 }
