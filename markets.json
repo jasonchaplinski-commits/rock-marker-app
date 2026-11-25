@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-25T08:58:00-05:00",
- "note": "overnight trade",
+ "updated": "2026-11-25T14:55:00-05:00",
+ "note": "Tue closes (Wed close not yet available)",
  "futures": [
   {
    "name": "Spring wheat",
@@ -70,8 +70,8 @@
  },
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "fx": {
-  "cadPerUsd": 1.4369,
-  "date": "2026-11-23",
+  "cadPerUsd": 1.4296,
+  "date": "2026-11-24",
   "source": "Bank of Canada"
  },
  "reports": [
@@ -136,5 +136,5 @@
    "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Futures: soybeans = Tue Nov 24 close ($12.34, Brownfield) adjusted by Pro Farmer's overnight change as of 6 a.m. CT Wed Nov 25 (Jan soybeans −11¢). Spring wheat, corn, Chicago wheat: Tue Nov 24 closes (Brownfield, USDA AMS) — overnight levels for these contracts were not available. Canola: Farmbucks delayed quote (ICE), Tue Nov 24 close. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 24 final (middle of bid ranges) — kept from last update; a newer report could not be retrieved. Exchange rate: Bank of Canada daily rate, Nov 23 (Nov 24 not yet published). Market color: Pro Farmer First Thing Today and Kluis AM update, Nov 25. Report dates: TFM, Farmbucks and USDA calendars."
+ "sources": "Futures: Wednesday Nov 25 closing prices could not be retrieved this run (sources blocked or not yet posted), so prices are unchanged from the morning update — spring wheat, corn, Chicago wheat and canola are Tue Nov 24 closes (Brownfield, USDA AMS, Farmbucks); soybeans are the Tue close adjusted by Pro Farmer's 6 a.m. CT Wed overnight change. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 24 (middle of bid ranges) — kept; newer report could not be retrieved. Exchange rate: Bank of Canada daily rate, Nov 24. Market color: Pro Farmer and Kluis, Nov 25 morning. Report dates: TFM, Farmbucks and USDA calendars."
 }
