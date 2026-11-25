@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-24T15:44:30-05:00",
- "note": "Tuesday close",
+ "updated": "2026-11-25T08:58:00-05:00",
+ "note": "overnight trade",
  "futures": [
   {
    "name": "Spring wheat",
@@ -15,8 +15,8 @@
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.34,
-   "chg": 0.0525
+   "last": 12.23,
+   "chg": -0.11
   },
   {
    "name": "Corn",
@@ -108,22 +108,22 @@
    "when": "Fri Dec 4 · 7:30 am CT"
   }
  ],
- "outlook": "Soybeans gained again Tuesday, with January futures up 5¼ cents to $12.34 after President Trump said a trade deal including large US soybean purchases may be done; details could come in the coming days. Wheat fell across all three classes on a stronger US dollar: Chicago December lost 7¼ cents to $5.69¾ and Minneapolis December spring wheat slipped 3¼ cents to $6.36¾, even as Russia's November grain shipments are running far below last year. December corn ended nearly unchanged at $4.34, pulled lower by wheat, with the US corn harvest now 94% complete. ICE January canola eased C$2.60 to C$773.20, and Minneapolis terminal corn and soybean bids widened on the low end.",
+ "outlook": "Grains pulled back overnight ahead of the Thanksgiving break: as of 6 a.m. CT January soybeans were down 11 cents near $12.23 after Tuesday's climb to a new monthly high, March corn was down 1¼ cents, and March Chicago and Kansas City wheat were each off about 4½–4¾ cents. A firmer US dollar and sharply lower stock-index futures weighed on trade ahead of this morning's October PCE inflation report, and news of new Section 301 tariffs on China added uncertainty. Tuesday's closes were December corn $4.34, December Chicago wheat $5.69¾, Minneapolis December spring wheat $6.36¾ and ICE January canola C$773.20; other prices shown are those Tuesday closes. US markets are closed Thursday and close early Friday, and December contracts are being rolled ahead of first notice day Monday.",
  "news": [
   {
-   "title": "TFM Midday Update 11-24-2026",
-   "source": "Total Farm Marketing",
-   "url": "https://www.totalfarmmarketing.com/tfm-midday-update-11-24-2026/"
+   "title": "First Thing Today: Grain markets see pre-holiday pullback overnight; key inflation reading ahead",
+   "source": "Pro Farmer",
+   "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-grain-markets-see-pre-holiday-pullback-overnight-key-inflation-reading-ahead"
   },
   {
-   "title": "TFM Morning Update 11-24-2026",
-   "source": "Total Farm Marketing",
-   "url": "https://www.totalfarmmarketing.com/tfm-morning-update-11-24-2026/"
+   "title": "Closing Grain and Livestock Futures: November 24, 2026",
+   "source": "Brownfield Ag News",
+   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-24-2026/"
   },
   {
-   "title": "Weekly grain trading report",
-   "source": "High Plains Journal",
-   "url": "https://hpj.com/2026/11/24/weekly-grain-trading-report-2/"
+   "title": "Wednesday AM Update",
+   "source": "Kluis Commodity Advisors",
+   "url": "https://www.kluiscommodities.com/wednesday-am-update-364/"
   },
   {
    "title": "Canola Futures (ICE RS)",
@@ -136,5 +136,5 @@
    "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Futures: USDA AMS Minneapolis Daily Grain Report settlements and Farmbucks delayed quotes (DTN/CME/ICE), Tue Nov 24 close; changes vs Mon Nov 23 settlements. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 24 final (middle of bid ranges; soybean basis vs January, corn vs December). Exchange rate: Bank of Canada daily rate, Nov 23 (Nov 24 not yet published). Market color: TFM midday update, Nov 24. Report dates: TFM, Farmbucks and USDA calendars."
+ "sources": "Futures: soybeans = Tue Nov 24 close ($12.34, Brownfield) adjusted by Pro Farmer's overnight change as of 6 a.m. CT Wed Nov 25 (Jan soybeans −11¢). Spring wheat, corn, Chicago wheat: Tue Nov 24 closes (Brownfield, USDA AMS) — overnight levels for these contracts were not available. Canola: Farmbucks delayed quote (ICE), Tue Nov 24 close. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 24 final (middle of bid ranges) — kept from last update; a newer report could not be retrieved. Exchange rate: Bank of Canada daily rate, Nov 23 (Nov 24 not yet published). Market color: Pro Farmer First Thing Today and Kluis AM update, Nov 25. Report dates: TFM, Farmbucks and USDA calendars."
 }
