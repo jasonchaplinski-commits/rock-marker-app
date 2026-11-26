@@ -1,46 +1,46 @@
 {
- "updated": "2026-11-25T14:55:00-05:00",
- "note": "Tue closes (Wed close not yet available)",
+ "updated": "2026-11-26T07:55:00-05:00",
+ "note": "Wed closes · markets closed Thanksgiving",
  "futures": [
   {
    "name": "Spring wheat",
    "short": "Spr wheat",
    "month": "Dec",
    "exch": "MGEX",
-   "last": 6.3675,
-   "chg": -0.0325
+   "last": 6.415,
+   "chg": 0.0475
   },
   {
    "name": "Soybeans",
    "short": "Soybeans",
    "month": "Jan",
    "exch": "CBOT",
-   "last": 12.23,
-   "chg": -0.11
+   "last": 12.44,
+   "chg": 0.1
   },
   {
    "name": "Corn",
    "short": "Corn",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 4.34,
-   "chg": -0.0025
+   "last": 4.3975,
+   "chg": 0.0575
   },
   {
    "name": "Chicago wheat",
    "short": "Chi wheat",
    "month": "Dec",
    "exch": "CBOT",
-   "last": 5.6975,
-   "chg": -0.0725
+   "last": 5.655,
+   "chg": -0.0425
   },
   {
    "name": "Canola (C$/tonne)",
    "short": "Canola",
    "month": "Jan",
    "exch": "ICE",
-   "last": 773.2,
-   "chg": -2.6
+   "last": 771.3,
+   "chg": -1.9
   }
  ],
  "cash": [
@@ -70,8 +70,8 @@
  },
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "fx": {
-  "cadPerUsd": 1.4296,
-  "date": "2026-11-24",
+  "cadPerUsd": 1.4219,
+  "date": "2026-11-25",
   "source": "Bank of Canada"
  },
  "reports": [
@@ -108,27 +108,27 @@
    "when": "Fri Dec 4 · 7:30 am CT"
   }
  ],
- "outlook": "Grains pulled back overnight ahead of the Thanksgiving break: as of 6 a.m. CT January soybeans were down 11 cents near $12.23 after Tuesday's climb to a new monthly high, March corn was down 1¼ cents, and March Chicago and Kansas City wheat were each off about 4½–4¾ cents. A firmer US dollar and sharply lower stock-index futures weighed on trade ahead of this morning's October PCE inflation report, and news of new Section 301 tariffs on China added uncertainty. Tuesday's closes were December corn $4.34, December Chicago wheat $5.69¾, Minneapolis December spring wheat $6.36¾ and ICE January canola C$773.20; other prices shown are those Tuesday closes. US markets are closed Thursday and close early Friday, and December contracts are being rolled ahead of first notice day Monday.",
+ "outlook": "Corn and soybeans rallied into Wednesday's close ahead of the Thanksgiving break, on fund buying and short covering, a weaker dollar and continued Chinese soybean purchases; traders also reacted to a USTR clarification that Section 301 tariffs on China are capped at 20%. December corn finished near $4.39¾ and January soybeans near $12.44, while Chicago wheat slipped about 4¼ cents to $5.65½ on December liquidation and slow exports. Minneapolis December spring wheat bucked that, gaining 4¾ cents to $6.41½, and ICE January canola eased C$1.90 to C$771.30 but finished well off its lows on solid demand. US markets are closed today and close early Friday, with December contracts rolling ahead of Monday's first notice day.",
  "news": [
   {
-   "title": "First Thing Today: Grain markets see pre-holiday pullback overnight; key inflation reading ahead",
-   "source": "Pro Farmer",
-   "url": "https://www.profarmer.com/news/first-thing-today/first-thing-today-grain-markets-see-pre-holiday-pullback-overnight-key-inflation-reading-ahead"
+   "title": "Corn, Soybeans and Meal Rally Pre-Holiday on Technical Buying; Cattle Crash",
+   "source": "AgWeb",
+   "url": "https://www.agweb.com/markets/corn-soybeans-and-meal-rally-pre-holiday-technical-buying-cattle-crash"
   },
   {
-   "title": "Closing Grain and Livestock Futures: November 24, 2026",
+   "title": "Wheat traded mixed, while corn and soybeans rose in Chicago on Wednesday",
+   "source": "UkrAgroConsult",
+   "url": "https://ukragroconsult.com/en/news/wheat-traded-mixed-while-corn-and-soybeans-rose-in-chicago-on-wednesday/"
+  },
+  {
+   "title": "Closing market update: Canola down, U.S. futures mixed in pre-Thanksgiving trade",
+   "source": "Alberta Farmer Express",
+   "url": "https://www.albertafarmexpress.ca/video/closing-market-update-canola-down-u-s-futures-mixed-in-pre-thanksgiving-trade-nov-25-2026/"
+  },
+  {
+   "title": "Closing Grain and Livestock Futures: November 25, 2026",
    "source": "Brownfield Ag News",
-   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-24-2026/"
-  },
-  {
-   "title": "Wednesday AM Update",
-   "source": "Kluis Commodity Advisors",
-   "url": "https://www.kluiscommodities.com/wednesday-am-update-364/"
-  },
-  {
-   "title": "Canola Futures (ICE RS)",
-   "source": "Farmbucks",
-   "url": "https://farmbucks.com/futures/grain-oilseeds/canola"
+   "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-25-2026/"
   },
   {
    "title": "Minneapolis Daily Grain Report",
@@ -136,5 +136,5 @@
    "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Futures: Wednesday Nov 25 closing prices could not be retrieved this run (sources blocked or not yet posted), so prices are unchanged from the morning update — spring wheat, corn, Chicago wheat and canola are Tue Nov 24 closes (Brownfield, USDA AMS, Farmbucks); soybeans are the Tue close adjusted by Pro Farmer's 6 a.m. CT Wed overnight change. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 24 (middle of bid ranges) — kept; newer report could not be retrieved. Exchange rate: Bank of Canada daily rate, Nov 24. Market color: Pro Farmer and Kluis, Nov 25 morning. Report dates: TFM, Farmbucks and USDA calendars."
+ "sources": "Futures: Wed Nov 25 closes — spring wheat and canola from Farmbucks (MGEX/ICE quotes at close); soybeans, corn and Chicago wheat from UkrAgroConsult's Wednesday close report (soybean price converted from $/ton, so it is approximate to about a cent; changes figured against Tuesday closes). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 24 (middle of bid ranges) — kept from the last update because the report served this run was an old copy. Exchange rate: Bank of Canada daily rate, Nov 25. Market color: AgWeb, UkrAgroConsult, Alberta Farmer Express, Nov 25. Report dates: TFM, Farmbucks and USDA calendars."
 }
