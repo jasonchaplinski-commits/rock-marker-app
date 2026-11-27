@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-26T07:55:00-05:00",
- "note": "Wed closes · markets closed Thanksgiving",
+ "updated": "2026-11-27T08:45:00-05:00",
+ "note": "Wed closes · Fri short session opens 8:30 am CT",
  "futures": [
   {
    "name": "Spring wheat",
@@ -46,27 +46,27 @@
  "cash": [
   {
    "crop": "Spring wheat 13%",
-   "where": "Minneapolis terminal · Nov 24",
-   "price": 6.3675,
-   "basis": 0
+   "where": "Minneapolis terminal · Nov 25",
+   "price": 6.415,
+   "basis": 0.0
   },
   {
    "crop": "Soybeans",
-   "where": "Minneapolis terminal · Nov 24",
-   "price": 11.69,
+   "where": "Minneapolis terminal · Nov 25",
+   "price": 11.79,
    "basis": -0.65
   },
   {
    "crop": "Corn",
-   "where": "Minneapolis terminal · Nov 24",
-   "price": 3.755,
+   "where": "Minneapolis terminal · Nov 25",
+   "price": 3.8125,
    "basis": -0.585
   }
  ],
  "cropPrice": {
-  "Wheat": 6.3675,
-  "Soybeans": 11.69,
-  "Corn": 3.755
+  "Wheat": 6.415,
+  "Soybeans": 11.79,
+  "Corn": 3.8125
  },
  "cropPriceNote": "Minneapolis terminal bids — your local elevator will be lower",
  "fx": {
@@ -75,10 +75,6 @@
   "source": "Bank of Canada"
  },
  "reports": [
-  {
-   "name": "Markets closed — Thanksgiving",
-   "when": "Thu Nov 26"
-  },
   {
    "name": "CME grain markets close early",
    "when": "Fri Nov 27 · noon CT"
@@ -106,10 +102,19 @@
   {
    "name": "Statistics Canada Production of Principal Field Crops",
    "when": "Fri Dec 4 · 7:30 am CT"
+  },
+  {
+   "name": "USDA Grain Export Inspections",
+   "when": "Mon Dec 7 · 10 am CT"
   }
  ],
- "outlook": "Corn and soybeans rallied into Wednesday's close ahead of the Thanksgiving break, on fund buying and short covering, a weaker dollar and continued Chinese soybean purchases; traders also reacted to a USTR clarification that Section 301 tariffs on China are capped at 20%. December corn finished near $4.39¾ and January soybeans near $12.44, while Chicago wheat slipped about 4¼ cents to $5.65½ on December liquidation and slow exports. Minneapolis December spring wheat bucked that, gaining 4¾ cents to $6.41½, and ICE January canola eased C$1.90 to C$771.30 but finished well off its lows on solid demand. US markets are closed today and close early Friday, with December contracts rolling ahead of Monday's first notice day.",
+ "outlook": "Prices below are still Wednesday's closes: US grain markets were shut for Thanksgiving and reopen this morning at 8:30 am CT for a short session that ends around noon. Corn and soybeans rallied into Wednesday on fund short covering, a weaker dollar and continued Chinese soybean buying, with December corn at $4.39¾ and January soybeans at $12.44. Chicago wheat slipped on December liquidation and slow exports, while Minneapolis December spring wheat gained 4¾ cents to $6.41½ and ICE January canola eased C$1.90 to C$771.30. Light holiday volume is expected today as traders roll out of December contracts ahead of Monday's first notice day.",
  "news": [
+  {
+   "title": "Analysts say grain prices have stalled",
+   "source": "High Plains Journal",
+   "url": "https://hpj.com/2026/11/27/analysts-say-grain-prices-have-stalled"
+  },
   {
    "title": "Corn, Soybeans and Meal Rally Pre-Holiday on Technical Buying; Cattle Crash",
    "source": "AgWeb",
@@ -129,12 +134,7 @@
    "title": "Closing Grain and Livestock Futures: November 25, 2026",
    "source": "Brownfield Ag News",
    "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-25-2026/"
-  },
-  {
-   "title": "Minneapolis Daily Grain Report",
-   "source": "USDA AMS",
-   "url": "https://www.ams.usda.gov/mnreports/ams_3046.pdf"
   }
  ],
- "sources": "Futures: Wed Nov 25 closes — spring wheat and canola from Farmbucks (MGEX/ICE quotes at close); soybeans, corn and Chicago wheat from UkrAgroConsult's Wednesday close report (soybean price converted from $/ton, so it is approximate to about a cent; changes figured against Tuesday closes). Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 24 (middle of bid ranges) — kept from the last update because the report served this run was an old copy. Exchange rate: Bank of Canada daily rate, Nov 25. Market color: AgWeb, UkrAgroConsult, Alberta Farmer Express, Nov 25. Report dates: TFM, Farmbucks and USDA calendars."
+ "sources": "Futures: Wed Nov 25 closes (no trade Thu; Fri session not yet open at update time) — spring wheat and canola from Farmbucks; soybeans, corn and Chicago wheat from UkrAgroConsult, matching USDA AMS settlements. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 25 final (middle of bid ranges; no report Nov 26–27). Exchange rate: Bank of Canada daily rate, Nov 25 (latest published). Market color: High Plains Journal, AgWeb, UkrAgroConsult, Alberta Farmer Express. Report dates: TFM, Farmbucks and USDA calendars."
 }
