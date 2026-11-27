@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-27T08:45:00-05:00",
- "note": "Wed closes · Fri short session opens 8:30 am CT",
+ "updated": "2026-11-27T14:50:00-05:00",
+ "note": "Wed closes shown · Fri short session ended noon CT (closes not yet published)",
  "futures": [
   {
    "name": "Spring wheat",
@@ -76,14 +76,6 @@
  },
  "reports": [
   {
-   "name": "CME grain markets close early",
-   "when": "Fri Nov 27 · noon CT"
-  },
-  {
-   "name": "USDA Weekly Export Sales (Thanksgiving week)",
-   "when": "Fri Nov 27 · 7:30 am CT"
-  },
-  {
    "name": "USDA Grain Export Inspections",
    "when": "Mon Nov 30 · 10 am CT"
   },
@@ -108,8 +100,18 @@
    "when": "Mon Dec 7 · 10 am CT"
   }
  ],
- "outlook": "Prices below are still Wednesday's closes: US grain markets were shut for Thanksgiving and reopen this morning at 8:30 am CT for a short session that ends around noon. Corn and soybeans rallied into Wednesday on fund short covering, a weaker dollar and continued Chinese soybean buying, with December corn at $4.39¾ and January soybeans at $12.44. Chicago wheat slipped on December liquidation and slow exports, while Minneapolis December spring wheat gained 4¾ cents to $6.41½ and ICE January canola eased C$1.90 to C$771.30. Light holiday volume is expected today as traders roll out of December contracts ahead of Monday's first notice day.",
+ "outlook": "Grain futures rallied in Friday's holiday-shortened session after Thanksgiving, led by soybeans, which were roughly 25 cents higher at midday along with gains in soybean meal; corn was up about 7–10 cents and wheat traded higher on all three exchanges, with Kansas City leading. USDA confirmed a private export sale of 132,000 tonnes of soybeans for 2026/27 delivery, adding to steady export demand. Friday settlement prices were not yet available from free sources at update time, so the futures and cash figures shown are still Wednesday's closes (Dec spring wheat $6.41½, Jan soybeans $12.44, Dec corn $4.39¾). Traders are rolling out of December contracts ahead of Monday's first notice day, and Statistics Canada's crop production report follows on Dec 4.",
  "news": [
+  {
+   "title": "Grain, Soybean and Cattle Futures Open Higher After Thanksgiving Break",
+   "source": "SSBCrack News",
+   "url": "https://news.ssbcrack.com/grain-soybean-and-cattle-futures-open-higher-after-thanksgiving-break/"
+  },
+  {
+   "title": "Corn Prices Stall as Exports Hit Record",
+   "source": "WiseVoter",
+   "url": "https://wisevoter.com/world/us/2026/11/27/corn-prices-stall-record-exports"
+  },
   {
    "title": "Analysts say grain prices have stalled",
    "source": "High Plains Journal",
@@ -121,20 +123,10 @@
    "url": "https://www.agweb.com/markets/corn-soybeans-and-meal-rally-pre-holiday-technical-buying-cattle-crash"
   },
   {
-   "title": "Wheat traded mixed, while corn and soybeans rose in Chicago on Wednesday",
-   "source": "UkrAgroConsult",
-   "url": "https://ukragroconsult.com/en/news/wheat-traded-mixed-while-corn-and-soybeans-rose-in-chicago-on-wednesday/"
-  },
-  {
-   "title": "Closing market update: Canola down, U.S. futures mixed in pre-Thanksgiving trade",
-   "source": "Alberta Farmer Express",
-   "url": "https://www.albertafarmexpress.ca/video/closing-market-update-canola-down-u-s-futures-mixed-in-pre-thanksgiving-trade-nov-25-2026/"
-  },
-  {
    "title": "Closing Grain and Livestock Futures: November 25, 2026",
    "source": "Brownfield Ag News",
    "url": "https://brownfieldagnews.com/news/closing-grain-and-livestock-futures-november-25-2026/"
   }
  ],
- "sources": "Futures: Wed Nov 25 closes (no trade Thu; Fri session not yet open at update time) — spring wheat and canola from Farmbucks; soybeans, corn and Chicago wheat from UkrAgroConsult, matching USDA AMS settlements. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 25 final (middle of bid ranges; no report Nov 26–27). Exchange rate: Bank of Canada daily rate, Nov 25 (latest published). Market color: High Plains Journal, AgWeb, UkrAgroConsult, Alberta Farmer Express. Report dates: TFM, Farmbucks and USDA calendars."
+ "sources": "Futures: Wed Nov 25 closes kept (Fri Nov 27 settlements not yet published on free sources at update time) — spring wheat and canola from Farmbucks; soybeans, corn and Chicago wheat from UkrAgroConsult/USDA AMS settlements. Friday market direction: Barchart midday commentary (via Farmers Cooperative Elevator site) and SSBCrack. Cash bids: USDA AMS Minneapolis Daily Grain Report, Nov 25 final (middle of bid ranges; no report Nov 26–27). Exchange rate: Bank of Canada daily rate, Nov 25 (latest kept). Report dates: TFM, Farmbucks and USDA calendars."
 }
